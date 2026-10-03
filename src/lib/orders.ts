@@ -5,8 +5,9 @@ import { deliveryProviders, dispatchCodes } from "@/lib/deliver";
 import { DeskError } from "@/lib/errors";
 import { lineTotal } from "@/lib/money";
 import { paymentMode } from "@/lib/payments";
+import { savePaymentProof } from "@/lib/proofs";
 import { addAudit, countCodes, releaseStale, requireProduct, toPublic, withStore } from "@/lib/store";
-import type { AdminSnapshot, BuyerOrder, Db, Order } from "@/lib/types";
+import type { AdminSnapshot, BuyerOrder, Db, Order, PaymentMethod } from "@/lib/types";
 import { reserveIn } from "@/lib/vouchers";
 
 function requireOrder(db: Db, orderId: string) {
@@ -31,7 +32,9 @@ export async function createCheckout(input: {
     releaseStale(db);
     const product = requireProduct(db, input.productSlug);
     const email = input.email.toLowerCase();
-    const pending = db.orders.filter((order) => order.email === email && order.status === "PENDING").length;
+    const pending = db.orders.filter(
+      (order) => order.email === email && (order.status === "PENDING" || order.status === "REVIEWING"),
+    ).length;
     if (pending >= 3) {
       throw new DeskError("TOO_MANY_PENDING", "You already have unpaid orders. Finish one, or wait 15 minutes.");
     }
@@ -70,6 +73,61 @@ export async function createCheckout(input: {
       token: signOrderAccess(orderId),
     };
   });
+}
+
+export async function submitPaymentProof(input: {
+  orderId: string;
+  token: string;
+  method: PaymentMethod;
+  transactionId: string;
+  proofDataUrl: string;
+}) {
+  assertOrderToken(input.orderId, input.token);
+  const txn = input.transactionId.trim().toUpperCase();
+  const proofFile = await savePaymentProof(input.orderId, input.proofDataUrl);
+
+  await withStore((db) => {
+    releaseStale(db);
+    const order = requireOrder(db, input.orderId);
+    if (order.status !== "PENDING" && order.status !== "REVIEWING") {
+      throw new DeskError("NOT_PAYABLE", "This order is not waiting for a deposit");
+    }
+    const clash = db.orders.find(
+      (item) => item.transactionId === txn && item.id !== order.id && item.status !== "FAILED",
+    );
+    if (clash) throw new DeskError("DUPLICATE_PAYMENT", "That transaction ID is already used");
+
+    order.status = "REVIEWING";
+    order.paymentMethod = input.method;
+    order.transactionId = txn;
+    order.proofFile = proofFile;
+    order.proofSubmittedAt = new Date().toISOString();
+    order.paymentRef = `${input.method}_${txn}`;
+    addAudit(db, order.email, "order.proof", order.id);
+  });
+
+  return { orderId: input.orderId, token: input.token };
+}
+
+export async function approvePayment(orderId: string) {
+  await withStore((db) => {
+    const order = requireOrder(db, orderId);
+    if (order.status !== "REVIEWING" && order.status !== "PENDING") {
+      throw new DeskError("NOT_PAYABLE", "This order is not waiting for approval");
+    }
+    if (!order.transactionId && !order.paymentRef) {
+      throw new DeskError("BAD_INPUT", "No payment proof on this order yet");
+    }
+    const ref = order.paymentRef ?? `manual_${order.transactionId ?? order.id}`;
+    const clash = db.orders.find((item) => item.paymentRef === ref && item.id !== order.id);
+    if (clash) throw new DeskError("DUPLICATE_PAYMENT", "That payment is already used");
+    order.status = "PAID";
+    order.paidAt = new Date().toISOString();
+    order.paymentRef = ref;
+    addAudit(db, "admin", "order.approve", order.id);
+  });
+  const sent = await deliverOrder(orderId);
+  return { orderId, emailed: sent.email, sms: sent.sms };
 }
 
 async function markPaid(orderId: string, paymentRef: string) {
@@ -115,15 +173,29 @@ export async function deliverOrder(orderId: string) {
       email: order.email,
       phone: order.phone,
       number: order.number,
+      title: productTitle(db, order),
+      total: order.total,
       codes: plain,
     };
   });
 
   if (!payload) return { email: false, sms: false };
   try {
-    return await dispatchCodes(payload);
-  } catch {
-    console.error("delivery_notify_failed");
+    const sent = await dispatchCodes(payload);
+    await withStore((db) => {
+      addAudit(
+        db,
+        "desk",
+        sent.email ? "order.email_sent" : "order.email_skipped",
+        orderId,
+      );
+    });
+    return sent;
+  } catch (error) {
+    console.error("delivery_notify_failed", error);
+    await withStore((db) => {
+      addAudit(db, "desk", "order.email_failed", orderId);
+    });
     return { email: false, sms: false };
   }
 }
@@ -178,6 +250,7 @@ export async function getOrderForBuyer(orderId: string, token: string | undefine
       id: order.id,
       number: order.number,
       email: order.email,
+      phone: order.phone,
       status: order.status,
       total: order.total,
       quantity: item?.quantity ?? 0,
@@ -185,6 +258,9 @@ export async function getOrderForBuyer(orderId: string, token: string | undefine
       createdAt: order.createdAt,
       paidAt: order.paidAt,
       deliveredAt: order.deliveredAt,
+      paymentMethod: order.paymentMethod,
+      transactionId: order.transactionId,
+      proofSubmittedAt: order.proofSubmittedAt,
       codes,
     };
   });
@@ -209,11 +285,16 @@ export async function getAdminSnapshot(): Promise<AdminSnapshot> {
           id: order.id,
           number: order.number,
           email: order.email,
+          phone: order.phone,
           status: order.status,
           total: order.total,
           quantity: order.items[0]?.quantity ?? 0,
           title: productTitle(db, order),
           createdAt: order.createdAt,
+          paymentMethod: order.paymentMethod,
+          transactionId: order.transactionId,
+          proofFile: order.proofFile,
+          proofSubmittedAt: order.proofSubmittedAt,
         })),
       audit: [...db.audit].reverse().slice(0, 20),
     };
@@ -248,7 +329,7 @@ export async function refundOrder(orderId: string) {
 export async function releasePending(orderId: string) {
   return withStore((db) => {
     const order = requireOrder(db, orderId);
-    if (order.status !== "PENDING") {
+    if (order.status !== "PENDING" && order.status !== "REVIEWING") {
       throw new DeskError("NOT_PAYABLE", "Only an unpaid hold can be released");
     }
     for (const code of db.codes) {
@@ -289,12 +370,22 @@ export async function resendOrder(orderId: string) {
       .filter((code) => code.orderId === order.id && code.status === "SOLD")
       .map((code) => decrypt(code.cipher));
     addAudit(db, "admin", "order.resend", order.id);
-    return { email: order.email, phone: order.phone, number: order.number, codes };
+    return {
+      email: order.email,
+      phone: order.phone,
+      number: order.number,
+      title: productTitle(db, order),
+      total: order.total,
+      codes,
+    };
   });
 
   try {
     const sent = await dispatchCodes(payload);
-    return { ...sent, message: "The code was sent again." };
+    return {
+      ...sent,
+      message: sent.email ? "Voucher email sent again." : "No email provider configured.",
+    };
   } catch {
     console.error("delivery_notify_failed");
     return { email: false, sms: false, message: "The provider did not accept the message." };

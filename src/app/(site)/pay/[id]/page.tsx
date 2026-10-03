@@ -25,13 +25,15 @@ export default async function PayPage({
 
   try {
     const order = await getOrderForBuyer(id, t);
-    if (order.status === "DELIVERED" && t) redirect(`/orders/${id}?t=${encodeURIComponent(t)}`);
+    if ((order.status === "DELIVERED" || order.status === "REVIEWING" || order.status === "PAID") && t) {
+      redirect(`/orders/${id}?t=${encodeURIComponent(t)}`);
+    }
     if (order.status === "FAILED" || order.status === "REFUNDED") {
       return (
         <Frame className="py-24">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-gold">Checkout</p>
+          <p className="text-xs uppercase tracking-[0.22em] text-white/45">Checkout</p>
           <h1 className="mt-4 display text-5xl">This hold has ended.</h1>
-          <p className="mt-4 max-w-md text-muted">Start again from the catalog. Unpaid codes return to the desk.</p>
+          <p className="mt-4 max-w-md text-white/55">Start again from the catalog. Unpaid codes return to the desk.</p>
           <div className="mt-8">
             <ButtonLink href="/catalog">Back to the catalog</ButtonLink>
           </div>
@@ -40,16 +42,23 @@ export default async function PayPage({
     }
     if (!t) throw new DeskError("UNAUTHORIZED", "This link is not valid.");
     return (
-      <Frame className="py-16 md:py-24">
-        <PayPanel
-          orderId={order.id}
-          token={t}
-          number={order.number}
-          email={order.email}
-          total={order.total}
-          title={order.title}
+      <section className="relative overflow-hidden py-16 md:py-24">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-0 h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-white/[0.035] blur-[110px]"
         />
-      </Frame>
+        <Frame className="relative">
+          <PayPanel
+            orderId={order.id}
+            token={t}
+            number={order.number}
+            email={order.email}
+            phone={order.phone}
+            total={order.total}
+            title={order.title}
+          />
+        </Frame>
+      </section>
     );
   } catch (error) {
     if (error instanceof DeskError) {

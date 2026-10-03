@@ -1,5 +1,6 @@
-export type OrderStatus = "PENDING" | "PAID" | "DELIVERED" | "FAILED" | "REFUNDED";
+export type OrderStatus = "PENDING" | "REVIEWING" | "PAID" | "DELIVERED" | "FAILED" | "REFUNDED";
 export type CodeStatus = "AVAILABLE" | "RESERVED" | "SOLD" | "VOID";
+export type PaymentMethod = "bkash" | "nagad" | "rocket" | "bank";
 
 export type Category = {
   id: string;
@@ -44,6 +45,10 @@ export type Order = {
   status: OrderStatus;
   total: number;
   paymentRef?: string;
+  paymentMethod?: PaymentMethod;
+  transactionId?: string;
+  proofFile?: string;
+  proofSubmittedAt?: string;
   items: OrderItem[];
   codeIds: string[];
   createdAt: string;
@@ -92,11 +97,16 @@ export type AdminSnapshot = {
     id: string;
     number: string;
     email: string;
+    phone?: string;
     status: OrderStatus;
     total: number;
     quantity: number;
     title: string;
     createdAt: string;
+    paymentMethod?: PaymentMethod;
+    transactionId?: string;
+    proofFile?: string;
+    proofSubmittedAt?: string;
   }>;
   audit: Audit[];
 };
@@ -105,6 +115,7 @@ export type BuyerOrder = {
   id: string;
   number: string;
   email: string;
+  phone?: string;
   status: OrderStatus;
   total: number;
   quantity: number;
@@ -112,5 +123,8 @@ export type BuyerOrder = {
   createdAt: string;
   paidAt?: string;
   deliveredAt?: string;
+  paymentMethod?: PaymentMethod;
+  transactionId?: string;
+  proofSubmittedAt?: string;
   codes: string[];
 };

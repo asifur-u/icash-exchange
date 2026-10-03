@@ -17,9 +17,9 @@ export function assertSameOrigin(req: Request) {
   }
 }
 
-export async function readJson(req: Request) {
+export async function readJson(req: Request, maxBytes = 100_000) {
   const text = await req.text();
-  if (text.length > 100_000) throw new DeskError("BAD_INPUT", "Request is too large");
+  if (text.length > maxBytes) throw new DeskError("BAD_INPUT", "Request is too large");
   try {
     return JSON.parse(text) as unknown;
   } catch {

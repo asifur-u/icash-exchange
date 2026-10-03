@@ -6,14 +6,16 @@ import { AnimatePresence, motion } from "motion/react";
 import { Frame } from "@/components/frame";
 import { platforms } from "@/lib/platforms";
 
-const INTERVAL_MS = 2800;
-const RESUME_MS = 5000;
+const INTERVAL_MS = 3000;
+const RESUME_MS = 6000;
 
 export function Platforms() {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const [enabled, setEnabled] = useState(false);
   const resumeTimer = useRef<number | null>(null);
+  const stripRef = useRef<HTMLDivElement>(null);
+  const chipRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const count = platforms.length;
 
   useEffect(() => {
@@ -28,6 +30,16 @@ export function Platforms() {
     }, INTERVAL_MS);
     return () => window.clearInterval(id);
   }, [enabled, paused, count]);
+
+  useEffect(() => {
+    const chip = chipRefs.current[active];
+    const strip = stripRef.current;
+    if (!chip || !strip) return;
+    const chipLeft = chip.offsetLeft;
+    const chipWidth = chip.offsetWidth;
+    const target = chipLeft - strip.clientWidth / 2 + chipWidth / 2;
+    strip.scrollTo({ left: Math.max(0, target), behavior: "smooth" });
+  }, [active]);
 
   useEffect(() => {
     return () => {
@@ -69,7 +81,7 @@ export function Platforms() {
             Desks we connect with.
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-white/50">
-            Real platforms. Live connections. Built so buyers trust the desk at a glance.
+            Auto slides. Tap any chip below to jump. The selected desk stays highlighted.
           </p>
         </div>
 
@@ -87,23 +99,14 @@ export function Platforms() {
             <AnimatePresence mode="wait">
               <motion.article
                 key={current.id}
-                initial={{ opacity: 0, x: 48, scale: 0.94 }}
+                initial={{ opacity: 0, x: 56, scale: 0.94 }}
                 animate={{ opacity: 1, x: 0, scale: 1 }}
-                exit={{ opacity: 0, x: -48, scale: 0.94 }}
+                exit={{ opacity: 0, x: -56, scale: 0.94 }}
                 transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
                 className="partner-stage relative z-10 flex w-[min(100%,340px)] flex-col items-center rounded-[40px] px-8 py-10 sm:w-[380px] sm:px-10 sm:py-12"
               >
                 <div className="partner-glow" aria-hidden="true" />
-                <div className="relative flex h-36 w-36 items-center justify-center overflow-hidden rounded-[32px] border border-white/25 bg-white shadow-[0_30px_80px_rgba(255,255,255,0.12)] sm:h-40 sm:w-40">
-                  <Image
-                    src={current.logo}
-                    alt={`${current.label} logo`}
-                    width={160}
-                    height={160}
-                    unoptimized
-                    className="h-full w-full object-cover"
-                  />
-                </div>
+                <LogoTile src={current.logo} alt={`${current.label} logo`} size="lg" />
                 <p className="mt-8 text-3xl font-medium tracking-tight text-white sm:text-4xl">
                   {current.label}
                 </p>
@@ -149,7 +152,7 @@ export function Platforms() {
                   >
                     {selected && enabled ? (
                       <span
-                        key={`${platform.id}-progress`}
+                        key={`${platform.id}-progress-${active}-${paused ? "p" : "r"}`}
                         className="block h-full rounded-full bg-white"
                         style={{
                           animation: paused ? "none" : `partner-progress ${INTERVAL_MS}ms linear`,
@@ -173,42 +176,84 @@ export function Platforms() {
         </div>
       </Frame>
 
-      <div className="relative mt-16 overflow-hidden">
-        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-20 bg-gradient-to-r from-black to-transparent" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-black to-transparent" />
-        <div className="marquee-track flex gap-4 px-4">
-          {[...platforms, ...platforms].map((platform, index) => (
-            <button
-              key={`${platform.id}-strip-${index}`}
-              type="button"
-              onClick={() => pick(index % count)}
-              className={`partner-chip flex min-w-[200px] items-center gap-4 rounded-[24px] border px-4 py-4 text-left transition ${
-                index % count === active
-                  ? "border-white/35 bg-white/[0.08]"
-                  : "border-white/10 bg-white/[0.03] hover:border-white/25"
-              }`}
-            >
-              <span className="relative flex h-12 w-12 shrink-0 overflow-hidden rounded-2xl bg-white">
-                <Image
-                  src={platform.logo}
-                  alt=""
-                  width={48}
-                  height={48}
-                  unoptimized
-                  className="h-full w-full object-cover"
-                />
-              </span>
-              <span>
-                <span className="block text-sm font-medium tracking-tight text-white">{platform.label}</span>
-                <span className="mt-1 block text-[10px] uppercase tracking-[0.2em] text-white/40">
-                  Connected
+      <div className="relative mt-16">
+        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-black to-transparent sm:w-24" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-black to-transparent sm:w-24" />
+        <div
+          ref={stripRef}
+          className="flex gap-4 overflow-x-auto scroll-smooth px-5 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {platforms.map((platform, index) => {
+            const selected = index === active;
+            return (
+              <button
+                key={platform.id}
+                type="button"
+                ref={(node) => {
+                  chipRefs.current[index] = node;
+                }}
+                onClick={() => pick(index)}
+                aria-pressed={selected}
+                className={`partner-chip flex min-w-[220px] shrink-0 items-center gap-4 rounded-[26px] border px-4 py-4 text-left transition ${
+                  selected
+                    ? "border-white bg-white text-black shadow-[0_18px_50px_rgba(255,255,255,0.14)]"
+                    : "border-white/12 bg-white/[0.03] text-white hover:border-white/35"
+                }`}
+              >
+                <LogoTile src={platform.logo} alt="" size="sm" selected={selected} />
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-medium tracking-tight">{platform.label}</span>
+                  <span
+                    className={`mt-1 block text-[10px] uppercase tracking-[0.2em] ${
+                      selected ? "text-black/50" : "text-white/40"
+                    }`}
+                  >
+                    {selected ? "Selected" : "Connected"}
+                  </span>
                 </span>
-              </span>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
       </div>
     </section>
+  );
+}
+
+function LogoTile({
+  src,
+  alt,
+  size,
+  selected = false,
+}: {
+  src: string;
+  alt: string;
+  size: "sm" | "md" | "lg";
+  selected?: boolean;
+}) {
+  const box =
+    size === "lg"
+      ? "h-36 w-36 rounded-[32px] sm:h-40 sm:w-40"
+      : size === "md"
+        ? "h-20 w-20 rounded-[22px]"
+        : "h-14 w-14 rounded-2xl";
+  const px = size === "lg" ? 160 : size === "md" ? 80 : 56;
+
+  return (
+    <span
+      className={`relative flex shrink-0 items-center justify-center overflow-hidden border bg-white ${box} ${
+        selected ? "border-black/10 shadow-none" : "border-white/20 shadow-[0_16px_40px_rgba(255,255,255,0.1)]"
+      }`}
+    >
+      <Image
+        src={src}
+        alt={alt}
+        width={px}
+        height={px}
+        unoptimized
+        className="h-full w-full object-cover"
+      />
+    </span>
   );
 }
 
@@ -225,7 +270,7 @@ function SideCard({
     <motion.button
       type="button"
       key={`${side}-${platform.id}`}
-      initial={{ opacity: 0.35 }}
+      initial={{ opacity: 0.3 }}
       animate={{ opacity: 0.55 }}
       transition={{ duration: 0.35 }}
       onClick={onClick}
@@ -234,16 +279,7 @@ function SideCard({
         side === "left" ? "left-4 -rotate-6 lg:left-10" : "right-4 rotate-6 lg:right-10"
       }`}
     >
-      <span className="flex h-20 w-20 overflow-hidden rounded-[22px] bg-white">
-        <Image
-          src={platform.logo}
-          alt=""
-          width={80}
-          height={80}
-          unoptimized
-          className="h-full w-full object-cover"
-        />
-      </span>
+      <LogoTile src={platform.logo} alt="" size="md" />
       <span className="mt-5 block text-xl font-medium tracking-tight text-white">{platform.label}</span>
       <span className="mt-2 block text-[10px] uppercase tracking-[0.2em] text-white/35">Connected</span>
     </motion.button>

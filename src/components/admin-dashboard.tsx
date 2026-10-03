@@ -25,6 +25,9 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
+  const reviewing = snapshot.orders.filter((order) => order.status === "REVIEWING");
+  const others = snapshot.orders.filter((order) => order.status !== "REVIEWING");
+
   async function run(action: () => Promise<string>) {
     setPending(true);
     setError(null);
@@ -43,12 +46,12 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
     <div className="mx-auto w-full max-w-[1120px] px-5 py-12 sm:px-8">
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.22em] text-gold">Owner</p>
+          <p className="text-[11px] uppercase tracking-[0.22em] text-white/45">Owner</p>
           <h1 className="mt-3 display text-5xl">The desk</h1>
         </div>
         <button
           type="button"
-          className="text-sm text-white/60 hover:text-gold"
+          className="text-sm text-white/60 hover:text-white"
           onClick={async () => {
             await fetch("/api/admin/logout", { method: "POST" });
             window.location.assign("/admin/login");
@@ -59,6 +62,109 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
       </div>
 
       <section className="mt-14">
+        <div className="flex items-end justify-between gap-4">
+          <h2 className="display text-3xl">Payment inbox</h2>
+          <p className="text-sm text-white/45">{reviewing.length} waiting</p>
+        </div>
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/50">
+          User screenshots and TrxIDs land here from checkout. Approve to unlock the reserved voucher and email the code.
+        </p>
+
+        <div className="mt-8 grid gap-5">
+          {reviewing.length === 0 ? (
+            <div className="rounded-[28px] border border-white/10 bg-white/[0.02] px-6 py-8 text-white/45">
+              No deposit proofs waiting.
+            </div>
+          ) : null}
+          {reviewing.map((order) => (
+            <article key={order.id} className="premium-card overflow-hidden rounded-[32px] p-5 sm:p-6">
+              <div className="grid gap-5 lg:grid-cols-[minmax(240px,0.9fr)_1.1fr]">
+                {order.proofFile ? (
+                  <a
+                    href={`/api/admin/orders/${order.id}/proof`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group relative block overflow-hidden rounded-[22px] border border-white/15 bg-black"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`/api/admin/orders/${order.id}/proof`}
+                      alt={`Payment proof for ${order.number}`}
+                      className="mx-auto max-h-[320px] w-full object-contain object-center"
+                    />
+                    <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-3 py-3 text-center text-[11px] uppercase tracking-[0.16em] text-white/70 opacity-90 transition group-hover:text-white">
+                      Tap for full size
+                    </span>
+                  </a>
+                ) : (
+                  <div className="flex min-h-[180px] items-center justify-center rounded-[22px] border border-dashed border-white/15 text-sm text-white/40">
+                    No screenshot
+                  </div>
+                )}
+
+                <div className="flex flex-col justify-between gap-5">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <p className="font-mono text-xs text-white/50">{order.number}</p>
+                      <span className="rounded-full border border-amber-200/30 bg-amber-200/10 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-amber-100/90">
+                        Needs review
+                      </span>
+                    </div>
+                    <p className="mt-3 display text-4xl">{formatBdt(order.total)}</p>
+                    <p className="mt-3 text-sm leading-relaxed text-white/55">
+                      {order.email}
+                      {order.phone ? ` · ${order.phone}` : ""}
+                      <br />
+                      {order.title} × {order.quantity} · {formatWhen(order.createdAt)}
+                    </p>
+                    <div className="mt-4 rounded-[20px] border border-white/12 bg-black/40 px-4 py-3">
+                      <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">Payment proof</p>
+                      <p className="mt-2 font-mono text-sm text-white/90">
+                        {(order.paymentMethod ?? "pay").toUpperCase()} · {order.transactionId ?? "—"}
+                      </p>
+                      {order.proofSubmittedAt ? (
+                        <p className="mt-2 text-xs text-white/45">Uploaded {formatWhen(order.proofSubmittedAt)}</p>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      disabled={pending}
+                      onClick={() =>
+                        run(async () => {
+                          const data = await post(`/api/admin/orders/${order.id}/approve`);
+                          return data.message ?? "Approved. Voucher emailed.";
+                        })
+                      }
+                    >
+                      Approve & email code
+                    </Button>
+                    {order.proofFile ? (
+                      <a
+                        href={`/api/admin/orders/${order.id}/proof`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex h-12 items-center rounded-full border border-white/20 px-5 text-sm text-white transition hover:border-white hover:bg-white/5"
+                      >
+                        Open full image
+                      </a>
+                    ) : null}
+                    <Button
+                      variant="ghost"
+                      disabled={pending}
+                      onClick={() => run(async () => (await post(`/api/admin/orders/${order.id}/release`), "Hold released"))}
+                    >
+                      Reject / release
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-14">
         <h2 className="display text-3xl">Stock</h2>
         <ul className="mt-6 divide-y divide-white/10 border-y border-white/10">
           {snapshot.products.map((product) => (
@@ -67,7 +173,7 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
                 <p className="display text-3xl">{formatBdt(product.faceValue)}</p>
                 <p className="text-sm text-muted">{product.title}</p>
               </div>
-              <p className="font-mono text-sm text-gold">
+              <p className="font-mono text-sm text-white/70">
                 {product.stock} ready · {product.reserved} held · {product.sold} sold · {product.voided} void
               </p>
             </li>
@@ -78,16 +184,16 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
       <section className="mt-14 max-w-xl">
         <h2 className="display text-3xl">Upload codes</h2>
         <p className="mt-3 text-sm leading-relaxed text-muted">
-          One code per line, or a CSV. Letters, numbers, and hyphens. Codes are encrypted before they are saved, and they are not shown here again.
+          One code per line. Codes are encrypted in `.data` and reserved when a buyer checks out. Approve unlocks one for email + order page.
         </p>
-        <label className="mt-6 block text-[11px] uppercase tracking-[0.18em] text-gold" htmlFor="product">
+        <label className="mt-6 block text-[11px] uppercase tracking-[0.18em] text-white/45" htmlFor="product">
           Note
         </label>
         <select
           id="product"
           value={slug}
           onChange={(event) => setSlug(event.target.value)}
-          className="mt-2 w-full border-b border-white/20 bg-black py-3 text-white outline-none"
+          className="mt-2 w-full rounded-2xl border border-white/15 bg-black px-4 py-3 text-white outline-none"
         >
           {snapshot.products.map((product) => (
             <option key={product.id} value={product.slug}>
@@ -95,7 +201,7 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
             </option>
           ))}
         </select>
-        <label className="mt-6 block text-[11px] uppercase tracking-[0.18em] text-gold" htmlFor="codes">
+        <label className="mt-6 block text-[11px] uppercase tracking-[0.18em] text-white/45" htmlFor="codes">
           Codes
         </label>
         <textarea
@@ -103,7 +209,7 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
           value={csv}
           onChange={(event) => setCsv(event.target.value)}
           rows={6}
-          className="mt-2 w-full border border-white/15 bg-transparent p-3 font-mono text-sm text-white outline-none focus:border-gold"
+          className="mt-2 w-full rounded-2xl border border-white/15 bg-transparent p-3 font-mono text-sm text-white outline-none focus:border-white/40"
           placeholder={"ICASH-1000-ABCD\nICASH-1000-EFGH"}
         />
         <Button
@@ -122,20 +228,37 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
       </section>
 
       <section className="mt-16">
-        <h2 className="display text-3xl">Orders</h2>
+        <h2 className="display text-3xl">All orders</h2>
         <ul className="mt-6 divide-y divide-white/10 border-y border-white/10">
-          {snapshot.orders.length === 0 ? <li className="py-6 text-muted">No orders yet.</li> : null}
-          {snapshot.orders.map((order) => (
-            <li key={order.id} className="flex flex-col gap-4 py-5 lg:flex-row lg:items-center lg:justify-between">
+          {others.length === 0 ? <li className="py-6 text-muted">No other orders yet.</li> : null}
+          {others.map((order) => (
+            <li key={order.id} className="flex flex-col gap-4 py-6 lg:flex-row lg:items-start lg:justify-between">
               <div>
-                <p className="font-mono text-xs text-gold">{order.number}</p>
+                <p className="font-mono text-xs text-white/50">{order.number}</p>
                 <p className="mt-1 display text-3xl">{formatBdt(order.total)}</p>
-                <p className="text-sm text-muted">
-                  {order.email} · {order.title} × {order.quantity} · {formatWhen(order.createdAt)}
+                <p className="mt-2 text-sm text-muted">
+                  {order.email}
+                  {order.phone ? ` · ${order.phone}` : ""} · {order.title} × {order.quantity} ·{" "}
+                  {formatWhen(order.createdAt)}
                 </p>
+                {order.transactionId ? (
+                  <p className="mt-2 font-mono text-sm text-white/70">
+                    {(order.paymentMethod ?? "pay").toUpperCase()} · {order.transactionId}
+                  </p>
+                ) : null}
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <span className="text-[11px] uppercase tracking-[0.16em] text-white/70">{order.status}</span>
+                {order.proofFile ? (
+                  <a
+                    href={`/api/admin/orders/${order.id}/proof`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex h-12 items-center rounded-full border border-white/20 px-5 text-sm text-white transition hover:border-white hover:bg-white/5"
+                  >
+                    Screenshot
+                  </a>
+                ) : null}
                 {order.status === "PENDING" ? (
                   <Button
                     variant="ghost"
@@ -165,7 +288,7 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
                       })
                     }
                   >
-                    Resend
+                    Resend email
                   </Button>
                 ) : null}
               </div>
@@ -180,7 +303,7 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
           {snapshot.audit.length === 0 ? <li className="py-6 text-muted">No owner actions yet.</li> : null}
           {snapshot.audit.map((entry) => (
             <li key={entry.id} className="flex flex-col gap-1 py-4 sm:flex-row sm:justify-between">
-              <p className="font-mono text-sm text-gold">{entry.action}</p>
+              <p className="font-mono text-sm text-white/80">{entry.action}</p>
               <p className="text-sm text-muted">
                 {entry.actor} · {formatWhen(entry.createdAt)}
               </p>
@@ -189,7 +312,7 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
         </ul>
       </section>
 
-      {message ? <p className="mt-8 text-sm text-gold">{message}</p> : null}
+      {message ? <p className="mt-8 text-sm text-white/80">{message}</p> : null}
       {error ? <p className="mt-8 text-sm text-[#e8c4b8]">{error}</p> : null}
     </div>
   );

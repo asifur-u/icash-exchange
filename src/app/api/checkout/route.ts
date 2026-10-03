@@ -15,7 +15,7 @@ export async function POST(req: Request) {
       productSlug: body.productSlug,
       quantity: body.quantity,
       email: body.email,
-      phone: body.phone ? body.phone : undefined,
+      phone: body.phone,
     });
     const origin = siteOrigin(req);
     return Response.json(
