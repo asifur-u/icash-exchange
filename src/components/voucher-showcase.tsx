@@ -62,7 +62,20 @@ export function VoucherShowcase({ products }: { products: PublicProduct[] }) {
           </div>
         </div>
 
-        <div className="mt-10 grid items-center gap-8 sm:mt-14 sm:gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:gap-14">
+        <div className="mt-8 grid items-center gap-6 sm:mt-14 sm:gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:gap-14">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`card-${active.id}`}
+              initial={{ opacity: 0.4, scale: 0.96, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0.3, scale: 0.97, y: -12 }}
+              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+              className="order-1 mx-auto w-full max-w-[620px] lg:order-2"
+            >
+              <VoucherCard faceValue={active.faceValue} title={active.title} large />
+            </motion.div>
+          </AnimatePresence>
+
           <AnimatePresence mode="wait">
             <motion.div
               key={active.id}
@@ -70,7 +83,7 @@ export function VoucherShowcase({ products }: { products: PublicProduct[] }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -14 }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="premium-card relative overflow-hidden rounded-[28px] p-5 sm:rounded-[40px] sm:p-12"
+              className="premium-card relative order-2 overflow-hidden rounded-[24px] p-5 sm:rounded-[40px] sm:p-12 lg:order-1"
             >
               <div
                 aria-hidden="true"
@@ -84,48 +97,39 @@ export function VoucherShowcase({ products }: { products: PublicProduct[] }) {
                   {index + 1} / {products.length}
                 </p>
               </div>
-              <p className="relative mt-8 display text-[clamp(3.4rem,8vw,5.8rem)]">
+              <p className="relative mt-5 display text-[clamp(2.4rem,10vw,5.8rem)] sm:mt-8">
                 {formatBdt(active.faceValue)}
               </p>
-              <p className="relative mt-3 text-xl font-medium tracking-tight text-white/80">{active.title}</p>
-              <p className="relative mt-5 max-w-md text-lg leading-relaxed text-white/50">{active.blurb}</p>
-              <div className="relative mt-8 flex flex-wrap gap-3">
-                <span className="rounded-full border border-white/15 px-4 py-2 text-xs uppercase tracking-[0.18em] text-white/55">
+              <p className="relative mt-2 text-lg font-medium tracking-tight text-white/80 sm:mt-3 sm:text-xl">
+                {active.title}
+              </p>
+              <p className="relative mt-3 max-w-md text-base leading-relaxed text-white/50 sm:mt-5 sm:text-lg">
+                {active.blurb}
+              </p>
+              <div className="relative mt-5 flex flex-wrap gap-2 sm:mt-8 sm:gap-3">
+                <span className="rounded-full border border-white/15 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-white/55 sm:px-4 sm:py-2 sm:text-xs">
                   Encrypted
                 </span>
-                <span className="rounded-full border border-white/15 px-4 py-2 text-xs uppercase tracking-[0.18em] text-white/55">
+                <span className="rounded-full border border-white/15 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-white/55 sm:px-4 sm:py-2 sm:text-xs">
                   Sold once
                 </span>
-                <span className="rounded-full border border-white/15 px-4 py-2 text-xs uppercase tracking-[0.18em] text-white/55">
+                <span className="rounded-full border border-white/15 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-white/55 sm:px-4 sm:py-2 sm:text-xs">
                   Instant
                 </span>
               </div>
               <Link
                 href={`/order/${active.slug}`}
-                className="relative mt-10 inline-flex h-14 items-center rounded-full bg-white px-8 text-base font-medium tracking-tight text-black transition hover:bg-white/85"
+                className="relative mt-6 inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-8 text-base font-medium tracking-tight text-black transition hover:bg-white/85 sm:mt-10 sm:h-14 sm:w-auto"
               >
                 Open {active.title}
               </Link>
             </motion.div>
           </AnimatePresence>
-
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`card-${active.id}`}
-              initial={{ opacity: 0.4, scale: 0.96, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0.3, scale: 0.97, y: -12 }}
-              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-              className="mx-auto w-full max-w-[620px]"
-            >
-              <VoucherCard faceValue={active.faceValue} title={active.title} large />
-            </motion.div>
-          </AnimatePresence>
         </div>
 
-        <div className="mt-12">
-          <p className="mb-4 text-xs uppercase tracking-[0.22em] text-white/40">Choose a value</p>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" role="listbox" aria-label="Voucher values">
+        <div className="mt-8 sm:mt-12">
+          <p className="mb-3 text-xs uppercase tracking-[0.22em] text-white/40 sm:mb-4">Choose a value</p>
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4" role="listbox" aria-label="Voucher values">
             {products.map((product, productIndex) => {
               const selected = productIndex === index;
               return (
@@ -135,17 +139,19 @@ export function VoucherShowcase({ products }: { products: PublicProduct[] }) {
                   role="option"
                   aria-selected={selected}
                   onClick={() => setIndex(productIndex)}
-                  className={`rounded-[28px] border px-5 py-6 text-left transition ${
+                  className={`rounded-[20px] border px-3.5 py-4 text-left transition sm:rounded-[28px] sm:px-5 sm:py-6 ${
                     selected
                       ? "border-white bg-gradient-to-b from-white to-white/85 text-black shadow-[0_20px_60px_rgba(255,255,255,0.12)]"
                       : "border-white/15 bg-white/[0.03] text-white hover:border-white/40 hover:bg-white/[0.06]"
                   }`}
                 >
-                  <p className={`text-[11px] uppercase tracking-[0.18em] ${selected ? "text-black/55" : "text-white/45"}`}>
+                  <p className={`text-[10px] uppercase tracking-[0.18em] sm:text-[11px] ${selected ? "text-black/55" : "text-white/45"}`}>
                     {product.title}
                   </p>
-                  <p className="mt-3 text-3xl font-medium tracking-tight">{formatBdt(product.faceValue)}</p>
-                  <p className={`mt-2 text-xs uppercase tracking-[0.18em] ${selected ? "text-black/45" : "text-white/35"}`}>
+                  <p className="mt-2 text-xl font-medium tracking-tight sm:mt-3 sm:text-3xl">
+                    {formatBdt(product.faceValue)}
+                  </p>
+                  <p className={`mt-1.5 text-[10px] uppercase tracking-[0.18em] sm:mt-2 sm:text-xs ${selected ? "text-black/45" : "text-white/35"}`}>
                     {product.stock > 0 ? `${product.stock} ready` : "Sold out"}
                   </p>
                 </button>

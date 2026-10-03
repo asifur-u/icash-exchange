@@ -93,7 +93,7 @@ export function Platforms() {
           <div className="pointer-events-none absolute inset-y-8 left-0 z-20 w-10 bg-gradient-to-r from-black to-transparent sm:w-28" />
           <div className="pointer-events-none absolute inset-y-8 right-0 z-20 w-10 bg-gradient-to-l from-black to-transparent sm:w-28" />
 
-          <div className="relative flex h-[320px] items-center justify-center sm:h-[380px] md:h-[420px]">
+          <div className="relative flex h-[300px] items-center justify-center sm:h-[380px] md:h-[420px]">
             <SideCard platform={prev} side="left" onClick={() => go(-1)} />
 
             <AnimatePresence mode="wait">
@@ -103,7 +103,7 @@ export function Platforms() {
                 animate={{ opacity: 1, x: 0, scale: 1 }}
                 exit={{ opacity: 0, x: -56, scale: 0.94 }}
                 transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
-                className="partner-stage relative z-10 flex w-[min(100%,300px)] flex-col items-center rounded-[28px] px-5 py-8 sm:w-[380px] sm:rounded-[40px] sm:px-10 sm:py-12"
+                className="partner-stage relative z-10 flex w-[min(100%,280px)] flex-col items-center rounded-[24px] px-4 py-7 sm:w-[380px] sm:rounded-[40px] sm:px-10 sm:py-12"
               >
                 <div className="partner-glow" aria-hidden="true" />
                 <LogoTile src={current.logo} alt={`${current.label} logo`} size="lg" />
