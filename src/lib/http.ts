@@ -28,12 +28,14 @@ export async function readJson(req: Request, maxBytes = 100_000) {
 }
 
 export function siteOrigin(req: Request) {
+  const host = req.headers.get("host") ?? "";
+  if (/^[a-zA-Z0-9.-]+(?::\d+)?$/.test(host)) {
+    const proto = req.headers.get("x-forwarded-proto") ?? "https";
+    return `${proto}://${host}`;
+  }
   const configured = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
   if (configured) return configured;
-  const host = req.headers.get("host") ?? "";
-  if (!/^[a-zA-Z0-9.-]+(?::\d+)?$/.test(host)) return "http://localhost:3000";
-  const proto = req.headers.get("x-forwarded-proto") ?? "http";
-  return `${proto}://${host}`;
+  return "http://localhost:3000";
 }
 
 export const noStore = { "Cache-Control": "no-store" };
