@@ -107,6 +107,7 @@ export type AdminSnapshot = {
     transactionId?: string;
     proofFile?: string;
     proofSubmittedAt?: string;
+    codes?: string[];
   }>;
   audit: Audit[];
 };

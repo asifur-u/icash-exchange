@@ -126,8 +126,9 @@ export async function approvePayment(orderId: string) {
     order.paymentRef = ref;
     addAudit(db, "admin", "order.approve", order.id);
   });
-  const sent = await deliverOrder(orderId);
-  return { orderId, emailed: sent.email, sms: sent.sms };
+  // Unlock codes for the desk. Owner copies and sends manually (use Resend if email needed).
+  const unlocked = await deliverOrder(orderId, { notify: false });
+  return { orderId, emailed: false, sms: false, codes: unlocked.codes };
 }
 
 async function markPaid(orderId: string, paymentRef: string) {
@@ -147,10 +148,25 @@ async function markPaid(orderId: string, paymentRef: string) {
   });
 }
 
-export async function deliverOrder(orderId: string) {
+export async function deliverOrder(orderId: string, options?: { notify?: boolean }) {
+  const notify = options?.notify !== false;
+
   const payload = await withStore((db) => {
     const order = requireOrder(db, orderId);
-    if (order.status === "DELIVERED") return null;
+    if (order.status === "DELIVERED") {
+      const codes = db.codes
+        .filter((code) => code.orderId === order.id && code.status === "SOLD")
+        .map((code) => decrypt(code.cipher));
+      return {
+        email: order.email,
+        phone: order.phone,
+        number: order.number,
+        title: productTitle(db, order),
+        total: order.total,
+        codes,
+        already: true as const,
+      };
+    }
     if (order.status !== "PAID") throw new DeskError("NOT_PAID", "Payment is not confirmed");
 
     const expected = order.items.reduce((sum, item) => sum + item.quantity, 0);
@@ -176,10 +192,14 @@ export async function deliverOrder(orderId: string) {
       title: productTitle(db, order),
       total: order.total,
       codes: plain,
+      already: false as const,
     };
   });
 
-  if (!payload) return { email: false, sms: false };
+  if (!notify || payload.already) {
+    return { email: false, sms: false, codes: payload.codes };
+  }
+
   try {
     const sent = await dispatchCodes(payload);
     await withStore((db) => {
@@ -190,13 +210,13 @@ export async function deliverOrder(orderId: string) {
         orderId,
       );
     });
-    return sent;
+    return { ...sent, codes: payload.codes };
   } catch (error) {
     console.error("delivery_notify_failed", error);
     await withStore((db) => {
       addAudit(db, "desk", "order.email_failed", orderId);
     });
-    return { email: false, sms: false };
+    return { email: false, sms: false, codes: payload.codes };
   }
 }
 
@@ -295,6 +315,12 @@ export async function getAdminSnapshot(): Promise<AdminSnapshot> {
           transactionId: order.transactionId,
           proofFile: order.proofFile,
           proofSubmittedAt: order.proofSubmittedAt,
+          codes:
+            order.status === "DELIVERED"
+              ? db.codes
+                  .filter((code) => code.orderId === order.id && code.status === "SOLD")
+                  .map((code) => decrypt(code.cipher))
+              : [],
         })),
       audit: [...db.audit].reverse().slice(0, 20),
     };
