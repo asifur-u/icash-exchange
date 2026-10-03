@@ -1,0 +1,12 @@
+:root {
+  --bg: #000000;
+  --bg-elevated: #0a0a0a;
+  --ink: #ffffff;
+  --muted: #8a8a8a;
+  --line: rgba(255, 255, 255, 0.12);
+  --accent: #ffffff;
+  --accent-deep: #d4d4d4;
+  --accent-soft: rgba(255, 255, 255, 0.08);
+  --gold: #ffffff;
+  --gold-deep: #d4d4d4;
+}

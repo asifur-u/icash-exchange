@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# iCash Exchange
 
-## Getting Started
+A digital voucher desk you can run immediately. MongoDB, Redis, and a payment account are not required for the demonstration.
 
-First, run the development server:
+## Run it
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. Install Node.js 20.9 or newer.
+2. Open a terminal in this folder.
+3. `npm install`
+4. `npm run dev`
+5. Open [http://localhost:3000](http://localhost:3000)
+6. Owner desk: [http://localhost:3000/admin](http://localhost:3000/admin)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The password is printed in the terminal and saved in `.data/admin-password.txt`. If you set `ADMIN_PASSWORD`, that value is used instead.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Choose a note, enter an email, then confirm the demonstration payment. No real money moves. The code appears on the order page. Delete the `.data` folder and run `npm run dev` again to reset the desk.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## What you are running
 
-## Learn More
+The storefront, checkout, code reservation, encryption, order page, and owner desk all run on this machine. Codes are encrypted before they touch `.data/store.json`. A code is reserved for one order, then sold once. Unpaid holds return to stock after 15 minutes.
 
-To learn more about Next.js, take a look at the following resources:
+Sample notes are not real value. Do not put a brand name or logo on the site until you have a written right to resell that voucher.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Before a real sale
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Register the domain for iCash Exchange.
+2. Get supplier agreements, then replace the sample catalog.
+3. Create a MongoDB Atlas replica set and set `DATABASE_URL`. This repo pins Prisma ORM 6.19, the current stable release with a MongoDB connector. Prisma 7 has no MongoDB connector. Prisma 8’s MongoDB support is still a release candidate with a different schema format. Apply the schema with `npx prisma db push` and review it before production.
+4. Put a 32-byte base64 `CODE_ENCRYPTION_KEY` in the environment before the first real code is saved. Generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`.
+5. Connect a payment gateway you hold a merchant account with. Set `PAYMENT_MODE=live`. Only a verified webhook marks an order paid.
+6. Add Resend (`RESEND_API_KEY`, `DELIVERY_FROM`) and, if you want texts, an HTTPS `SMS_API_URL`.
+7. On Vercel, use Upstash Redis plus QStash or Inngest for delivery jobs. On a VPS, run the web app and a BullMQ worker as two processes.
+8. Finish the refund policy, terms, and privacy note with a lawyer before launch. Turn on Atlas backups before the first real sale.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Copy `.env.example` to `.env.local` when you are ready for those services. Until then, leave it alone and use `npm run dev`.
