@@ -25,16 +25,16 @@ export default async function CheckoutPage({
   const qty = product ? Math.min(quantity, product.stock) : quantity;
 
   return (
-    <section className="relative overflow-hidden py-24 md:py-32">
+    <section className="relative overflow-hidden py-16 sm:py-24 md:py-32">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-10 h-[420px] w-[640px] -translate-x-1/2 rounded-full bg-white/[0.035] blur-[110px]"
+        className="pointer-events-none absolute left-1/2 top-10 h-[420px] w-[min(100vw,640px)] -translate-x-1/2 rounded-full bg-white/[0.035] blur-[110px]"
       />
-      <Frame className="relative grid items-start gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
-        <div className="premium-card rounded-[40px] p-8 sm:p-10">
+      <Frame className="relative grid items-start gap-6 sm:gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
+        <div className="premium-card rounded-[28px] p-5 sm:rounded-[40px] sm:p-10">
           <p className="text-xs uppercase tracking-[0.22em] text-white/45">Checkout</p>
-          <h1 className="mt-4 display text-4xl sm:text-5xl">Where should the code go?</h1>
-          <p className="mt-4 max-w-md text-lg leading-relaxed text-white/50">
+          <h1 className="mt-4 display text-[clamp(2rem,7vw,3rem)] sm:text-5xl">Where should the code go?</h1>
+          <p className="mt-4 max-w-md text-base leading-relaxed text-white/50 sm:text-lg">
             Add your email and mobile. Then send the deposit and upload proof on the next page.
           </p>
           {product && product.stock > 0 ? (
@@ -56,11 +56,11 @@ export default async function CheckoutPage({
           )}
         </div>
 
-        <aside className="premium-card rounded-[40px] p-8 sm:p-10 lg:sticky lg:top-28">
+        <aside className="premium-card rounded-[28px] p-5 sm:rounded-[40px] sm:p-10 lg:sticky lg:top-28">
           {product ? (
             <>
               <p className="text-xs uppercase tracking-[0.18em] text-white/45">{product.title}</p>
-              <p className="mt-5 display text-5xl sm:text-6xl">{formatBdt(product.faceValue)}</p>
+              <p className="mt-5 display text-[clamp(2.4rem,10vw,3.75rem)] sm:text-6xl">{formatBdt(product.faceValue)}</p>
               <p className="mt-5 text-base leading-relaxed text-white/50">{product.blurb}</p>
               <div className="mt-8 space-y-3 text-sm text-white/55">
                 <p>Quantity · {qty}</p>

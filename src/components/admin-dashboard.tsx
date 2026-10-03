@@ -43,15 +43,15 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1120px] px-5 py-12 sm:px-8">
-      <div className="flex flex-wrap items-end justify-between gap-6">
+    <div className="mx-auto w-full max-w-[1120px] px-4 py-10 sm:px-8 sm:py-12">
+      <div className="flex flex-wrap items-end justify-between gap-4 sm:gap-6">
         <div>
           <p className="text-[11px] uppercase tracking-[0.22em] text-white/45">Owner</p>
-          <h1 className="mt-3 display text-5xl">The desk</h1>
+          <h1 className="mt-3 display text-4xl sm:text-5xl">The desk</h1>
         </div>
         <button
           type="button"
-          className="text-sm text-white/60 hover:text-white"
+          className="inline-flex h-11 items-center rounded-full border border-white/20 px-5 text-sm text-white/70 transition hover:border-white hover:text-white"
           onClick={async () => {
             await fetch("/api/admin/logout", { method: "POST" });
             window.location.assign("/admin/login");
@@ -61,9 +61,9 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
         </button>
       </div>
 
-      <section className="mt-14">
-        <div className="flex items-end justify-between gap-4">
-          <h2 className="display text-3xl">Payment inbox</h2>
+      <section className="mt-10 sm:mt-14">
+        <div className="flex flex-wrap items-end justify-between gap-3 sm:gap-4">
+          <h2 className="display text-2xl sm:text-3xl">Payment inbox</h2>
           <p className="text-sm text-white/45">{reviewing.length} waiting</p>
         </div>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/50">
@@ -77,7 +77,7 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
             </div>
           ) : null}
           {reviewing.map((order) => (
-            <article key={order.id} className="premium-card overflow-hidden rounded-[32px] p-5 sm:p-6">
+            <article key={order.id} className="premium-card overflow-hidden rounded-[24px] p-4 sm:rounded-[32px] sm:p-6">
               <div className="grid gap-5 lg:grid-cols-[minmax(240px,0.9fr)_1.1fr]">
                 {order.proofFile ? (
                   <a
@@ -110,7 +110,7 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
                         Needs review
                       </span>
                     </div>
-                    <p className="mt-3 display text-4xl">{formatBdt(order.total)}</p>
+                    <p className="mt-3 display text-3xl sm:text-4xl">{formatBdt(order.total)}</p>
                     <p className="mt-3 text-sm leading-relaxed text-white/55">
                       {order.email}
                       {order.phone ? ` · ${order.phone}` : ""}

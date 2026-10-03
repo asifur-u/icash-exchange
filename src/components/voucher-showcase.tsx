@@ -27,27 +27,27 @@ export function VoucherShowcase({ products }: { products: PublicProduct[] }) {
   }
 
   return (
-    <section className="relative overflow-hidden border-t border-white/10 py-24 md:py-32">
+    <section className="relative overflow-hidden border-t border-white/10 py-16 sm:py-24 md:py-32">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute right-[-10%] top-20 h-[480px] w-[480px] rounded-full bg-white/[0.035] blur-[110px]"
       />
 
       <Frame>
-        <div className="flex items-end justify-between gap-6">
-          <div>
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+          <div className="min-w-0">
             <p className="text-xs uppercase tracking-[0.24em] text-white/45">Vouchers</p>
-            <h2 className="mt-4 display text-4xl sm:text-5xl md:text-6xl">Premium notes.</h2>
-            <p className="mt-4 max-w-lg text-lg leading-relaxed text-white/50">
+            <h2 className="mt-4 display text-[clamp(2.4rem,8vw,3.75rem)] md:text-6xl">Premium notes.</h2>
+            <p className="mt-4 max-w-lg text-base leading-relaxed text-white/50 sm:text-lg">
               Every iCash note on the desk. Pick a value. See the real voucher card.
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex shrink-0 gap-3">
             <button
               type="button"
               aria-label="Previous voucher"
               onClick={prev}
-              className="flex h-14 w-14 items-center justify-center rounded-full border border-white/25 text-xl text-white transition hover:bg-white hover:text-black"
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-white/25 text-xl text-white transition hover:bg-white hover:text-black sm:h-14 sm:w-14"
             >
               ←
             </button>
@@ -55,14 +55,14 @@ export function VoucherShowcase({ products }: { products: PublicProduct[] }) {
               type="button"
               aria-label="Next voucher"
               onClick={next}
-              className="flex h-14 w-14 items-center justify-center rounded-full border border-white/25 bg-white text-xl text-black transition hover:bg-white/85"
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-white/25 bg-white text-xl text-black transition hover:bg-white/85 sm:h-14 sm:w-14"
             >
               →
             </button>
           </div>
         </div>
 
-        <div className="mt-14 grid items-center gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:gap-14">
+        <div className="mt-10 grid items-center gap-8 sm:mt-14 sm:gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:gap-14">
           <AnimatePresence mode="wait">
             <motion.div
               key={active.id}
@@ -70,7 +70,7 @@ export function VoucherShowcase({ products }: { products: PublicProduct[] }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -14 }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="premium-card relative overflow-hidden rounded-[40px] p-8 sm:p-12"
+              className="premium-card relative overflow-hidden rounded-[28px] p-5 sm:rounded-[40px] sm:p-12"
             >
               <div
                 aria-hidden="true"

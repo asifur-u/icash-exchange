@@ -25,20 +25,20 @@ export function VoucherDesk({ products }: { products: PublicProduct[] }) {
 
   if (!selected) {
     return (
-      <div className="premium-card rounded-[40px] p-10">
-        <p className="display text-4xl">The desk is empty.</p>
+      <div className="premium-card rounded-[28px] p-6 sm:rounded-[40px] sm:p-10">
+        <p className="display text-3xl sm:text-4xl">The desk is empty.</p>
       </div>
     );
   }
 
   return (
-    <div id="desk" className="premium-card w-full rounded-[40px] p-6 sm:p-9">
-      <div className="flex items-center justify-between gap-3">
-        <div className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.05] px-4 py-2 text-sm text-white/75">
+    <div id="desk" className="premium-card w-full rounded-[28px] p-5 sm:rounded-[40px] sm:p-9">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.05] px-3.5 py-2 text-xs text-white/75 sm:px-4 sm:text-sm">
           <span className="h-2 w-2 rounded-full bg-white" />
           Instant digital note
         </div>
-        <p className="text-xs uppercase tracking-[0.2em] text-white/40">
+        <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 sm:text-xs">
           {selected.stock > 0 ? `${selected.stock} ready` : "Sold out"}
         </p>
       </div>
@@ -88,7 +88,7 @@ export function VoucherDesk({ products }: { products: PublicProduct[] }) {
             })}
           </div>
         ) : (
-          <p className="mt-6 display text-[3.4rem] leading-none tracking-tight sm:text-[4.4rem]">
+          <p className="mt-6 display text-[clamp(2.4rem,11vw,4.4rem)] leading-none tracking-tight">
             {formatBdt(selected.faceValue)}
           </p>
         )}
@@ -125,7 +125,7 @@ export function VoucherDesk({ products }: { products: PublicProduct[] }) {
             </button>
           </div>
         </div>
-        <p className="mt-6 display text-[3.2rem] leading-none tracking-tight sm:text-[4.2rem]">
+        <p className="mt-6 display text-[clamp(2.2rem,10vw,4.2rem)] leading-none tracking-tight">
           {formatBdt(max < 1 ? selected.faceValue : faceTotal)}
         </p>
         <p className="mt-3 text-base text-white/50">Recipient gets the code</p>

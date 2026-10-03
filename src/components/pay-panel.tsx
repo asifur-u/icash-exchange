@@ -92,14 +92,14 @@ export function PayPanel({
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-      <form onSubmit={submit} className="premium-card rounded-[40px] p-8 sm:p-10">
+    <div className="grid gap-6 sm:gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+      <form onSubmit={submit} className="premium-card rounded-[28px] p-5 sm:rounded-[40px] sm:p-10">
         <p className="text-xs uppercase tracking-[0.22em] text-white/45">Deposit checkout</p>
-        <h1 className="mt-4 display text-4xl sm:text-5xl">Send {formatBdt(total)}</h1>
-        <p className="mt-4 text-base leading-relaxed text-white/50">
+        <h1 className="mt-4 display text-[clamp(2rem,8vw,3rem)] sm:text-5xl">Send {formatBdt(total)}</h1>
+        <p className="mt-4 break-words text-sm leading-relaxed text-white/50 sm:text-base">
           {title} · {number}
           <br />
-          {email}
+          <span className="break-all">{email}</span>
           {phone ? ` · ${phone}` : ""}
         </p>
 
@@ -152,7 +152,7 @@ export function PayPanel({
             </span>
             <div>
               <p className="text-xs uppercase tracking-[0.18em] text-white/45">Send to this {selected.label}</p>
-              <p className="mt-2 text-2xl font-medium tracking-tight text-white">{selected.number}</p>
+              <p className="mt-2 break-all text-xl font-medium tracking-tight text-white sm:text-2xl">{selected.number}</p>
             </div>
           </div>
           <p className="mt-3 text-sm text-white/55">{selected.name}</p>
@@ -205,7 +205,7 @@ export function PayPanel({
         </p>
       </form>
 
-      <aside className="premium-card h-fit rounded-[40px] p-8 sm:p-10 lg:sticky lg:top-28">
+      <aside className="premium-card h-fit rounded-[28px] p-5 sm:rounded-[40px] sm:p-10 lg:sticky lg:top-28">
         <p className="text-xs uppercase tracking-[0.18em] text-white/45">How it works</p>
         <ol className="mt-6 space-y-5 text-base leading-relaxed text-white/60">
           <li>

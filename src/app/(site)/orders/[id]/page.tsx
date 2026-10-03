@@ -36,19 +36,19 @@ export default async function BuyerOrderPage({
   try {
     const order = await getOrderForBuyer(id, t);
     return (
-      <section className="relative overflow-hidden py-16 md:py-24">
+      <section className="relative overflow-hidden py-14 sm:py-16 md:py-24">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute right-[-8%] top-16 h-[380px] w-[380px] rounded-full bg-white/[0.035] blur-[100px]"
+          className="pointer-events-none absolute right-[-8%] top-16 h-[280px] w-[280px] rounded-full bg-white/[0.035] blur-[100px] sm:h-[380px] sm:w-[380px]"
         />
         <Frame className="relative max-w-3xl">
-          <div className="premium-card rounded-[40px] p-8 sm:p-12">
+          <div className="premium-card rounded-[28px] p-5 sm:rounded-[40px] sm:p-12">
             <p className="text-xs uppercase tracking-[0.22em] text-white/45">{order.number}</p>
-            <h1 className="mt-4 display text-4xl sm:text-6xl">{order.title}</h1>
-            <p className="mt-4 text-white/55">
+            <h1 className="mt-4 display text-[clamp(2.2rem,8vw,3.75rem)] sm:text-6xl">{order.title}</h1>
+            <p className="mt-4 text-sm text-white/55 sm:text-base">
               {formatBdt(order.total)} · {formatWhen(order.createdAt)} · {order.status}
             </p>
-            <p className="mt-6 max-w-lg text-lg leading-relaxed text-white/65">{statusCopy[order.status]}</p>
+            <p className="mt-6 max-w-lg text-base leading-relaxed text-white/65 sm:text-lg">{statusCopy[order.status]}</p>
 
             {order.transactionId ? (
               <div className="mt-8 rounded-[24px] border border-white/12 bg-white/[0.03] px-5 py-4 text-sm text-white/60">

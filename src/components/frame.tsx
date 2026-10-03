@@ -1,5 +1,7 @@
 import { cn } from "@/lib/cn";
 
 export function Frame({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={cn("mx-auto w-full max-w-[1280px] px-5 sm:px-8 lg:px-10", className)}>{children}</div>;
+  return (
+    <div className={cn("mx-auto w-full max-w-[1280px] px-4 sm:px-8 lg:px-10", className)}>{children}</div>
+  );
 }

@@ -9,16 +9,16 @@ export const metadata: Metadata = {
 
 export default function FaqPage() {
   return (
-    <Frame className="py-28 md:py-32">
+    <Frame className="py-20 sm:py-28 md:py-32">
       <p className="text-[11px] uppercase tracking-[0.22em] text-white/50">FAQ</p>
-      <h1 className="mt-4 display text-5xl sm:text-6xl">The desk, plainly.</h1>
-      <div className="mt-12 max-w-3xl">
+      <h1 className="mt-4 display text-[clamp(2.4rem,8vw,3.75rem)] sm:text-6xl">The desk, plainly.</h1>
+      <div className="mt-8 max-w-3xl sm:mt-12">
         {faqs.map((item) => (
-          <details key={item.q} className="group border-b border-white/10 py-5">
-            <summary className="flex cursor-pointer items-center justify-between gap-6 display text-2xl leading-tight">
-              {item.q}
-              <span className="text-white group-open:hidden">+</span>
-              <span className="hidden text-white group-open:inline">–</span>
+          <details key={item.q} className="group border-b border-white/10 py-4 sm:py-5">
+            <summary className="flex cursor-pointer items-start justify-between gap-4 display text-xl leading-tight sm:items-center sm:gap-6 sm:text-2xl">
+              <span className="min-w-0">{item.q}</span>
+              <span className="shrink-0 text-white group-open:hidden">+</span>
+              <span className="hidden shrink-0 text-white group-open:inline">–</span>
             </summary>
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">{item.a}</p>
           </details>

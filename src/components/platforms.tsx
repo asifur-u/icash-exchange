@@ -68,32 +68,32 @@ export function Platforms() {
   const next = platforms[(active + 1) % count]!;
 
   return (
-    <section id="partners" className="relative overflow-hidden border-t border-white/10 py-24 md:py-32">
+    <section id="partners" className="relative overflow-hidden border-t border-white/10 py-16 sm:py-24 md:py-32">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-24 h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-white/[0.04] blur-[100px]"
+        className="pointer-events-none absolute left-1/2 top-24 h-[420px] w-[min(100vw,720px)] -translate-x-1/2 rounded-full bg-white/[0.04] blur-[100px]"
       />
 
       <Frame>
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs uppercase tracking-[0.24em] text-white/45">Partners</p>
-          <h2 className="mt-4 display text-4xl sm:text-5xl md:text-6xl">
+          <h2 className="mt-4 display text-[clamp(2.2rem,7vw,3.75rem)] md:text-6xl">
             Desks we connect with.
           </h2>
-          <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-white/50">
+          <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-white/50 sm:text-lg">
             Auto slides. Tap any chip below to jump. The selected desk stays highlighted.
           </p>
         </div>
 
         <div
-          className="relative mx-auto mt-16 max-w-5xl"
+          className="relative mx-auto mt-10 max-w-5xl sm:mt-16"
           onPointerEnter={() => setPaused(true)}
           onPointerLeave={() => setPaused(false)}
         >
-          <div className="pointer-events-none absolute inset-y-8 left-0 z-20 w-16 bg-gradient-to-r from-black to-transparent sm:w-28" />
-          <div className="pointer-events-none absolute inset-y-8 right-0 z-20 w-16 bg-gradient-to-l from-black to-transparent sm:w-28" />
+          <div className="pointer-events-none absolute inset-y-8 left-0 z-20 w-10 bg-gradient-to-r from-black to-transparent sm:w-28" />
+          <div className="pointer-events-none absolute inset-y-8 right-0 z-20 w-10 bg-gradient-to-l from-black to-transparent sm:w-28" />
 
-          <div className="relative flex h-[380px] items-center justify-center sm:h-[420px]">
+          <div className="relative flex h-[320px] items-center justify-center sm:h-[380px] md:h-[420px]">
             <SideCard platform={prev} side="left" onClick={() => go(-1)} />
 
             <AnimatePresence mode="wait">
@@ -103,11 +103,11 @@ export function Platforms() {
                 animate={{ opacity: 1, x: 0, scale: 1 }}
                 exit={{ opacity: 0, x: -56, scale: 0.94 }}
                 transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
-                className="partner-stage relative z-10 flex w-[min(100%,340px)] flex-col items-center rounded-[40px] px-8 py-10 sm:w-[380px] sm:px-10 sm:py-12"
+                className="partner-stage relative z-10 flex w-[min(100%,300px)] flex-col items-center rounded-[28px] px-5 py-8 sm:w-[380px] sm:rounded-[40px] sm:px-10 sm:py-12"
               >
                 <div className="partner-glow" aria-hidden="true" />
                 <LogoTile src={current.logo} alt={`${current.label} logo`} size="lg" />
-                <p className="mt-8 text-3xl font-medium tracking-tight text-white sm:text-4xl">
+                <p className="mt-6 text-2xl font-medium tracking-tight text-white sm:mt-8 sm:text-4xl">
                   {current.label}
                 </p>
                 <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 py-2">
@@ -135,7 +135,7 @@ export function Platforms() {
             >
               ←
             </button>
-            <div className="flex items-center gap-2" role="tablist" aria-label="Partners">
+            <div className="flex max-w-[min(100%,220px)] flex-wrap items-center justify-center gap-1 sm:max-w-none" role="tablist" aria-label="Partners">
               {platforms.map((platform, index) => {
                 const selected = index === active;
                 return (
@@ -146,20 +146,24 @@ export function Platforms() {
                     aria-selected={selected}
                     aria-label={platform.label}
                     onClick={() => pick(index)}
-                    className={`h-2 overflow-hidden rounded-full transition-all ${
-                      selected ? "w-8 bg-white/25" : "w-2 bg-white/25 hover:bg-white/50"
-                    }`}
+                    className="flex h-11 w-11 items-center justify-center"
                   >
-                    {selected && enabled ? (
-                      <span
-                        key={`${platform.id}-progress-${active}-${paused ? "p" : "r"}`}
-                        className="block h-full rounded-full bg-white"
-                        style={{
-                          animation: paused ? "none" : `partner-progress ${INTERVAL_MS}ms linear`,
-                          width: paused ? "100%" : undefined,
-                        }}
-                      />
-                    ) : null}
+                    <span
+                      className={`block h-2 overflow-hidden rounded-full transition-all ${
+                        selected ? "w-8 bg-white/25" : "w-2 bg-white/25"
+                      }`}
+                    >
+                      {selected && enabled ? (
+                        <span
+                          key={`${platform.id}-progress-${active}-${paused ? "p" : "r"}`}
+                          className="block h-full rounded-full bg-white"
+                          style={{
+                            animation: paused ? "none" : `partner-progress ${INTERVAL_MS}ms linear`,
+                            width: paused ? "100%" : undefined,
+                          }}
+                        />
+                      ) : null}
+                    </span>
                   </button>
                 );
               })}
@@ -181,7 +185,7 @@ export function Platforms() {
         <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-black to-transparent sm:w-24" />
         <div
           ref={stripRef}
-          className="flex gap-4 overflow-x-auto scroll-smooth px-5 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-5 pb-2 sm:gap-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {platforms.map((platform, index) => {
             const selected = index === active;
@@ -194,7 +198,7 @@ export function Platforms() {
                 }}
                 onClick={() => pick(index)}
                 aria-pressed={selected}
-                className={`partner-chip flex min-w-[220px] shrink-0 items-center gap-4 rounded-[26px] border px-4 py-4 text-left transition ${
+                className={`partner-chip flex min-w-[min(78vw,220px)] shrink-0 snap-center items-center gap-3 rounded-[22px] border px-3.5 py-3.5 text-left transition sm:min-w-[220px] sm:gap-4 sm:rounded-[26px] sm:px-4 sm:py-4 ${
                   selected
                     ? "border-white bg-white text-black shadow-[0_18px_50px_rgba(255,255,255,0.14)]"
                     : "border-white/12 bg-white/[0.03] text-white hover:border-white/35"
@@ -233,10 +237,10 @@ function LogoTile({
 }) {
   const box =
     size === "lg"
-      ? "h-36 w-36 rounded-[32px] sm:h-40 sm:w-40"
+      ? "h-28 w-28 rounded-[26px] sm:h-40 sm:w-40 sm:rounded-[32px]"
       : size === "md"
         ? "h-20 w-20 rounded-[22px]"
-        : "h-14 w-14 rounded-2xl";
+        : "h-12 w-12 rounded-2xl sm:h-14 sm:w-14";
   const px = size === "lg" ? 160 : size === "md" ? 80 : 56;
 
   return (

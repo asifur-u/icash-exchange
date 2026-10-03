@@ -42,10 +42,10 @@ export default async function PayPage({
     }
     if (!t) throw new DeskError("UNAUTHORIZED", "This link is not valid.");
     return (
-      <section className="relative overflow-hidden py-16 md:py-24">
+      <section className="relative overflow-hidden py-14 sm:py-16 md:py-24">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-0 h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-white/[0.035] blur-[110px]"
+          className="pointer-events-none absolute left-1/2 top-0 h-[320px] w-[min(100vw,720px)] -translate-x-1/2 rounded-full bg-white/[0.035] blur-[110px] sm:h-[420px]"
         />
         <Frame className="relative">
           <PayPanel
