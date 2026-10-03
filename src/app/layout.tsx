@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const sans = Geist({
+const sans = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-geist",
   display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
 const mono = Geist_Mono({

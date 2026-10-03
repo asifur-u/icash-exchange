@@ -24,23 +24,67 @@ body {
   background: #000;
   color: #fff;
   font-family: var(--font-geist), "Helvetica Neue", Arial, sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.011em;
   overflow-x: clip;
 }
 
 @layer components {
   .display {
-    font-weight: 800;
-    letter-spacing: -0.065em;
-    line-height: 0.84;
-    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+    text-transform: none;
   }
 
   .premium-card {
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015)),
-      #050505;
-    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+      radial-gradient(110% 70% at 0% 0%, rgba(255, 255, 255, 0.12), transparent 46%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02) 42%, #050505);
+    box-shadow:
+      0 40px 120px rgba(0, 0, 0, 0.72),
+      0 0 0 1px rgba(255, 255, 255, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(10px);
+  }
+
+  .partner-card {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background:
+      radial-gradient(120% 90% at 0% 0%, rgba(255, 255, 255, 0.14), transparent 45%),
+      linear-gradient(160deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02) 46%, #050505);
+    box-shadow:
+      0 40px 100px rgba(0, 0, 0, 0.65),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  .partner-stage {
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background:
+      radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.14), transparent 50%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02) 45%, #050505);
+    box-shadow:
+      0 50px 140px rgba(0, 0, 0, 0.72),
+      0 0 0 1px rgba(255, 255, 255, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    backdrop-filter: blur(18px);
+  }
+
+  .partner-glow {
+    position: absolute;
+    inset: auto auto -20% 50%;
+    width: 70%;
+    height: 50%;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    filter: blur(48px);
+    pointer-events: none;
+  }
+
+  .partner-chip {
+    backdrop-filter: blur(10px);
   }
 }
 
@@ -78,15 +122,30 @@ summary::-webkit-details-marker {
 
 .voucher-card {
   background:
-    radial-gradient(120% 90% at 8% 0%, rgba(255, 255, 255, 0.14), transparent 42%),
-    linear-gradient(160deg, #1a1a1a 0%, #050505 48%, #111 100%);
+    radial-gradient(70% 55% at 100% 0%, rgba(255, 45, 45, 0.1), transparent 42%),
+    radial-gradient(120% 90% at 8% 0%, rgba(255, 255, 255, 0.16), transparent 42%),
+    linear-gradient(155deg, #1c1c1c 0%, #080808 46%, #141414 100%);
   box-shadow:
-    0 40px 100px rgba(0, 0, 0, 0.55),
-    0 0 0 1px rgba(255, 255, 255, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18);
-  transform: rotateX(var(--rx, 10deg)) rotateY(var(--ry, -16deg));
+    0 50px 120px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  transform: rotateX(var(--rx, 8deg)) rotateY(var(--ry, -14deg));
   transform-style: preserve-3d;
   transition: transform 160ms linear;
+}
+
+.voucher-pattern {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.22;
+  background-image:
+    linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.05) 50%, transparent 60%),
+    repeating-linear-gradient(
+      -18deg,
+      rgba(255, 255, 255, 0.035) 0 1px,
+      transparent 1px 14px
+    );
 }
 
 .voucher-sheen {
@@ -95,20 +154,45 @@ summary::-webkit-details-marker {
   pointer-events: none;
   mix-blend-mode: screen;
   background: radial-gradient(
-    480px circle at var(--mx, 28%) var(--my, 16%),
-    rgba(255, 255, 255, 0.35),
-    rgba(255, 255, 255, 0.05) 28%,
-    transparent 55%
+    520px circle at var(--mx, 30%) var(--my, 18%),
+    rgba(255, 255, 255, 0.42),
+    rgba(255, 255, 255, 0.08) 28%,
+    transparent 58%
   );
+}
+
+.voucher-holo {
+  position: absolute;
+  right: 10%;
+  top: 18%;
+  width: 88px;
+  height: 88px;
+  border-radius: 18px;
+  pointer-events: none;
+  opacity: 0.55;
+  background:
+    conic-gradient(
+      from 120deg,
+      rgba(255, 255, 255, 0.08),
+      rgba(255, 80, 80, 0.22),
+      rgba(255, 255, 255, 0.18),
+      rgba(180, 180, 255, 0.16),
+      rgba(255, 255, 255, 0.08)
+    );
+  filter: blur(0.2px);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  mix-blend-mode: screen;
 }
 
 .metal-chip {
   position: relative;
-  width: 48px;
-  height: 36px;
-  border-radius: 7px;
-  background: linear-gradient(135deg, #fff, #9a9a9a 42%, #f5f5f5 70%, #6a6a6a);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.28);
+  width: 52px;
+  height: 40px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #fff, #b8b8b8 38%, #f7f7f7 62%, #7a7a7a);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.28),
+    0 8px 18px rgba(0, 0, 0, 0.35);
 }
 
 .metal-chip::before,
@@ -148,37 +232,26 @@ summary::-webkit-details-marker {
   }
 }
 
+@keyframes partner-progress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
 .float-soft {
   animation: float-soft 5.5s ease-in-out infinite;
 }
 
 .marquee-track {
-  animation: marquee 28s linear infinite;
+  animation: marquee 36s linear infinite;
   width: max-content;
 }
 
 .marquee-track:hover {
   animation-play-state: paused;
-}
-
-.logo-glow img {
-  filter: drop-shadow(0 0 22px rgba(255, 45, 45, 0.35)) drop-shadow(0 10px 30px rgba(0, 0, 0, 0.35));
-}
-
-@keyframes star-pulse {
-  0%,
-  100% {
-    opacity: 0.35;
-    transform: scale(0.92);
-  }
-  50% {
-    opacity: 0.85;
-    transform: scale(1.08);
-  }
-}
-
-.logo-glow > span:first-child {
-  animation: star-pulse 3.4s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

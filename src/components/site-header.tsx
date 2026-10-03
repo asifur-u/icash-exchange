@@ -17,11 +17,11 @@ export function SiteHeader() {
       >
         Skip to content
       </a>
-      <Frame className="flex h-20 items-center justify-between gap-6">
+      <Frame className="flex h-24 items-center justify-between gap-6">
         <Link href="/" aria-label="iCash Exchange home" className="relative z-10 transition hover:opacity-90">
           <BrandLogo priority size="md" />
         </Link>
-        <nav className="hidden items-center gap-8 text-sm text-white/70 md:flex">
+        <nav className="hidden items-center gap-10 text-base text-white/70 md:flex">
           {links.map((link) => (
             <Link key={link.href} href={link.href} className="transition hover:text-white">
               {link.label}
@@ -30,7 +30,7 @@ export function SiteHeader() {
         </nav>
         <Link
           href="/#desk"
-          className="hidden h-10 items-center rounded-full bg-white px-5 text-sm font-semibold text-black transition hover:bg-white/85 sm:inline-flex"
+          className="hidden h-12 items-center rounded-full bg-white px-6 text-sm font-medium tracking-tight text-black transition hover:bg-white/85 sm:inline-flex"
         >
           Get a code
         </Link>

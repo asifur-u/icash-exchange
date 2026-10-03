@@ -19,7 +19,7 @@ export default async function AdminLoginPage() {
   return (
     <div className="flex min-h-full flex-col justify-center px-6 py-24">
       <div className="mx-auto w-full max-w-sm">
-        <BrandLogo size="lg" glow />
+        <BrandLogo size="lg" />
         <h1 className="mt-8 display text-5xl leading-none">Owner desk</h1>
         <p className="mt-4 text-sm leading-relaxed text-muted">
           The local password is printed in the terminal running the app, and saved in .data/admin-password.txt. If you set ADMIN_PASSWORD, that value is used instead.

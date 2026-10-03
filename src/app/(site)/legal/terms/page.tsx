@@ -13,7 +13,7 @@ export default function TermsPage() {
       <h1 className="mt-4 display text-5xl">Terms of sale</h1>
       <div className="mt-8 space-y-5 text-base leading-relaxed text-muted">
         <p>
-          This page is a draft for a demonstration store. Have a lawyer in Bangladesh review it before any real sale.
+          This page is a draft for a demonstration store. Have a lawyer review it before any real sale.
         </p>
         <p>
           Sample codes on this desk have no cash value. A live voucher is sold only after you hold a written right to resell it.

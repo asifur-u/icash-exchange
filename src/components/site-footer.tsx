@@ -9,7 +9,7 @@ export function SiteFooter() {
         <div>
           <BrandLogo size="lg" />
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted">
-            Digital voucher desk in Dhaka. Choose a note, pay, and read the code on your order page.
+            Digital voucher desk. Choose a note, pay, and read the code on your order page.
           </p>
         </div>
         <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-white/70">
