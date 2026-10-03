@@ -109,9 +109,11 @@ export function ensureDevSecrets() {
 }
 
 export function assertProductionSecrets() {
-  const missing = ["CODE_ENCRYPTION_KEY", "AUTH_SECRET", "ADMIN_PASSWORD", "PAYMENT_WEBHOOK_SECRET"].filter(
-    (name) => !process.env[name],
-  );
+  const required = ["CODE_ENCRYPTION_KEY", "AUTH_SECRET", "ADMIN_PASSWORD"];
+  if (process.env.PAYMENT_MODE === "live") {
+    required.push("PAYMENT_WEBHOOK_SECRET");
+  }
+  const missing = required.filter((name) => !process.env[name]);
   if (missing.length > 0) {
     throw new Error(`Missing production environment: ${missing.join(", ")}`);
   }
