@@ -8,8 +8,8 @@ import type { PublicProduct } from "@/lib/types";
 
 export function Hero({ products }: { products: PublicProduct[] }) {
   return (
-    <section className="relative overflow-hidden bg-black pb-16 pt-[calc(5.5rem+env(safe-area-inset-top))] sm:pb-24 sm:pt-32 md:pb-28 md:pt-36">
-      <Frame className="relative grid items-center gap-8 sm:gap-12 lg:grid-cols-[1fr_1.05fr] lg:gap-16 xl:gap-20">
+    <section className="relative overflow-hidden bg-black pb-12 pt-[calc(4.75rem+env(safe-area-inset-top))] sm:pb-24 sm:pt-32 md:pb-28 md:pt-36">
+      <Frame className="relative grid items-center gap-7 sm:gap-12 lg:grid-cols-[1fr_1.05fr] lg:gap-16 xl:gap-20">
         <div className="max-w-2xl">
           <motion.div
             initial={{ y: 20, opacity: 0.85 }}
