@@ -12,9 +12,18 @@ async function post(url: string, body?: unknown) {
     headers: { "content-type": "application/json" },
     body: body ? JSON.stringify(body) : "{}",
   });
-  const data = (await response.json()) as { error?: { message?: string }; message?: string; added?: number };
+  const data = (await response.json()) as {
+    error?: { message?: string };
+    message?: string;
+    added?: number;
+    codes?: string[];
+  };
   if (!response.ok) throw new Error(data.error?.message ?? "The desk refused that action");
   return data;
+}
+
+async function copyText(value: string) {
+  await navigator.clipboard.writeText(value);
 }
 
 export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
@@ -24,6 +33,7 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [unlockedCodes, setUnlockedCodes] = useState<string[]>([]);
 
   const reviewing = snapshot.orders.filter((order) => order.status === "REVIEWING");
   const others = snapshot.orders.filter((order) => order.status !== "REVIEWING");
@@ -67,8 +77,39 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
           <p className="text-sm text-white/45">{reviewing.length} waiting</p>
         </div>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/50">
-          User screenshots and TrxIDs land here from checkout. Approve to unlock the reserved voucher and email the code.
+          User screenshots and TrxIDs land here. Approve to unlock the code — copy it and send to the buyer yourself.
         </p>
+
+        {unlockedCodes.length > 0 ? (
+          <div className="mt-6 rounded-[24px] border border-white/20 bg-white/[0.06] p-5">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-white/45">Just unlocked — copy & send</p>
+            <div className="mt-3 grid gap-3">
+              {unlockedCodes.map((code) => (
+                <div
+                  key={code}
+                  className="flex flex-col gap-3 rounded-[18px] border border-white/15 bg-black/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <p className="break-all font-mono text-lg tracking-[0.08em] text-white">{code}</p>
+                  <Button
+                    type="button"
+                    className="h-11 shrink-0"
+                    onClick={async () => {
+                      try {
+                        await copyText(code);
+                        setMessage("Code copied");
+                        setError(null);
+                      } catch {
+                        setError("Could not copy");
+                      }
+                    }}
+                  >
+                    Copy code
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         <div className="mt-8 grid gap-5">
           {reviewing.length === 0 ? (
@@ -133,11 +174,12 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
                       onClick={() =>
                         run(async () => {
                           const data = await post(`/api/admin/orders/${order.id}/approve`);
-                          return data.message ?? "Approved. Voucher emailed.";
+                          if (data.codes?.length) setUnlockedCodes(data.codes);
+                          return data.message ?? "Approved. Code unlocked.";
                         })
                       }
                     >
-                      Approve & email code
+                      Approve & show code
                     </Button>
                     {order.proofFile ? (
                       <a
@@ -246,6 +288,33 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
                     {(order.paymentMethod ?? "pay").toUpperCase()} · {order.transactionId}
                   </p>
                 ) : null}
+                {order.status === "DELIVERED" && order.codes && order.codes.length > 0 ? (
+                  <div className="mt-3 space-y-2">
+                    {order.codes.map((code) => (
+                      <div
+                        key={code}
+                        className="flex flex-col gap-2 rounded-[16px] border border-white/15 bg-white/[0.04] px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between"
+                      >
+                        <p className="break-all font-mono text-sm tracking-[0.08em] text-white">{code}</p>
+                        <button
+                          type="button"
+                          className="inline-flex h-10 items-center justify-center rounded-full border border-white/20 px-4 text-xs text-white transition hover:bg-white hover:text-black"
+                          onClick={async () => {
+                            try {
+                              await copyText(code);
+                              setMessage("Code copied");
+                              setError(null);
+                            } catch {
+                              setError("Could not copy");
+                            }
+                          }}
+                        >
+                          Copy
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <span className="text-[11px] uppercase tracking-[0.16em] text-white/70">{order.status}</span>
@@ -288,7 +357,7 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
                       })
                     }
                   >
-                    Resend email
+                    Email buyer
                   </Button>
                 ) : null}
               </div>

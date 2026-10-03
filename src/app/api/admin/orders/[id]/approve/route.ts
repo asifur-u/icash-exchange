@@ -9,13 +9,16 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
     await requireAdmin();
     const { id } = await context.params;
     const result = await approvePayment(id);
+    const codes = result.codes ?? [];
     return Response.json({
       ok: true,
-      emailed: result.emailed,
-      sms: result.sms,
-      message: result.emailed
-        ? "Approved. Voucher code emailed to the buyer."
-        : "Approved. Code is on the order page. Configure SMTP to email codes.",
+      emailed: false,
+      sms: false,
+      codes,
+      message:
+        codes.length > 0
+          ? `Approved. Code ready to copy: ${codes.join(" · ")}`
+          : "Approved. Code unlocked on the order page.",
     });
   } catch (error) {
     return toErrorResponse(error);
