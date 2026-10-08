@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "motion/react";
 import { Frame } from "@/components/frame";
@@ -9,23 +9,10 @@ import type { PublicProduct } from "@/lib/types";
 export function Hero({ products }: { products: PublicProduct[] }) {
   return (
     <section className="relative overflow-hidden bg-black pb-14 pt-[calc(5.5rem+env(safe-area-inset-top))] sm:pb-24 sm:pt-36 md:pb-28 md:pt-40">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -left-24 top-24 h-[360px] w-[360px] rounded-full bg-[#ff2d2d]/[0.07] blur-[110px] sm:h-[520px] sm:w-[520px]"
-      />
       <Frame className="relative grid items-center gap-12 sm:gap-14 lg:grid-cols-[1.05fr_1fr] lg:gap-16 xl:gap-24">
         <div className="min-w-0 max-w-2xl">
-          <motion.p
-            className="text-lg font-semibold tracking-tight text-white sm:text-xl"
-            initial={{ y: 12 }}
-            animate={{ y: 0 }}
-            transition={{ duration: 0.7 }}
-          >
-            iCash exchange
-          </motion.p>
-
           <motion.h1
-            className="display mt-5 text-[clamp(2.75rem,12.5vw,6.5rem)] sm:mt-7"
+            className="display text-[clamp(2.9rem,13vw,7rem)]"
             initial={{ y: 24 }}
             animate={{ y: 0 }}
             transition={{ duration: 0.85, delay: 0.05 }}
