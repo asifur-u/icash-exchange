@@ -65,18 +65,13 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
             >
               Every deposit
             </span>
-            <span className="hero-offer-main mt-[2px] inline-flex flex-col">
-              <span
-                ref={mainRef}
-                className="hero-offer-power display-hero text-[clamp(3.35rem,15.5vw,7.4rem)] leading-[0.86]"
-              >
-                5% extra
-              </span>
-              <span className="hero-offer-bar" aria-hidden="true">
-                <span />
-              </span>
+            <span
+              ref={mainRef}
+              className="hero-offer-main hero-offer-power display-hero mt-[2px] text-[clamp(3.35rem,15.5vw,7.4rem)] leading-[0.86]"
+            >
+              5% extra
             </span>
-            <span className="hero-offer-bonus mt-[6px] display-hero text-[clamp(1.75rem,7.5vw,3.3rem)] leading-none text-white">
+            <span className="hero-offer-bonus mt-[2px] display-hero text-[clamp(1.75rem,7.5vw,3.3rem)] leading-none text-white">
               {"BONUS".split("").map((letter, index) => (
                 <span key={`${letter}-${index}`}>{letter}</span>
               ))}

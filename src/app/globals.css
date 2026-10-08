@@ -83,20 +83,13 @@ body {
     overflow: hidden;
   }
 
-  .hero-offer-top {
+  .hero-offer-top,
+  .hero-offer-main {
     display: block;
     white-space: nowrap;
     text-wrap: nowrap;
     overflow-wrap: normal;
     word-break: keep-all;
-  }
-
-  .hero-offer-main {
-    display: inline-flex;
-    max-width: 100%;
-    flex-direction: column;
-    align-items: stretch;
-    white-space: nowrap;
   }
 
   .hero-offer-bonus {
@@ -131,27 +124,6 @@ body {
     animation: hero-power-shine 2.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
   }
 
-  /* Power charge bar under 5% EXTRA */
-  .hero-offer-bar {
-    display: block;
-    margin-top: 0.35rem;
-    height: 0.28rem;
-    width: 100%;
-    overflow: hidden;
-    border-radius: 999px;
-    background: rgba(159, 232, 112, 0.18);
-  }
-
-  .hero-offer-bar > span {
-    display: block;
-    height: 100%;
-    width: 0%;
-    border-radius: inherit;
-    background: linear-gradient(90deg, #6fbf3a, #9fe870 50%, #eaffc4);
-    box-shadow: 0 0 14px rgba(159, 232, 112, 0.7);
-    animation: hero-power-bar 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
-  }
-
   @media (prefers-reduced-motion: reduce) {
     .hero-offer-power {
       animation: none;
@@ -160,11 +132,6 @@ body {
 
     .hero-offer-power::after {
       display: none;
-    }
-
-    .hero-offer-bar > span {
-      width: 100%;
-      animation: none;
     }
   }
 
@@ -410,21 +377,6 @@ summary::-webkit-details-marker {
   100% {
     transform: translateX(130%);
     opacity: 0;
-  }
-}
-
-@keyframes hero-power-bar {
-  0% {
-    width: 0%;
-  }
-  55% {
-    width: 100%;
-  }
-  70% {
-    width: 100%;
-  }
-  100% {
-    width: 0%;
   }
 }
 
