@@ -12,13 +12,23 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
       <Frame className="relative grid items-center gap-12 sm:gap-14 lg:grid-cols-[1.05fr_1fr] lg:gap-16 xl:gap-24">
         <div className="min-w-0 max-w-2xl">
           <motion.h1
-            className="display-hero text-[clamp(3.4rem,17vw,9rem)]"
-            initial={{ y: 24 }}
-            animate={{ y: 0 }}
-            transition={{ duration: 0.85, delay: 0.05 }}
+            className="hero-offer"
+            initial={{ y: 20, opacity: 0.9 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.05 }}
           >
-            <span className="block">Every deposit.</span>
-            <span className="block accent-red">5% extra.</span>
+            <span className="hero-offer-line display-hero text-[clamp(1.15rem,4.8vw,2.15rem)] leading-none text-white">
+              Every deposit
+            </span>
+            <span className="mt-1 block display-hero text-[clamp(2.9rem,13.5vw,6.4rem)] leading-[0.88] accent-green">
+              5% extra
+            </span>
+            <span className="hero-offer-line mt-1 display-hero text-[clamp(1.55rem,7vw,3.1rem)] leading-none accent-green">
+              Bonus
+            </span>
+            <div className="hero-power" aria-hidden="true">
+              <div className="hero-power-fill" />
+            </div>
           </motion.h1>
 
           <motion.p

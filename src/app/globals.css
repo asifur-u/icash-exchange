@@ -71,6 +71,59 @@ body {
     color: #ff2d2d;
   }
 
+  .accent-green {
+    color: #9fe870;
+  }
+
+  .hero-offer {
+    width: min(100%, 17.5rem);
+  }
+
+  @media (min-width: 640px) {
+    .hero-offer {
+      width: min(100%, 26rem);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .hero-offer {
+      width: min(100%, 30rem);
+    }
+  }
+
+  .hero-offer-line {
+    display: block;
+    width: 100%;
+    text-align: justify;
+    text-align-last: justify;
+    white-space: nowrap;
+  }
+
+  .hero-power {
+    margin-top: 1rem;
+    height: 0.35rem;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(159, 232, 112, 0.15);
+  }
+
+  .hero-power-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #6fbf3a, #9fe870 55%, #d4ff9a);
+    box-shadow: 0 0 18px rgba(159, 232, 112, 0.55);
+    animation: hero-power 2.4s cubic-bezier(0.22, 1, 0.36, 1) 0.35s forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-power-fill {
+      width: 100%;
+      animation: none;
+    }
+  }
+
   .eyebrow {
     font-size: 0.75rem;
     font-weight: 600;
@@ -278,6 +331,21 @@ summary::-webkit-details-marker {
     width: 0%;
   }
   to {
+    width: 100%;
+  }
+}
+
+@keyframes hero-power {
+  0% {
+    width: 0%;
+  }
+  70% {
+    width: 100%;
+  }
+  85% {
+    width: 92%;
+  }
+  100% {
     width: 100%;
   }
 }
