@@ -12,7 +12,7 @@ export function Hero({ products }: { products: PublicProduct[] }) {
       <Frame className="relative grid items-center gap-12 sm:gap-14 lg:grid-cols-[1.05fr_1fr] lg:gap-16 xl:gap-24">
         <div className="min-w-0 max-w-2xl">
           <motion.h1
-            className="display text-[clamp(2.9rem,13vw,7rem)]"
+            className="display text-[clamp(3.4rem,17vw,9rem)]"
             initial={{ y: 24 }}
             animate={{ y: 0 }}
             transition={{ duration: 0.85, delay: 0.05 }}

@@ -38,9 +38,9 @@ body {
   .display {
     font-family: var(--font-display), "Arial Black", "Helvetica Neue", Arial, sans-serif;
     font-weight: 900;
-    font-stretch: 88%;
-    letter-spacing: -0.015em;
-    line-height: 0.9;
+    font-stretch: 68%;
+    letter-spacing: -0.005em;
+    line-height: 0.86;
     text-transform: uppercase;
     text-wrap: balance;
     overflow-wrap: anywhere;
