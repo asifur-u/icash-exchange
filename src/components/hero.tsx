@@ -11,15 +11,20 @@ function fitLine(el: HTMLElement | null, targetWidth: number) {
   if (!el || targetWidth < 8) return;
   el.style.fontSize = "";
   let size = parseFloat(getComputedStyle(el).fontSize);
-  if (!Number.isFinite(size) || size < 8) size = 24;
-  // Grow until the line matches the green "5% EXTRA" width — keep normal letter spacing.
-  for (let i = 0; i < 40 && el.scrollWidth < targetWidth - 1; i += 1) {
-    size += 1;
+  if (!Number.isFinite(size) || size < 8) size = 28;
+  // Match the full width of "5% EXTRA". Normal spacing — only font-size changes.
+  // Slight overshoot is fine so the last letter lands on EXTRA's edge.
+  for (let i = 0; i < 80 && el.scrollWidth < targetWidth; i += 1) {
+    size += 0.75;
     el.style.fontSize = `${size}px`;
   }
-  for (let i = 0; i < 40 && el.scrollWidth > targetWidth + 1; i += 1) {
-    size -= 0.5;
-    el.style.fontSize = `${Math.max(12, size)}px`;
+  while (el.scrollWidth > targetWidth + 0.5 && size > 12) {
+    size -= 0.25;
+    el.style.fontSize = `${size}px`;
+  }
+  if (el.scrollWidth < targetWidth - 0.5) {
+    size += 0.35;
+    el.style.fontSize = `${size}px`;
   }
 }
 
@@ -56,7 +61,7 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
           >
             <span
               ref={topRef}
-              className="hero-offer-top display-hero text-[clamp(1.35rem,5.2vw,2.4rem)] leading-none text-white"
+              className="hero-offer-top display-hero text-[clamp(1.55rem,6vw,2.75rem)] leading-none text-white"
             >
               Every deposit
             </span>
@@ -68,7 +73,7 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
             </span>
             <span
               ref={bonusRef}
-              className="hero-offer-bonus mt-1 display-hero text-[clamp(1.5rem,6.5vw,2.8rem)] leading-none accent-green"
+              className="hero-offer-bonus mt-1 display-hero text-[clamp(1.7rem,7.2vw,3.1rem)] leading-none accent-green"
             >
               Bonus
             </span>
