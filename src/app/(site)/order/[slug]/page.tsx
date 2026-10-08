@@ -4,6 +4,7 @@ import { Frame } from "@/components/frame";
 import { ProcessSteps } from "@/components/process-steps";
 import { VoucherDesk } from "@/components/voucher-desk";
 import { formatBdt } from "@/lib/format";
+import { getCurrentUser } from "@/lib/session";
 import { getPublicProduct, getPublicProducts } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +24,7 @@ export default async function OrderNotePage({ params }: { params: Promise<{ slug
   const { slug } = await params;
   const product = await getPublicProduct(slug);
   if (!product) notFound();
-  const products = await getPublicProducts();
+  const [products, user] = await Promise.all([getPublicProducts(), getCurrentUser()]);
 
   return (
     <section className="bg-black pb-16 pt-[calc(5.5rem+env(safe-area-inset-top))] sm:pb-24 sm:pt-32">
@@ -62,7 +63,7 @@ export default async function OrderNotePage({ params }: { params: Promise<{ slug
             </p>
           </div>
 
-          <VoucherDesk products={products} />
+          <VoucherDesk products={products} loggedIn={Boolean(user)} />
         </div>
       </Frame>
     </section>

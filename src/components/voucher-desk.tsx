@@ -1,12 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { ButtonLink } from "@/components/ui/button-link";
+import { BuyGate } from "@/components/buy-gate";
 import { formatBdt } from "@/lib/format";
 import type { PublicProduct } from "@/lib/types";
 
-export function VoucherDesk({ products }: { products: PublicProduct[] }) {
+export function VoucherDesk({
+  products,
+  loggedIn = false,
+}: {
+  products: PublicProduct[];
+  loggedIn?: boolean;
+}) {
   const initial = products.find((product) => product.slug === "note-1000") ?? products[0];
   const [slug, setSlug] = useState(initial?.slug ?? "");
   const [qty, setQty] = useState(1);
@@ -102,15 +107,12 @@ export function VoucherDesk({ products }: { products: PublicProduct[] }) {
       </p>
 
       <div className="mt-6">
-        {selected.stock < 1 ? (
-          <Button className="h-14 w-full text-base" disabled>
-            Sold out
-          </Button>
-        ) : (
-          <ButtonLink href={href} className="h-14 w-full text-base">
-            Buy this note
-          </ButtonLink>
-        )}
+        <BuyGate href={href} loggedIn={loggedIn} disabled={selected.stock < 1} />
+        {!loggedIn && selected.stock > 0 ? (
+          <p className="mt-3 text-center text-sm text-white/45">
+            You will create an account or log in first.
+          </p>
+        ) : null}
       </div>
     </div>
   );

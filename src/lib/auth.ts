@@ -44,3 +44,22 @@ export function adminPasswordMatches(input: string) {
   const right = createHash("sha256").update(expected).digest();
   return timingSafeEqual(left, right);
 }
+
+export function signUserSession(userId: string) {
+  const exp = Date.now() + 30 * 24 * 60 * 60 * 1000;
+  const payload = `user.${userId}.${exp}`;
+  const sig = createHmac("sha256", getAuthSecret()).update(payload).digest("base64url");
+  return `${payload}.${sig}`;
+}
+
+export function verifyUserSession(token: string | undefined) {
+  if (!token) return null;
+  const parts = token.split(".");
+  if (parts.length !== 4) return null;
+  const [role, userId, exp, sig] = parts;
+  if (!role || !userId || !exp || !sig) return null;
+  const expected = createHmac("sha256", getAuthSecret()).update(`${role}.${userId}.${exp}`).digest("base64url");
+  if (role !== "user" || !same(sig, expected)) return null;
+  if (Number(exp) <= Date.now()) return null;
+  return userId;
+}

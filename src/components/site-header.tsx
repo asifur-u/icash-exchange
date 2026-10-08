@@ -24,6 +24,7 @@ function isActive(pathname: string, href: string) {
 export function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -31,6 +32,24 @@ export function SiteHeader() {
       document.body.style.overflow = "";
     };
   }, [open]);
+
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/auth/me")
+      .then((response) => response.json())
+      .then((data) => {
+        if (alive) setLoggedIn(Boolean(data.user));
+      })
+      .catch(() => {
+        if (alive) setLoggedIn(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [pathname]);
+
+  const accountHref = loggedIn ? "/account" : "/auth?next=/account";
+  const accountLabel = loggedIn ? "Dashboard" : "Log in";
 
   return (
     <header className="absolute inset-x-0 top-0 z-40 pt-[env(safe-area-inset-top)]">
@@ -59,13 +78,22 @@ export function SiteHeader() {
               </Link>
             );
           })}
+          <Link
+            href={accountHref}
+            aria-current={pathname.startsWith("/account") || pathname.startsWith("/auth") ? "page" : undefined}
+            className={`transition hover:text-white ${
+              pathname.startsWith("/account") || pathname.startsWith("/auth") ? "font-semibold text-white" : ""
+            }`}
+          >
+            {accountLabel}
+          </Link>
         </nav>
 
         <Link
-          href="/order/note-1000"
+          href={loggedIn ? "/order/note-1000" : "/auth?next=/account"}
           className="hidden h-12 items-center rounded-full bg-white px-6 text-sm font-medium tracking-tight text-black transition hover:bg-white/85 md:inline-flex"
         >
-          Get a code
+          {loggedIn ? "Buy a note" : "Get a code"}
         </Link>
 
         <button
@@ -112,11 +140,18 @@ export function SiteHeader() {
               );
             })}
             <Link
-              href="/order/note-1000"
+              href={accountHref}
+              onClick={() => setOpen(false)}
+              className="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 text-lg text-white/90"
+            >
+              {accountLabel}
+            </Link>
+            <Link
+              href={loggedIn ? "/order/note-1000" : "/auth?next=/account"}
               onClick={() => setOpen(false)}
               className="mt-4 inline-flex h-14 items-center justify-center rounded-full bg-white text-base font-medium text-black"
             >
-              Get a code
+              {loggedIn ? "Buy a note" : "Get a code"}
             </Link>
           </nav>
         </div>

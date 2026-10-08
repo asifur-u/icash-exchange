@@ -3,6 +3,7 @@ import { assertSameOrigin, noStore, readJson, siteOrigin } from "@/lib/http";
 import { clientIp, limit } from "@/lib/limit";
 import { createCheckout } from "@/lib/orders";
 import { checkoutSchema } from "@/lib/schemas";
+import { getCurrentUser } from "@/lib/session";
 
 export async function POST(req: Request) {
   try {
@@ -10,12 +11,17 @@ export async function POST(req: Request) {
     if (!limit(`checkout:${clientIp(req)}`, 10, 60_000)) {
       throw new DeskError("RATE_LIMITED", "Too many attempts. Wait a minute.");
     }
+    const user = await getCurrentUser();
+    if (!user) {
+      throw new DeskError("UNAUTHORIZED", "Log in or create an account before you buy.");
+    }
     const body = checkoutSchema.parse(await readJson(req));
     const result = await createCheckout({
       productSlug: body.productSlug,
       quantity: body.quantity,
-      email: body.email,
-      phone: body.phone,
+      email: user.email,
+      phone: body.phone || user.phone,
+      userId: user.id,
     });
     const origin = siteOrigin(req);
     return Response.json(

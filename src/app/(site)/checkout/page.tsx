@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { redirect } from "next/navigation";
 import { Frame } from "@/components/frame";
 import { ProcessSteps } from "@/components/process-steps";
 import { CheckoutForm } from "@/components/checkout-form";
 import { ButtonLink } from "@/components/ui/button-link";
 import { formatBdt } from "@/lib/format";
+import { getCurrentUser } from "@/lib/session";
 import { getPublicProduct } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +22,10 @@ export default async function CheckoutPage({
   searchParams: Promise<{ product?: string; qty?: string }>;
 }) {
   const query = await searchParams;
+  const user = await getCurrentUser();
+  const next = `/checkout?product=${query.product ?? ""}&qty=${query.qty ?? "1"}`;
+  if (!user) redirect(`/auth?next=${encodeURIComponent(next)}`);
+
   const product = query.product ? await getPublicProduct(query.product) : null;
   const requested = Number(query.qty ?? "1");
   const quantity = Number.isInteger(requested) ? Math.min(5, Math.max(1, requested)) : 1;
@@ -36,9 +42,9 @@ export default async function CheckoutPage({
         <div className="mt-8 grid items-start gap-6 sm:mt-10 sm:gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
         <div className="premium-card rounded-[28px] p-5 sm:rounded-[40px] sm:p-10">
           <p className="text-xs uppercase tracking-[0.22em] text-white/45">Checkout</p>
-          <h1 className="mt-4 display-soft text-[clamp(2rem,7vw,3.2rem)]">Where should the code go?</h1>
+          <h1 className="mt-4 display-soft text-[clamp(2rem,7vw,3.2rem)]">Confirm and deposit</h1>
           <p className="mt-4 max-w-md text-base leading-relaxed text-white/50 sm:text-lg">
-            Add your email and mobile. Then send the deposit and upload proof on the next page.
+            Signed in as {user.email}. Confirm the mobile if needed, then continue to the deposit page.
           </p>
           {product && product.stock > 0 ? (
             <div className="mt-10">
@@ -47,6 +53,8 @@ export default async function CheckoutPage({
                 title={product.title}
                 quantity={qty}
                 total={product.price * qty}
+                defaultEmail={user.email}
+                defaultPhone={user.phone}
               />
             </div>
           ) : (

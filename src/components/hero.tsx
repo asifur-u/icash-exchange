@@ -6,7 +6,7 @@ import { VoucherDesk } from "@/components/voucher-desk";
 import { ButtonLink } from "@/components/ui/button-link";
 import type { PublicProduct } from "@/lib/types";
 
-export function Hero({ products }: { products: PublicProduct[] }) {
+export function Hero({ products, loggedIn = false }: { products: PublicProduct[]; loggedIn?: boolean }) {
   return (
     <section className="relative overflow-hidden bg-black pb-14 pt-[calc(5.5rem+env(safe-area-inset-top))] sm:pb-24 sm:pt-36 md:pb-28 md:pt-40">
       <Frame className="relative grid items-center gap-12 sm:gap-14 lg:grid-cols-[1.05fr_1fr] lg:gap-16 xl:gap-24">
@@ -63,7 +63,7 @@ export function Hero({ products }: { products: PublicProduct[] }) {
           animate={{ y: 0 }}
           transition={{ duration: 0.9, delay: 0.08 }}
         >
-          <VoucherDesk products={products} />
+          <VoucherDesk products={products} loggedIn={loggedIn} />
         </motion.div>
       </Frame>
     </section>

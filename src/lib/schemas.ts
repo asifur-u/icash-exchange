@@ -24,6 +24,18 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Enter the owner password").max(200),
 });
 
+export const userRegisterSchema = z.object({
+  name: z.string().trim().min(2, "Enter your name").max(80),
+  email: z.string().trim().email("Enter a valid email").max(160),
+  phone: z.string().trim().regex(/^01\d{9}$/, "Use an 11-digit mobile number starting with 01"),
+  password: z.string().min(6, "Use at least 6 characters").max(200),
+});
+
+export const userLoginSchema = z.object({
+  email: z.string().trim().email("Enter a valid email").max(160),
+  password: z.string().min(1, "Enter your password").max(200),
+});
+
 export const uploadSchema = z.object({
   productSlug: z.string().trim().min(1).max(80),
   csv: z.string().trim().min(1, "Add at least one code").max(50_000),
