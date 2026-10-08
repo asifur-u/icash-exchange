@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { Frame } from "@/components/frame";
+import { ProcessSteps } from "@/components/process-steps";
 import { CheckoutForm } from "@/components/checkout-form";
 import { ButtonLink } from "@/components/ui/button-link";
 import { formatBdt } from "@/lib/format";
@@ -30,7 +31,9 @@ export default async function CheckoutPage({
         aria-hidden="true"
         className="pointer-events-none absolute left-1/2 top-10 h-[420px] w-[min(100vw,640px)] -translate-x-1/2 rounded-full bg-white/[0.035] blur-[110px]"
       />
-      <Frame className="relative grid items-start gap-6 sm:gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
+      <Frame className="relative">
+        <ProcessSteps current={3} />
+        <div className="mt-8 grid items-start gap-6 sm:mt-10 sm:gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
         <div className="premium-card rounded-[28px] p-5 sm:rounded-[40px] sm:p-10">
           <p className="text-xs uppercase tracking-[0.22em] text-white/45">Checkout</p>
           <h1 className="mt-4 display-soft text-[clamp(2rem,7vw,3.2rem)]">Where should the code go?</h1>
@@ -95,6 +98,7 @@ export default async function CheckoutPage({
             <p className="display text-3xl">No note selected.</p>
           )}
         </aside>
+        </div>
       </Frame>
     </section>
   );

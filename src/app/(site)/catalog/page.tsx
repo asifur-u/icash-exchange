@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Frame } from "@/components/frame";
+import { ProcessSteps } from "@/components/process-steps";
 import { formatBdt } from "@/lib/format";
 import { getPublicProducts } from "@/lib/store";
 
@@ -20,7 +21,10 @@ export default async function CatalogPage() {
       <h1 className="mt-4 max-w-xl display text-[clamp(2.4rem,8vw,3.75rem)] leading-none sm:text-6xl">
         Notes on the desk.
       </h1>
-      <p className="mt-6 max-w-lg text-base text-muted sm:text-lg">Four values in taka. Each code is held for one buyer. Pay with bKash, Nagad, Rocket or bank, then read the code on your order page.</p>
+      <p className="mt-6 max-w-lg text-base leading-relaxed text-white/60 sm:text-lg">
+        This page is only for choosing a value. The next page is Buy, where you set the quantity and see what you pay.
+      </p>
+      <ProcessSteps current={1} />
       <div className="mt-10 grid gap-3 sm:mt-14 sm:grid-cols-2 sm:gap-4">
         {products.map((product) => (
           <Link
@@ -35,7 +39,9 @@ export default async function CatalogPage() {
               {formatBdt(product.faceValue)}
             </h2>
             <p className="mt-3 text-sm text-muted sm:text-base">{product.blurb}</p>
-            <p className="mt-8 text-sm text-white sm:mt-10">Order this note</p>
+            <p className="mt-8 inline-flex h-11 items-center rounded-full bg-white px-5 text-sm font-semibold text-black sm:mt-10">
+              Buy this note
+            </p>
           </Link>
         ))}
       </div>
