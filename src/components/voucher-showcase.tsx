@@ -108,17 +108,6 @@ export function VoucherShowcase({ products }: { products: PublicProduct[] }) {
               <p className="relative mt-3 max-w-md text-base leading-relaxed text-white/50 sm:mt-5 sm:text-lg">
                 {active.blurb}
               </p>
-              <div className="relative mt-5 flex flex-wrap gap-2 sm:mt-8 sm:gap-3">
-                <span className="rounded-full border border-white/15 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-white/55 sm:px-4 sm:py-2 sm:text-xs">
-                  Encrypted
-                </span>
-                <span className="rounded-full border border-white/15 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-white/55 sm:px-4 sm:py-2 sm:text-xs">
-                  Sold once
-                </span>
-                <span className="rounded-full border border-white/15 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-white/55 sm:px-4 sm:py-2 sm:text-xs">
-                  Instant
-                </span>
-              </div>
               <Link
                 href={`/order/${active.slug}`}
                 className="relative mt-6 inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-8 text-base font-medium tracking-tight text-black transition hover:bg-white/85 sm:mt-10 sm:h-14 sm:w-auto"
