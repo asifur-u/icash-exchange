@@ -2,24 +2,39 @@ export const steps = [
   {
     number: "01",
     title: "Choose a note",
-    body: "Face value is in taka. Stock is the count of codes that are still unsold.",
+    body: "Pick a face value in taka. The desk shows how many codes are still unsold.",
   },
   {
     number: "02",
-    title: "Pay on the hosted page",
-    body: "This demonstration confirms the order on an iCash Exchange checkout page. A live gateway replaces it when you hold a merchant account.",
+    title: "Send the deposit",
+    body: "Pay with bKash, Nagad, Rocket or bank. Add the transaction id and a screenshot so the desk can match it.",
   },
   {
     number: "03",
     title: "Read the code",
-    body: "The code appears on your order page. Email and SMS send once those providers are connected.",
+    body: "After the desk approves the deposit, the code is on your order page. Copy it from there.",
+  },
+] as const;
+
+export const reasons = [
+  {
+    title: "One buyer, one code",
+    body: "A code is held for a single order. Nobody else can take it while you pay.",
+  },
+  {
+    title: "Local rails",
+    body: "bKash, Nagad, Rocket and bank. The amount on the pay page is the amount you send.",
+  },
+  {
+    title: "Proof, then the code",
+    body: "The desk checks the transaction id and screenshot before the code is shown.",
   },
 ] as const;
 
 export const faqs = [
   {
     q: "How fast does the code arrive?",
-    a: "After payment is confirmed, the code is on your order page. In this demonstration that confirmation is immediate. Email and SMS follow when Resend and an SMS provider are configured.",
+    a: "Once the desk matches your deposit, the code is on your order page. Keep that page open. You can copy the code from there.",
   },
   {
     q: "Can two people receive the same code?",
@@ -31,10 +46,10 @@ export const faqs = [
   },
   {
     q: "Can a revealed code be refunded?",
-    a: "A code that has been shown is voided, not sold again. Write the refund policy before a real launch. Digital codes are hard to take back.",
+    a: "A code that has already been shown is closed. It is not sold to anyone else. Contact the desk before you reveal it if you need to stop the order.",
   },
   {
-    q: "Are these notes real value?",
-    a: "No. The codes on this desk are samples. They have no cash value. Connect a supplier you are allowed to resell, then replace the sample stock.",
+    q: "Which payments does the desk take?",
+    a: "bKash, Nagad, Rocket and bank transfer. Send the exact total, then upload the transaction id and a screenshot on the pay page.",
   },
 ] as const;

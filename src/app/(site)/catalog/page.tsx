@@ -20,7 +20,7 @@ export default async function CatalogPage() {
       <h1 className="mt-4 max-w-xl display text-[clamp(2.4rem,8vw,3.75rem)] leading-none sm:text-6xl">
         Notes on the desk.
       </h1>
-      <p className="mt-6 max-w-lg text-base text-muted sm:text-lg">Four sample values. Each code is held for one buyer.</p>
+      <p className="mt-6 max-w-lg text-base text-muted sm:text-lg">Four values in taka. Each code is held for one buyer.</p>
       <div className="mt-10 grid gap-3 sm:mt-14 sm:grid-cols-2 sm:gap-4">
         {products.map((product) => (
           <Link

@@ -33,7 +33,7 @@ export default async function CheckoutPage({
       <Frame className="relative grid items-start gap-6 sm:gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
         <div className="premium-card rounded-[28px] p-5 sm:rounded-[40px] sm:p-10">
           <p className="text-xs uppercase tracking-[0.22em] text-white/45">Checkout</p>
-          <h1 className="mt-4 display text-[clamp(2rem,7vw,3rem)] sm:text-5xl">Where should the code go?</h1>
+          <h1 className="mt-4 display-soft text-[clamp(2rem,7vw,3.2rem)]">Where should the code go?</h1>
           <p className="mt-4 max-w-md text-base leading-relaxed text-white/50 sm:text-lg">
             Add your email and mobile. Then send the deposit and upload proof on the next page.
           </p>
