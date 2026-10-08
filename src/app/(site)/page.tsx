@@ -32,10 +32,10 @@ export default async function HomePage() {
           <div className="mt-10 grid gap-4 sm:mt-14 md:grid-cols-3 md:gap-5">
             {steps.map((step, index) => (
               <Reveal key={step.number} delay={index * 0.08}>
-                <div className="premium-card h-full rounded-[24px] p-6 sm:rounded-[32px] sm:p-8">
-                  <p className="display text-[clamp(2.6rem,9vw,4rem)] accent-red">{step.number}</p>
-                  <h3 className="mt-5 display text-2xl sm:text-3xl">{step.title}</h3>
-                  <p className="mt-4 text-sm leading-relaxed text-white/60 sm:text-base">{step.body}</p>
+                <div className="premium-card h-full rounded-[28px] p-7 sm:p-9">
+                  <p className="text-sm font-semibold tracking-tight text-[#ff2d2d]">{step.number}</p>
+                  <h3 className="mt-6 display-soft text-[1.7rem] leading-none sm:text-[2rem]">{step.title}</h3>
+                  <p className="mt-4 text-base leading-relaxed text-white/60">{step.body}</p>
                 </div>
               </Reveal>
             ))}
