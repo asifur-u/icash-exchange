@@ -76,26 +76,16 @@ body {
   }
 
   .hero-offer {
-    width: min(100%, 17.5rem);
+    display: inline-flex;
+    max-width: 100%;
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  @media (min-width: 640px) {
-    .hero-offer {
-      width: min(100%, 26rem);
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .hero-offer {
-      width: min(100%, 30rem);
-    }
-  }
-
-  .hero-offer-line {
+  .hero-offer-top,
+  .hero-offer-bonus,
+  .hero-offer-main {
     display: block;
-    width: 100%;
-    text-align: justify;
-    text-align-last: justify;
     white-space: nowrap;
   }
 

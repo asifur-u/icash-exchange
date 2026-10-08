@@ -1,12 +1,49 @@
 ﻿"use client";
 
 import { motion } from "motion/react";
+import { useLayoutEffect, useRef } from "react";
 import { Frame } from "@/components/frame";
 import { VoucherDesk } from "@/components/voucher-desk";
 import { ButtonLink } from "@/components/ui/button-link";
 import type { PublicProduct } from "@/lib/types";
 
+function fitLine(el: HTMLElement | null, targetWidth: number) {
+  if (!el || targetWidth < 8) return;
+  el.style.fontSize = "";
+  let size = parseFloat(getComputedStyle(el).fontSize);
+  if (!Number.isFinite(size) || size < 8) size = 24;
+  // Grow until the line matches the green "5% EXTRA" width — keep normal letter spacing.
+  for (let i = 0; i < 40 && el.scrollWidth < targetWidth - 1; i += 1) {
+    size += 1;
+    el.style.fontSize = `${size}px`;
+  }
+  for (let i = 0; i < 40 && el.scrollWidth > targetWidth + 1; i += 1) {
+    size -= 0.5;
+    el.style.fontSize = `${Math.max(12, size)}px`;
+  }
+}
+
 export function Hero({ products, loggedIn = false }: { products: PublicProduct[]; loggedIn?: boolean }) {
+  const mainRef = useRef<HTMLSpanElement>(null);
+  const topRef = useRef<HTMLSpanElement>(null);
+  const bonusRef = useRef<HTMLSpanElement>(null);
+
+  useLayoutEffect(() => {
+    function sync() {
+      const width = mainRef.current?.getBoundingClientRect().width ?? 0;
+      fitLine(topRef.current, width);
+      fitLine(bonusRef.current, width);
+    }
+    sync();
+    const ro = new ResizeObserver(sync);
+    if (mainRef.current) ro.observe(mainRef.current);
+    window.addEventListener("resize", sync);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", sync);
+    };
+  }, []);
+
   return (
     <section className="relative overflow-hidden bg-black pb-14 pt-[calc(5.5rem+env(safe-area-inset-top))] sm:pb-24 sm:pt-36 md:pb-28 md:pt-40">
       <Frame className="relative grid items-center gap-12 sm:gap-14 lg:grid-cols-[1.05fr_1fr] lg:gap-16 xl:gap-24">
@@ -17,13 +54,22 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.05 }}
           >
-            <span className="hero-offer-line display-hero text-[clamp(1.15rem,4.8vw,2.15rem)] leading-none text-white">
+            <span
+              ref={topRef}
+              className="hero-offer-top display-hero text-[clamp(1.35rem,5.2vw,2.4rem)] leading-none text-white"
+            >
               Every deposit
             </span>
-            <span className="mt-1 block display-hero text-[clamp(2.9rem,13.5vw,6.4rem)] leading-[0.88] accent-green">
+            <span
+              ref={mainRef}
+              className="hero-offer-main mt-1 display-hero text-[clamp(2.9rem,13.5vw,6.4rem)] leading-[0.88] accent-green"
+            >
               5% extra
             </span>
-            <span className="hero-offer-line mt-1 display-hero text-[clamp(1.55rem,7vw,3.1rem)] leading-none accent-green">
+            <span
+              ref={bonusRef}
+              className="hero-offer-bonus mt-1 display-hero text-[clamp(1.5rem,6.5vw,2.8rem)] leading-none accent-green"
+            >
               Bonus
             </span>
             <div className="hero-power" aria-hidden="true">
