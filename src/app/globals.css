@@ -346,6 +346,25 @@ summary::-webkit-details-marker {
   }
 }
 
+.pay-marquee {
+  animation: pay-marquee 28s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pay-marquee {
+    animation-duration: 55s;
+  }
+}
+
+@keyframes pay-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-33.333%);
+  }
+}
+
 @keyframes hero-power-glow {
   0%,
   100% {

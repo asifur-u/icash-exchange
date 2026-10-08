@@ -6,20 +6,32 @@ import { AnimatePresence, motion } from "motion/react";
 import { Frame } from "@/components/frame";
 import { platforms } from "@/lib/platforms";
 
-const INTERVAL_MS = 3000;
-const RESUME_MS = 6000;
+const INTERVAL_MS = 2800;
+const RESUME_MS = 5000;
+
+const payments = [
+  { id: "bkash", label: "bKash", line: "Send Money", logo: "/payments/bkash.png" },
+  { id: "nagad", label: "Nagad", line: "Send Money", logo: "/payments/nagad.png" },
+  { id: "rocket", label: "Rocket", line: "Send Money", logo: "/payments/rocket.png" },
+  { id: "bank", label: "Bank", line: "NPSB / BEFTN", logo: "/payments/bank.png" },
+] as const;
 
 export function Platforms() {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [soft, setSoft] = useState(false);
   const resumeTimer = useRef<number | null>(null);
   const stripRef = useRef<HTMLDivElement>(null);
   const chipRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const count = platforms.length;
 
   useEffect(() => {
+    setSoft(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }, []);
+
+  // Always auto-advance so the desk clearly slides.
+  useEffect(() => {
     if (paused) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const id = window.setInterval(() => {
       setActive((current) => (current + 1) % count);
     }, INTERVAL_MS);
@@ -30,11 +42,9 @@ export function Platforms() {
     const chip = chipRefs.current[active];
     const strip = stripRef.current;
     if (!chip || !strip) return;
-    const chipLeft = chip.offsetLeft;
-    const chipWidth = chip.offsetWidth;
-    const target = chipLeft - strip.clientWidth / 2 + chipWidth / 2;
-    strip.scrollTo({ left: Math.max(0, target), behavior: "smooth" });
-  }, [active]);
+    const target = chip.offsetLeft - strip.clientWidth / 2 + chip.offsetWidth / 2;
+    strip.scrollTo({ left: Math.max(0, target), behavior: soft ? "auto" : "smooth" });
+  }, [active, soft]);
 
   useEffect(() => {
     return () => {
@@ -59,14 +69,10 @@ export function Platforms() {
   }
 
   const current = platforms[active]!;
+  const duration = soft ? 0.2 : 0.45;
 
   return (
     <section id="partners" className="relative overflow-hidden bg-black py-16 sm:py-24 md:py-32">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-24 h-[420px] w-[min(100vw,720px)] -translate-x-1/2 rounded-full bg-white/[0.04] blur-[100px]"
-      />
-
       <Frame>
         <div className="mx-auto max-w-2xl text-center">
           <p className="eyebrow">Partners</p>
@@ -74,44 +80,40 @@ export function Platforms() {
             Desks we <span className="accent-red">connect</span> with.
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-white/50 sm:text-lg">
-            Auto slides. Tap any chip below to jump. The selected desk stays highlighted.
+            Logos slide on their own. Tap a chip or use the arrows to jump.
           </p>
         </div>
 
-        <div className="relative mx-auto mt-10 max-w-5xl sm:mt-16">
-          <div className="pointer-events-none absolute inset-y-8 left-0 z-20 w-10 bg-gradient-to-r from-black to-transparent sm:w-28" />
-          <div className="pointer-events-none absolute inset-y-8 right-0 z-20 w-10 bg-gradient-to-l from-black to-transparent sm:w-28" />
-
-          <div className="relative flex h-[300px] items-center justify-center sm:h-[380px] md:h-[420px]">
+        <div className="relative mx-auto mt-10 max-w-5xl sm:mt-14">
+          <div className="relative flex min-h-[300px] items-center justify-center sm:min-h-[360px]">
             <AnimatePresence mode="wait">
               <motion.article
                 key={current.id}
-                initial={{ opacity: 0, x: 56, scale: 0.94 }}
+                initial={{ opacity: 0, x: soft ? 0 : 48, scale: soft ? 1 : 0.96 }}
                 animate={{ opacity: 1, x: 0, scale: 1 }}
-                exit={{ opacity: 0, x: -56, scale: 0.94 }}
-                transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
-                className="partner-stage relative z-10 flex w-[min(100%,280px)] flex-col items-center rounded-[24px] px-4 py-7 sm:w-[380px] sm:rounded-[40px] sm:px-10 sm:py-12"
+                exit={{ opacity: 0, x: soft ? 0 : -48, scale: soft ? 1 : 0.96 }}
+                transition={{ duration, ease: [0.22, 1, 0.36, 1] }}
+                className="partner-stage relative z-10 flex w-[min(100%,300px)] flex-col items-center rounded-[28px] px-5 py-8 sm:w-[380px] sm:rounded-[36px] sm:px-10 sm:py-11"
               >
-                <div className="partner-glow" aria-hidden="true" />
                 <LogoTile src={current.logo} alt={`${current.label} logo`} size="lg" />
-                <p className="mt-6 text-2xl font-medium tracking-tight text-white sm:mt-8 sm:text-4xl">
+                <p className="mt-6 text-2xl font-semibold tracking-tight text-white sm:mt-7 sm:text-4xl">
                   {current.label}
                 </p>
-                <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 py-2">
+                <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-black px-4 py-2">
                   <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white/60 opacity-60" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#9fe870]/70 opacity-70" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-[#9fe870]" />
                   </span>
-                  <span className="text-xs uppercase tracking-[0.22em] text-white/55">Connected</span>
+                  <span className="text-xs uppercase tracking-[0.2em] text-white/60">Connected</span>
                 </div>
                 <p className="mt-5 text-center text-sm leading-relaxed text-white/40">
-                  Verified partner rail for digital note delivery.
+                  Verified partner for digital note delivery.
                 </p>
               </motion.article>
             </AnimatePresence>
           </div>
 
-          <div className="mt-4 flex items-center justify-center gap-4">
+          <div className="mt-5 flex items-center justify-center gap-4">
             <button
               type="button"
               aria-label="Previous partner"
@@ -120,7 +122,11 @@ export function Platforms() {
             >
               ←
             </button>
-            <div className="flex max-w-[min(100%,220px)] flex-wrap items-center justify-center gap-1 sm:max-w-none" role="tablist" aria-label="Partners">
+            <div
+              className="flex max-w-[min(100%,240px)] flex-wrap items-center justify-center gap-1.5"
+              role="tablist"
+              aria-label="Partners"
+            >
               {platforms.map((platform, index) => {
                 const selected = index === active;
                 return (
@@ -131,16 +137,16 @@ export function Platforms() {
                     aria-selected={selected}
                     aria-label={platform.label}
                     onClick={() => pick(index)}
-                    className="flex h-11 w-11 items-center justify-center"
+                    className="flex h-10 w-10 items-center justify-center"
                   >
                     <span
-                      className={`block h-2 overflow-hidden rounded-full transition-all ${
-                        selected ? "w-8 bg-white/25" : "w-2 bg-white/25"
+                      className={`block h-2 overflow-hidden rounded-full bg-white/20 transition-all ${
+                        selected ? "w-8" : "w-2"
                       }`}
                     >
                       {selected ? (
                         <span
-                          key={`${platform.id}-progress-${active}-${paused ? "p" : "r"}`}
+                          key={`${platform.id}-${active}-${paused ? "p" : "r"}`}
                           className="block h-full rounded-full bg-white"
                           style={{
                             animation: paused ? "none" : `partner-progress ${INTERVAL_MS}ms linear`,
@@ -165,12 +171,12 @@ export function Platforms() {
         </div>
       </Frame>
 
-      <div className="relative mt-16">
-        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-black to-transparent sm:w-24" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-black to-transparent sm:w-24" />
+      <div className="relative mt-12 sm:mt-16">
+        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-black to-transparent sm:w-20" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-black to-transparent sm:w-20" />
         <div
           ref={stripRef}
-          className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-5 pb-2 sm:gap-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-5 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {platforms.map((platform, index) => {
             const selected = index === active;
@@ -183,18 +189,18 @@ export function Platforms() {
                 }}
                 onClick={() => pick(index)}
                 aria-pressed={selected}
-                className={`partner-chip flex min-w-[min(78vw,220px)] shrink-0 snap-center items-center gap-3 rounded-[22px] border px-3.5 py-3.5 text-left transition sm:min-w-[220px] sm:gap-4 sm:rounded-[26px] sm:px-4 sm:py-4 ${
+                className={`flex min-w-[148px] shrink-0 snap-center flex-col items-center gap-2.5 rounded-[22px] border px-4 py-4 transition sm:min-w-[168px] ${
                   selected
-                    ? "border-white bg-white text-black shadow-[0_18px_50px_rgba(255,255,255,0.14)]"
-                    : "border-white/12 bg-white/[0.03] text-white hover:border-white/35"
+                    ? "border-white bg-white text-black"
+                    : "border-white/12 bg-black text-white hover:border-white/30"
                 }`}
               >
                 <LogoTile src={platform.logo} alt="" size="sm" selected={selected} />
-                <span className="min-w-0">
-                  <span className="block truncate text-sm font-medium tracking-tight">{platform.label}</span>
+                <span className="text-center">
+                  <span className="block text-sm font-semibold tracking-tight">{platform.label}</span>
                   <span
-                    className={`mt-1 block text-[10px] uppercase tracking-[0.2em] ${
-                      selected ? "text-black/50" : "text-white/40"
+                    className={`mt-1 block text-[10px] uppercase tracking-[0.18em] ${
+                      selected ? "text-black/45" : "text-white/40"
                     }`}
                   >
                     {selected ? "Selected" : "Connected"}
@@ -203,6 +209,45 @@ export function Platforms() {
               </button>
             );
           })}
+        </div>
+      </div>
+
+      <Frame className="mt-16 sm:mt-20">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="eyebrow">Pay rails</p>
+          <h3 className="mt-3 display-soft text-[clamp(1.8rem,6vw,2.8rem)]">
+            Local ways to <span className="accent-red">deposit.</span>
+          </h3>
+        </div>
+      </Frame>
+
+      <div className="relative mt-8 overflow-hidden sm:mt-10">
+        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-black to-transparent sm:w-24" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-black to-transparent sm:w-24" />
+        <div className="pay-marquee flex w-max gap-3 px-5">
+          {[...payments, ...payments, ...payments].map((method, index) => (
+            <div
+              key={`${method.id}-${index}`}
+              className="flex w-[132px] shrink-0 flex-col items-center gap-2 rounded-[22px] border border-white/12 bg-black px-4 py-4 sm:w-[150px]"
+            >
+              <span className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-black sm:h-14 sm:w-14">
+                <Image
+                  src={method.logo}
+                  alt=""
+                  width={56}
+                  height={56}
+                  unoptimized
+                  className="h-full w-full object-contain"
+                />
+              </span>
+              <span className="text-center">
+                <span className="block text-sm font-semibold tracking-tight text-white">{method.label}</span>
+                <span className="mt-1 block text-[10px] uppercase tracking-[0.16em] text-white/40">
+                  {method.line}
+                </span>
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -217,21 +262,19 @@ function LogoTile({
 }: {
   src: string;
   alt: string;
-  size: "sm" | "md" | "lg";
+  size: "sm" | "lg";
   selected?: boolean;
 }) {
   const box =
     size === "lg"
-      ? "h-28 w-28 rounded-[26px] sm:h-40 sm:w-40 sm:rounded-[32px]"
-      : size === "md"
-        ? "h-20 w-20 rounded-[22px]"
-        : "h-12 w-12 rounded-2xl sm:h-14 sm:w-14";
-  const px = size === "lg" ? 160 : size === "md" ? 80 : 56;
+      ? "h-28 w-28 rounded-[26px] sm:h-36 sm:w-36 sm:rounded-[30px]"
+      : "h-12 w-12 rounded-2xl sm:h-14 sm:w-14";
+  const px = size === "lg" ? 144 : 56;
 
   return (
     <span
-      className={`relative flex shrink-0 items-center justify-center overflow-hidden border bg-white ${box} ${
-        selected ? "border-black/10 shadow-none" : "border-white/20 shadow-[0_16px_40px_rgba(255,255,255,0.1)]"
+      className={`relative flex shrink-0 items-center justify-center overflow-hidden border ${box} ${
+        selected ? "border-black/10 bg-white" : "border-white/15 bg-white"
       }`}
     >
       <Image
@@ -245,4 +288,3 @@ function LogoTile({
     </span>
   );
 }
-
