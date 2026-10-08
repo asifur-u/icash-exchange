@@ -23,24 +23,35 @@ export default async function HomePage() {
       <VoucherShowcase products={products} />
       <Platforms />
       <section className="border-t border-white/10">
-        <Frame className="grid gap-10 py-16 sm:gap-12 sm:py-20 md:grid-cols-3 md:py-28">
-          {steps.map((step, index) => (
-            <Reveal key={step.number} delay={index * 0.08}>
-              <p className="display text-3xl text-white/40 sm:text-4xl">{step.number}</p>
-              <h2 className="mt-4 display text-2xl leading-none sm:text-3xl">{step.title}</h2>
-              <p className="mt-4 text-sm leading-relaxed text-muted">{step.body}</p>
-            </Reveal>
-          ))}
+        <Frame className="py-16 sm:py-20 md:py-28">
+          <p className="eyebrow">How it works</p>
+          <h2 className="mt-4 display text-[clamp(2.4rem,10vw,5.2rem)]">
+            Three steps.
+            <span className="block accent-red">One code.</span>
+          </h2>
+          <div className="mt-10 grid gap-4 sm:mt-14 md:grid-cols-3 md:gap-5">
+            {steps.map((step, index) => (
+              <Reveal key={step.number} delay={index * 0.08}>
+                <div className="premium-card h-full rounded-[24px] p-6 sm:rounded-[32px] sm:p-8">
+                  <p className="display text-[clamp(2.6rem,9vw,4rem)] accent-red">{step.number}</p>
+                  <h3 className="mt-5 display text-2xl sm:text-3xl">{step.title}</h3>
+                  <p className="mt-4 text-sm leading-relaxed text-white/60 sm:text-base">{step.body}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
         </Frame>
       </section>
       <section className="border-t border-white/10">
         <Frame className="py-16 sm:py-20 md:py-28">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-white/50">Questions</p>
-          <h2 className="mt-4 display text-[clamp(2.2rem,7vw,3rem)] leading-none sm:text-5xl">Before you pay</h2>
+          <p className="eyebrow">Questions</p>
+          <h2 className="mt-4 display text-[clamp(2.4rem,10vw,5.2rem)]">
+            Before <span className="accent-red">you pay</span>
+          </h2>
           <div className="mt-8 max-w-3xl sm:mt-10">
             {faqs.map((item) => (
               <details key={item.q} className="group border-b border-white/10 py-4 sm:py-5">
-                <summary className="flex cursor-pointer items-start justify-between gap-4 display text-xl leading-tight sm:items-center sm:gap-6 sm:text-2xl">
+                <summary className="flex cursor-pointer items-start justify-between gap-4 display-soft text-xl sm:items-center sm:gap-6 sm:text-2xl">
                   <span className="min-w-0">{item.q}</span>
                   <span className="shrink-0 text-white group-open:hidden">+</span>
                   <span className="hidden shrink-0 text-white group-open:inline">–</span>

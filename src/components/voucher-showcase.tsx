@@ -36,8 +36,10 @@ export function VoucherShowcase({ products }: { products: PublicProduct[] }) {
       <Frame>
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
           <div className="min-w-0">
-            <p className="text-xs uppercase tracking-[0.24em] text-white/45">Vouchers</p>
-            <h2 className="mt-4 display text-[clamp(2.4rem,8vw,3.75rem)] md:text-6xl">Premium notes.</h2>
+            <p className="eyebrow">Vouchers</p>
+            <h2 className="mt-4 display text-[clamp(2.4rem,10vw,5.2rem)]">
+              Premium <span className="accent-red">notes.</span>
+            </h2>
             <p className="mt-4 max-w-lg text-base leading-relaxed text-white/50 sm:text-lg">
               Every iCash note on the desk. Pick a value. See the real voucher card.
             </p>

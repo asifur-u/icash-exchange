@@ -76,9 +76,9 @@ export function Platforms() {
 
       <Frame>
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs uppercase tracking-[0.24em] text-white/45">Partners</p>
-          <h2 className="mt-4 display text-[clamp(2.2rem,7vw,3.75rem)] md:text-6xl">
-            Desks we connect with.
+          <p className="eyebrow">Partners</p>
+          <h2 className="mt-4 display text-[clamp(2.2rem,9vw,4.6rem)]">
+            Desks we <span className="accent-red">connect</span> with.
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-white/50 sm:text-lg">
             Auto slides. Tap any chip below to jump. The selected desk stays highlighted.
