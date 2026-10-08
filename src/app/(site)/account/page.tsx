@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { ContinueBuy } from "@/components/continue-buy";
 import { Frame } from "@/components/frame";
 import { LogoutButton } from "@/components/logout-button";
-import { ProcessSteps } from "@/components/process-steps";
 import { formatBdt, formatWhen } from "@/lib/format";
 import { listOrdersForUser } from "@/lib/orders";
 import { getCurrentUser } from "@/lib/session";
@@ -64,16 +63,19 @@ export default async function AccountPage() {
           </div>
         </div>
 
-        <ProcessSteps current={1} />
         <ContinueBuy />
 
-        <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {guide.map((item) => (
-            <div key={item.title} className="premium-card rounded-[24px] p-6">
-              <h2 className="text-lg font-semibold tracking-tight">{item.title}</h2>
-              <p className="mt-3 text-sm leading-relaxed text-white/55">{item.body}</p>
-            </div>
-          ))}
+        <div className="mt-12">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-white/40">How to buy</p>
+          <div className="mt-5 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+            {guide.map((item, index) => (
+              <div key={item.title} className="rounded-[22px] border border-white/10 bg-[#0c0c0c] p-5">
+                <p className="text-xs font-semibold text-[#ff2d2d]">0{index + 1}</p>
+                <h2 className="mt-3 text-lg font-semibold tracking-tight">{item.title.replace(/^\d+\.\s*/, "")}</h2>
+                <p className="mt-2 text-sm leading-relaxed text-white/55">{item.body}</p>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="mt-14">
