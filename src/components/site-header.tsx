@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BrandLogo } from "@/components/brand-logo";
 import { Frame } from "@/components/frame";
@@ -11,7 +12,15 @@ const links = [
   { href: "/faq", label: "FAQ" },
 ];
 
+function isActive(pathname: string, href: string) {
+  if (href === "/catalog") return pathname.startsWith("/catalog") || pathname.startsWith("/order");
+  if (href === "/faq") return pathname.startsWith("/faq");
+  if (href === "/#desk") return pathname.startsWith("/checkout") || pathname.startsWith("/pay");
+  return false;
+}
+
 export function SiteHeader() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -35,11 +44,19 @@ export function SiteHeader() {
         </Link>
 
         <nav className="hidden items-center gap-10 text-base text-white/70 md:flex">
-          {links.map((link) => (
-            <Link key={link.href} href={link.href} className="transition hover:text-white">
-              {link.label}
-            </Link>
-          ))}
+          {links.map((link) => {
+            const active = isActive(pathname, link.href);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                aria-current={active ? "page" : undefined}
+                className={`transition hover:text-white ${active ? "font-semibold text-white" : ""}`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
         </nav>
 
         <Link
@@ -74,16 +91,24 @@ export function SiteHeader() {
       {open ? (
         <div className="fixed inset-0 z-30 bg-black/95 px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[calc(4.5rem+env(safe-area-inset-top))] md:hidden">
           <nav className="mx-auto flex max-w-lg flex-col gap-2">
-            {links.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setOpen(false)}
-                className="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 text-lg text-white/90 transition hover:border-white/25 hover:bg-white/[0.06]"
-              >
-                {link.label}
-              </Link>
-            ))}
+            {links.map((link) => {
+              const active = isActive(pathname, link.href);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  aria-current={active ? "page" : undefined}
+                  onClick={() => setOpen(false)}
+                  className={`rounded-2xl border px-5 py-4 text-lg transition ${
+                    active
+                      ? "border-white bg-white text-black"
+                      : "border-white/10 bg-white/[0.03] text-white/90 hover:border-white/25"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
             <Link
               href="/#desk"
               onClick={() => setOpen(false)}

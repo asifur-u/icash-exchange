@@ -19,7 +19,7 @@ export function VoucherShowcase({ products }: { products: PublicProduct[] }) {
   if (!active) return null;
 
   return (
-    <section className="band-soft py-16 sm:py-24 md:py-28">
+    <section className="bg-black py-16 sm:py-24 md:py-28">
       <Frame>
         <div className="max-w-xl">
           <p className="eyebrow">Vouchers</p>
