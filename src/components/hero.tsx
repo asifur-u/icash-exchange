@@ -61,17 +61,17 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
           >
             <span
               ref={topRef}
-              className="hero-offer-top display-hero text-[clamp(1.35rem,5.6vw,2.35rem)] leading-none text-white"
+              className="hero-offer-top display-hero text-[clamp(1.65rem,6.8vw,2.85rem)] leading-none text-white"
             >
               Every deposit
             </span>
             <span
               ref={mainRef}
-              className="hero-offer-main hero-offer-power display-hero mt-[2px] text-[clamp(2.75rem,12.8vw,6.2rem)] leading-[0.86] accent-green"
+              className="hero-offer-main hero-offer-power display-hero mt-[2px] text-[clamp(3.35rem,15.5vw,7.4rem)] leading-[0.86] accent-green"
             >
               5% extra
             </span>
-            <span className="hero-offer-bonus mt-[2px] display-hero text-[clamp(1.45rem,6.2vw,2.75rem)] leading-none text-white">
+            <span className="hero-offer-bonus mt-[2px] display-hero text-[clamp(1.75rem,7.5vw,3.3rem)] leading-none text-white">
               {"BONUS".split("").map((letter, index) => (
                 <span key={`${letter}-${index}`}>{letter}</span>
               ))}
