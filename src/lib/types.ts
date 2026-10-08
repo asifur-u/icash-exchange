@@ -42,6 +42,7 @@ export type Order = {
   number: string;
   email: string;
   phone?: string;
+  userId?: string;
   status: OrderStatus;
   total: number;
   paymentRef?: string;

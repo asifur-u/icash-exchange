@@ -9,14 +9,18 @@ export function CheckoutForm({
   title,
   quantity,
   total,
+  defaultEmail = "",
+  defaultPhone = "",
 }: {
   productSlug: string;
   title: string;
   quantity: number;
   total: number;
+  defaultEmail?: string;
+  defaultPhone?: string;
 }) {
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState(defaultEmail);
+  const [phone, setPhone] = useState(defaultPhone);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 

@@ -27,6 +27,7 @@ export async function createCheckout(input: {
   quantity: number;
   email: string;
   phone?: string;
+  userId?: string;
 }) {
   return withStore((db) => {
     releaseStale(db);
@@ -63,6 +64,7 @@ export async function createCheckout(input: {
       createdAt: new Date().toISOString(),
     };
     if (input.phone) order.phone = input.phone;
+    if (input.userId) order.userId = input.userId;
     db.orders.push(order);
     addAudit(db, email, "order.create", orderId);
 
@@ -252,6 +254,24 @@ export async function applyPaidWebhook(event: { id: string; orderId: string; pay
   });
 
   if (action === "deliver") await deliverOrder(event.orderId);
+}
+
+export async function listOrdersForUser(userId: string) {
+  return withStore((db) => {
+    releaseStale(db);
+    return db.orders
+      .filter((order) => order.userId === userId)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .map((order) => ({
+        id: order.id,
+        number: order.number,
+        status: order.status,
+        total: order.total,
+        title: productTitle(db, order),
+        createdAt: order.createdAt,
+        token: signOrderAccess(order.id),
+      }));
+  });
 }
 
 export async function getOrderForBuyer(orderId: string, token: string | undefined): Promise<BuyerOrder> {

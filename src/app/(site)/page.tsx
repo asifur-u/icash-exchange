@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { Frame } from "@/components/frame";
 import { Hero } from "@/components/hero";
+import { HowItWorks } from "@/components/how-it-works";
 import { Platforms } from "@/components/platforms";
-import { Reveal } from "@/components/reveal";
 import { VoucherShowcase } from "@/components/voucher-showcase";
-import { faqs, steps } from "@/lib/content";
+import { faqs, reasons } from "@/lib/content";
+import { getCurrentUser } from "@/lib/session";
 import { getPublicProducts } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
@@ -15,32 +16,40 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const products = await getPublicProducts();
+  const [products, user] = await Promise.all([getPublicProducts(), getCurrentUser()]);
 
   return (
     <>
-      <Hero products={products} />
+      <Hero products={products} loggedIn={Boolean(user)} />
       <VoucherShowcase products={products} />
       <Platforms />
-      <section className="border-t border-white/10">
-        <Frame className="grid gap-10 py-16 sm:gap-12 sm:py-20 md:grid-cols-3 md:py-28">
-          {steps.map((step, index) => (
-            <Reveal key={step.number} delay={index * 0.08}>
-              <p className="display text-3xl text-white/40 sm:text-4xl">{step.number}</p>
-              <h2 className="mt-4 display text-2xl leading-none sm:text-3xl">{step.title}</h2>
-              <p className="mt-4 text-sm leading-relaxed text-muted">{step.body}</p>
-            </Reveal>
-          ))}
+      <section className="bg-black">
+        <Frame className="py-16 sm:py-20 md:py-28">
+          <p className="eyebrow">Why iCash</p>
+          <h2 className="mt-4 display text-[clamp(2.4rem,10vw,5.2rem)]">
+            Built for <span className="accent-red">one code.</span>
+          </h2>
+          <div className="mt-10 grid gap-4 md:grid-cols-3 md:gap-5">
+            {reasons.map((reason) => (
+              <div key={reason.title} className="premium-card rounded-[28px] p-7 sm:p-9">
+                <h3 className="display-soft text-[1.7rem] leading-none">{reason.title}</h3>
+                <p className="mt-4 text-base leading-relaxed text-white/60">{reason.body}</p>
+              </div>
+            ))}
+          </div>
         </Frame>
       </section>
-      <section className="border-t border-white/10">
+      <HowItWorks />
+      <section className="bg-black">
         <Frame className="py-16 sm:py-20 md:py-28">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-white/50">Questions</p>
-          <h2 className="mt-4 display text-[clamp(2.2rem,7vw,3rem)] leading-none sm:text-5xl">Before you pay</h2>
+          <p className="eyebrow">Questions</p>
+          <h2 className="mt-4 display text-[clamp(2.4rem,10vw,5.2rem)]">
+            Before <span className="accent-red">you pay</span>
+          </h2>
           <div className="mt-8 max-w-3xl sm:mt-10">
             {faqs.map((item) => (
               <details key={item.q} className="group border-b border-white/10 py-4 sm:py-5">
-                <summary className="flex cursor-pointer items-start justify-between gap-4 display text-xl leading-tight sm:items-center sm:gap-6 sm:text-2xl">
+                <summary className="flex cursor-pointer items-start justify-between gap-4 display-soft text-xl sm:items-center sm:gap-6 sm:text-2xl">
                   <span className="min-w-0">{item.q}</span>
                   <span className="shrink-0 text-white group-open:hidden">+</span>
                   <span className="hidden shrink-0 text-white group-open:inline">–</span>

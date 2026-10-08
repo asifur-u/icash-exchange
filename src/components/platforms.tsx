@@ -12,24 +12,19 @@ const RESUME_MS = 6000;
 export function Platforms() {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [enabled, setEnabled] = useState(false);
   const resumeTimer = useRef<number | null>(null);
   const stripRef = useRef<HTMLDivElement>(null);
   const chipRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const count = platforms.length;
 
   useEffect(() => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    setEnabled(!reduce);
-  }, []);
-
-  useEffect(() => {
-    if (!enabled || paused) return;
+    if (paused) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const id = window.setInterval(() => {
       setActive((current) => (current + 1) % count);
     }, INTERVAL_MS);
     return () => window.clearInterval(id);
-  }, [enabled, paused, count]);
+  }, [paused, count]);
 
   useEffect(() => {
     const chip = chipRefs.current[active];
@@ -64,11 +59,9 @@ export function Platforms() {
   }
 
   const current = platforms[active]!;
-  const prev = platforms[(active - 1 + count) % count]!;
-  const next = platforms[(active + 1) % count]!;
 
   return (
-    <section id="partners" className="relative overflow-hidden border-t border-white/10 py-16 sm:py-24 md:py-32">
+    <section id="partners" className="relative overflow-hidden bg-black py-16 sm:py-24 md:py-32">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute left-1/2 top-24 h-[420px] w-[min(100vw,720px)] -translate-x-1/2 rounded-full bg-white/[0.04] blur-[100px]"
@@ -76,26 +69,20 @@ export function Platforms() {
 
       <Frame>
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs uppercase tracking-[0.24em] text-white/45">Partners</p>
-          <h2 className="mt-4 display text-[clamp(2.2rem,7vw,3.75rem)] md:text-6xl">
-            Desks we connect with.
+          <p className="eyebrow">Partners</p>
+          <h2 className="mt-4 display text-[clamp(2.2rem,9vw,4.6rem)]">
+            Desks we <span className="accent-red">connect</span> with.
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-white/50 sm:text-lg">
             Auto slides. Tap any chip below to jump. The selected desk stays highlighted.
           </p>
         </div>
 
-        <div
-          className="relative mx-auto mt-10 max-w-5xl sm:mt-16"
-          onPointerEnter={() => setPaused(true)}
-          onPointerLeave={() => setPaused(false)}
-        >
+        <div className="relative mx-auto mt-10 max-w-5xl sm:mt-16">
           <div className="pointer-events-none absolute inset-y-8 left-0 z-20 w-10 bg-gradient-to-r from-black to-transparent sm:w-28" />
           <div className="pointer-events-none absolute inset-y-8 right-0 z-20 w-10 bg-gradient-to-l from-black to-transparent sm:w-28" />
 
           <div className="relative flex h-[300px] items-center justify-center sm:h-[380px] md:h-[420px]">
-            <SideCard platform={prev} side="left" onClick={() => go(-1)} />
-
             <AnimatePresence mode="wait">
               <motion.article
                 key={current.id}
@@ -122,8 +109,6 @@ export function Platforms() {
                 </p>
               </motion.article>
             </AnimatePresence>
-
-            <SideCard platform={next} side="right" onClick={() => go(1)} />
           </div>
 
           <div className="mt-4 flex items-center justify-center gap-4">
@@ -153,7 +138,7 @@ export function Platforms() {
                         selected ? "w-8 bg-white/25" : "w-2 bg-white/25"
                       }`}
                     >
-                      {selected && enabled ? (
+                      {selected ? (
                         <span
                           key={`${platform.id}-progress-${active}-${paused ? "p" : "r"}`}
                           className="block h-full rounded-full bg-white"
@@ -261,31 +246,3 @@ function LogoTile({
   );
 }
 
-function SideCard({
-  platform,
-  side,
-  onClick,
-}: {
-  platform: (typeof platforms)[number];
-  side: "left" | "right";
-  onClick: () => void;
-}) {
-  return (
-    <motion.button
-      type="button"
-      key={`${side}-${platform.id}`}
-      initial={{ opacity: 0.3 }}
-      animate={{ opacity: 0.55 }}
-      transition={{ duration: 0.35 }}
-      onClick={onClick}
-      aria-label={`Show ${platform.label}`}
-      className={`absolute top-1/2 z-0 hidden w-[240px] -translate-y-1/2 rounded-[32px] border border-white/10 bg-white/[0.03] px-6 py-8 text-left transition hover:opacity-90 md:block ${
-        side === "left" ? "left-4 -rotate-6 lg:left-10" : "right-4 rotate-6 lg:right-10"
-      }`}
-    >
-      <LogoTile src={platform.logo} alt="" size="md" />
-      <span className="mt-5 block text-xl font-medium tracking-tight text-white">{platform.label}</span>
-      <span className="mt-2 block text-[10px] uppercase tracking-[0.2em] text-white/35">Connected</span>
-    </motion.button>
-  );
-}

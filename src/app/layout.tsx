@@ -1,12 +1,22 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
+import { Inter, Archivo, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const sans = Plus_Jakarta_Sans({
+// Body: Inter (what Wise uses for running text)
+const sans = Inter({
   subsets: ["latin"],
   variable: "--font-geist",
   display: "swap",
   weight: ["400", "500", "600", "700"],
+});
+
+// Headlines: ultra-heavy wide grotesque, closest free match to Wise Sans
+const display = Archivo({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+  weight: "variable",
+  axes: ["wdth"],
 });
 
 const mono = Geist_Mono({
@@ -46,7 +56,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable} h-full antialiased`}>
+    <html lang="en" className={`${sans.variable} ${display.variable} ${mono.variable} h-full antialiased`}>
       <body className="min-h-full bg-black font-sans text-white text-[16px] leading-relaxed">{children}</body>
     </html>
   );
