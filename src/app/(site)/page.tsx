@@ -22,7 +22,7 @@ export default async function HomePage() {
       <Hero products={products} />
       <VoucherShowcase products={products} />
       <Platforms />
-      <section className="border-t border-white/10">
+      <section className="band">
         <Frame className="py-16 sm:py-20 md:py-28">
           <p className="eyebrow">Why iCash</p>
           <h2 className="mt-4 display text-[clamp(2.4rem,10vw,5.2rem)]">
@@ -38,7 +38,7 @@ export default async function HomePage() {
           </div>
         </Frame>
       </section>
-      <section className="border-t border-white/10">
+      <section className="band-soft">
         <Frame className="py-16 sm:py-20 md:py-28">
           <p className="eyebrow">How it works</p>
           <h2 className="mt-4 display text-[clamp(2.4rem,10vw,5.2rem)]">
@@ -58,7 +58,7 @@ export default async function HomePage() {
           </div>
         </Frame>
       </section>
-      <section className="border-t border-white/10">
+      <section className="band">
         <Frame className="py-16 sm:py-20 md:py-28">
           <p className="eyebrow">Questions</p>
           <h2 className="mt-4 display text-[clamp(2.4rem,10vw,5.2rem)]">

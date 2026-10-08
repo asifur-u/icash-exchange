@@ -61,7 +61,7 @@ export function Platforms() {
   const current = platforms[active]!;
 
   return (
-    <section id="partners" className="relative overflow-hidden border-t border-white/10 py-16 sm:py-24 md:py-32">
+    <section id="partners" className="band relative overflow-hidden py-16 sm:py-24 md:py-32">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute left-1/2 top-24 h-[420px] w-[min(100vw,720px)] -translate-x-1/2 rounded-full bg-white/[0.04] blur-[100px]"

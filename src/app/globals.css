@@ -79,6 +79,16 @@ body {
     color: rgba(255, 255, 255, 0.6);
   }
 
+  .band {
+    background:
+      radial-gradient(70% 80% at 100% 0%, rgba(255, 45, 45, 0.16), transparent 52%),
+      #100809;
+  }
+
+  .band-soft {
+    background: #0a0a0a;
+  }
+
   .premium-card {
     border: 1px solid rgba(255, 255, 255, 0.12);
     background: #0c0c0c;
