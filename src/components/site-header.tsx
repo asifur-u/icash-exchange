@@ -8,14 +8,16 @@ import { Frame } from "@/components/frame";
 
 const links = [
   { href: "/catalog", label: "Catalog" },
-  { href: "/#desk", label: "Buy" },
+  { href: "/order/note-1000", label: "Buy" },
   { href: "/faq", label: "FAQ" },
 ];
 
 function isActive(pathname: string, href: string) {
-  if (href === "/catalog") return pathname.startsWith("/catalog") || pathname.startsWith("/order");
+  if (href === "/catalog") return pathname.startsWith("/catalog");
+  if (href === "/order/note-1000") {
+    return pathname.startsWith("/order") || pathname.startsWith("/checkout") || pathname.startsWith("/pay");
+  }
   if (href === "/faq") return pathname.startsWith("/faq");
-  if (href === "/#desk") return pathname.startsWith("/checkout") || pathname.startsWith("/pay");
   return false;
 }
 
@@ -60,7 +62,7 @@ export function SiteHeader() {
         </nav>
 
         <Link
-          href="/#desk"
+          href="/order/note-1000"
           className="hidden h-12 items-center rounded-full bg-white px-6 text-sm font-medium tracking-tight text-black transition hover:bg-white/85 md:inline-flex"
         >
           Get a code
@@ -110,7 +112,7 @@ export function SiteHeader() {
               );
             })}
             <Link
-              href="/#desk"
+              href="/order/note-1000"
               onClick={() => setOpen(false)}
               className="mt-4 inline-flex h-14 items-center justify-center rounded-full bg-white text-base font-medium text-black"
             >
