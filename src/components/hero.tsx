@@ -12,8 +12,6 @@ function fitLine(el: HTMLElement | null, targetWidth: number) {
   el.style.fontSize = "";
   let size = parseFloat(getComputedStyle(el).fontSize);
   if (!Number.isFinite(size) || size < 8) size = 28;
-  // Match the full width of "5% EXTRA". Normal spacing — only font-size changes.
-  // Slight overshoot is fine so the last letter lands on EXTRA's edge.
   for (let i = 0; i < 80 && el.scrollWidth < targetWidth; i += 1) {
     size += 0.75;
     el.style.fontSize = `${size}px`;
@@ -31,19 +29,29 @@ function fitLine(el: HTMLElement | null, targetWidth: number) {
 export function Hero({ products, loggedIn = false }: { products: PublicProduct[]; loggedIn?: boolean }) {
   const mainRef = useRef<HTMLSpanElement>(null);
   const topRef = useRef<HTMLSpanElement>(null);
-  const bonusRef = useRef<HTMLSpanElement>(null);
+  const greenRef = useRef<HTMLSpanElement>(null);
 
   useLayoutEffect(() => {
-    function sync() {
+    let alive = true;
+
+    async function sync() {
+      try {
+        await document.fonts.ready;
+      } catch {
+        /* ignore */
+      }
+      if (!alive) return;
       const width = mainRef.current?.getBoundingClientRect().width ?? 0;
       fitLine(topRef.current, width);
-      fitLine(bonusRef.current, width);
+      if (greenRef.current) greenRef.current.style.width = `${width}px`;
     }
+
     sync();
     const ro = new ResizeObserver(sync);
     if (mainRef.current) ro.observe(mainRef.current);
     window.addEventListener("resize", sync);
     return () => {
+      alive = false;
       ro.disconnect();
       window.removeEventListener("resize", sync);
     };
@@ -65,21 +73,20 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
             >
               Every deposit
             </span>
-            <span
-              ref={mainRef}
-              className="hero-offer-main mt-1 display-hero text-[clamp(2.9rem,13.5vw,6.4rem)] leading-[0.88] accent-green"
-            >
-              5% extra
+
+            <span ref={greenRef} className="hero-offer-green mt-1">
+              <span
+                ref={mainRef}
+                className="hero-offer-main display-hero text-[clamp(2.9rem,13.5vw,6.4rem)] leading-[0.88] accent-green"
+              >
+                5% extra
+              </span>
+              <span className="hero-offer-bonus mt-1 display-hero text-[clamp(1.85rem,8vw,3.4rem)] leading-none accent-green">
+                {"BONUS".split("").map((letter) => (
+                  <span key={letter}>{letter}</span>
+                ))}
+              </span>
             </span>
-            <span
-              ref={bonusRef}
-              className="hero-offer-bonus mt-1 display-hero text-[clamp(1.7rem,7.2vw,3.1rem)] leading-none accent-green"
-            >
-              Bonus
-            </span>
-            <div className="hero-power" aria-hidden="true">
-              <div className="hero-power-fill" />
-            </div>
           </motion.h1>
 
           <motion.p

@@ -83,34 +83,54 @@ body {
   }
 
   .hero-offer-top,
-  .hero-offer-bonus,
   .hero-offer-main {
     display: block;
     white-space: nowrap;
   }
 
-  .hero-power {
-    margin-top: 1rem;
-    height: 0.35rem;
+  .hero-offer-bonus {
+    display: flex;
     width: 100%;
-    overflow: hidden;
-    border-radius: 999px;
-    background: rgba(159, 232, 112, 0.15);
+    justify-content: space-between;
+    white-space: nowrap;
   }
 
-  .hero-power-fill {
-    height: 100%;
-    width: 0%;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #6fbf3a, #9fe870 55%, #d4ff9a);
-    box-shadow: 0 0 18px rgba(159, 232, 112, 0.55);
-    animation: hero-power 2.4s cubic-bezier(0.22, 1, 0.36, 1) 0.35s forwards;
+  .hero-offer-green {
+    position: relative;
+    display: flex;
+    width: max-content;
+    max-width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    overflow: hidden;
+  }
+
+  .hero-offer-green .accent-green {
+    animation: hero-power-glow 2.2s ease-in-out infinite;
+  }
+
+  .hero-offer-green::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: -8% -6%;
+    background: linear-gradient(
+      105deg,
+      transparent 35%,
+      rgba(159, 232, 112, 0.35) 50%,
+      transparent 65%
+    );
+    transform: translateX(-120%);
+    animation: hero-power-shine 2.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .hero-power-fill {
-      width: 100%;
+    .hero-offer-green .accent-green {
       animation: none;
+    }
+
+    .hero-offer-green::after {
+      display: none;
     }
   }
 
@@ -325,18 +345,26 @@ summary::-webkit-details-marker {
   }
 }
 
-@keyframes hero-power {
-  0% {
-    width: 0%;
-  }
-  70% {
-    width: 100%;
-  }
-  85% {
-    width: 92%;
-  }
+@keyframes hero-power-glow {
+  0%,
   100% {
-    width: 100%;
+    text-shadow: 0 0 0 transparent;
+    filter: brightness(1);
+  }
+  50% {
+    text-shadow: 0 0 22px rgba(159, 232, 112, 0.55);
+    filter: brightness(1.12);
+  }
+}
+
+@keyframes hero-power-shine {
+  0%,
+  15% {
+    transform: translateX(-120%);
+  }
+  55%,
+  100% {
+    transform: translateX(120%);
   }
 }
 
