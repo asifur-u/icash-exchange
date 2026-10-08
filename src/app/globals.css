@@ -71,6 +71,70 @@ body {
     color: #ff2d2d;
   }
 
+  .accent-green {
+    color: #9fe870;
+  }
+
+  .hero-offer {
+    display: inline-flex;
+    max-width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    overflow: hidden;
+  }
+
+  .hero-offer-top,
+  .hero-offer-main {
+    display: block;
+    white-space: nowrap;
+    text-wrap: nowrap;
+    overflow-wrap: normal;
+    word-break: keep-all;
+  }
+
+  .hero-offer-bonus {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    white-space: nowrap;
+    letter-spacing: 0;
+  }
+
+  .hero-offer-power {
+    position: relative;
+    display: inline-block;
+    color: #9fe870;
+    text-shadow: 0 0 18px rgba(159, 232, 112, 0.45);
+    animation: hero-power-glow 1.8s ease-in-out infinite;
+  }
+
+  .hero-offer-power::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: -10% -8%;
+    background: linear-gradient(
+      100deg,
+      transparent 30%,
+      rgba(212, 255, 154, 0.65) 50%,
+      transparent 70%
+    );
+    mix-blend-mode: screen;
+    transform: translateX(-130%);
+    animation: hero-power-shine 2.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-offer-power {
+      animation: none;
+      text-shadow: 0 0 14px rgba(159, 232, 112, 0.35);
+    }
+
+    .hero-offer-power::after {
+      display: none;
+    }
+  }
+
   .eyebrow {
     font-size: 0.75rem;
     font-weight: 600;
@@ -279,6 +343,59 @@ summary::-webkit-details-marker {
   }
   to {
     width: 100%;
+  }
+}
+
+.pay-marquee {
+  animation: pay-marquee 28s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pay-marquee {
+    animation-duration: 55s;
+  }
+}
+
+@keyframes pay-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-33.333%);
+  }
+}
+
+@keyframes hero-power-glow {
+  0%,
+  100% {
+    text-shadow: 0 0 8px rgba(159, 232, 112, 0.25);
+    filter: brightness(1);
+  }
+  50% {
+    text-shadow:
+      0 0 18px rgba(159, 232, 112, 0.7),
+      0 0 36px rgba(159, 232, 112, 0.35);
+    filter: brightness(1.18);
+  }
+}
+
+@keyframes hero-power-shine {
+  0%,
+  12% {
+    transform: translateX(-130%);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  55% {
+    transform: translateX(130%);
+    opacity: 1;
+  }
+  60%,
+  100% {
+    transform: translateX(130%);
+    opacity: 0;
   }
 }
 
