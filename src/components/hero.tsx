@@ -7,29 +7,22 @@ import { VoucherDesk } from "@/components/voucher-desk";
 import { ButtonLink } from "@/components/ui/button-link";
 import type { PublicProduct } from "@/lib/types";
 
-function fitLine(el: HTMLElement | null, targetWidth: number) {
-  if (!el || targetWidth < 8) return;
-  el.style.fontSize = "";
-  let size = parseFloat(getComputedStyle(el).fontSize);
-  if (!Number.isFinite(size) || size < 8) size = 28;
-  for (let i = 0; i < 80 && el.scrollWidth < targetWidth; i += 1) {
-    size += 0.75;
-    el.style.fontSize = `${size}px`;
-  }
-  while (el.scrollWidth > targetWidth + 0.5 && size > 12) {
-    size -= 0.25;
-    el.style.fontSize = `${size}px`;
-  }
-  if (el.scrollWidth < targetWidth - 0.5) {
-    size += 0.35;
-    el.style.fontSize = `${size}px`;
-  }
+/** Keep readable size; only scale X so the line ends on EXTRA's right edge. */
+function fitTopToMain(top: HTMLElement, main: HTMLElement) {
+  top.style.transform = "none";
+  const target = main.getBoundingClientRect().width;
+  const width = top.getBoundingClientRect().width;
+  if (target < 8 || width < 8) return;
+  const scale = target / width;
+  // Cap so words stay close — never crush or wildly stretch.
+  const safe = Math.min(1.28, Math.max(0.94, scale));
+  top.style.transform = `scaleX(${safe})`;
+  top.style.transformOrigin = "left center";
 }
 
 export function Hero({ products, loggedIn = false }: { products: PublicProduct[]; loggedIn?: boolean }) {
   const mainRef = useRef<HTMLSpanElement>(null);
   const topRef = useRef<HTMLSpanElement>(null);
-  const greenRef = useRef<HTMLSpanElement>(null);
 
   useLayoutEffect(() => {
     let alive = true;
@@ -40,14 +33,13 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
       } catch {
         /* ignore */
       }
-      if (!alive) return;
-      const width = mainRef.current?.getBoundingClientRect().width ?? 0;
-      fitLine(topRef.current, width);
-      if (greenRef.current) greenRef.current.style.width = `${width}px`;
+      if (!alive || !mainRef.current || !topRef.current) return;
+      fitTopToMain(topRef.current, mainRef.current);
     }
 
     sync();
-    const ro = new ResizeObserver(sync);
+    requestAnimationFrame(sync);
+    const ro = new ResizeObserver(() => requestAnimationFrame(sync));
     if (mainRef.current) ro.observe(mainRef.current);
     window.addEventListener("resize", sync);
     return () => {
@@ -63,50 +55,47 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
         <div className="min-w-0 max-w-2xl">
           <motion.h1
             className="hero-offer"
-            initial={{ y: 20, opacity: 0.9 }}
+            initial={{ y: 16, opacity: 0.92 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.05 }}
+            transition={{ duration: 0.75, delay: 0.05 }}
           >
             <span
               ref={topRef}
-              className="hero-offer-top display-hero text-[clamp(1.55rem,6vw,2.75rem)] leading-none text-white"
+              className="hero-offer-top display-hero text-[clamp(1.35rem,5.6vw,2.35rem)] leading-none text-white"
             >
               Every deposit
             </span>
-
-            <span ref={greenRef} className="hero-offer-green mt-1">
-              <span
-                ref={mainRef}
-                className="hero-offer-main display-hero text-[clamp(2.9rem,13.5vw,6.4rem)] leading-[0.88] accent-green"
-              >
-                5% extra
-              </span>
-              <span className="hero-offer-bonus mt-1 display-hero text-[clamp(1.85rem,8vw,3.4rem)] leading-none accent-green">
-                {"BONUS".split("").map((letter) => (
-                  <span key={letter}>{letter}</span>
-                ))}
-              </span>
+            <span
+              ref={mainRef}
+              className="hero-offer-main hero-offer-power display-hero mt-[2px] text-[clamp(2.75rem,12.8vw,6.2rem)] leading-[0.86] accent-green"
+            >
+              5% extra
+            </span>
+            <span className="hero-offer-bonus mt-[2px] display-hero text-[clamp(1.45rem,6.2vw,2.75rem)] leading-none text-white">
+              {"BONUS".split("").map((letter, index) => (
+                <span key={`${letter}-${index}`}>{letter}</span>
+              ))}
             </span>
           </motion.h1>
 
           <motion.p
-            className="mt-7 max-w-md text-lg leading-[1.6] text-white/70 sm:mt-9 sm:text-xl sm:leading-[1.6]"
-            initial={{ y: 16 }}
+            className="mt-6 max-w-md text-base leading-[1.55] text-white/70 sm:mt-8 sm:text-xl sm:leading-[1.6]"
+            initial={{ y: 14 }}
             animate={{ y: 0 }}
-            transition={{ duration: 0.75, delay: 0.1 }}
+            transition={{ duration: 0.7, delay: 0.1 }}
           >
-            Buy iCash vouchers using local payment methods and enjoy an extra 5% on every eligible deposit.
+            Buy iCash vouchers using local payment methods and enjoy an extra 5% on every eligible deposit
           </motion.p>
 
           <motion.div
-            className="mt-9 sm:mt-11"
-            initial={{ y: 16 }}
+            className="mt-8 sm:mt-10"
+            initial={{ y: 14 }}
             animate={{ y: 0 }}
-            transition={{ duration: 0.75, delay: 0.14 }}
+            transition={{ duration: 0.7, delay: 0.14 }}
           >
             <ButtonLink
               href="#desk"
-              className="h-16 w-full gap-2.5 text-lg font-semibold sm:w-auto sm:min-w-[300px] sm:px-10"
+              className="h-14 w-full gap-2.5 text-base font-semibold sm:h-16 sm:w-auto sm:min-w-[300px] sm:px-10 sm:text-lg"
             >
               Buy iCash Voucher
               <svg
