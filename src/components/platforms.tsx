@@ -12,24 +12,19 @@ const RESUME_MS = 6000;
 export function Platforms() {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [enabled, setEnabled] = useState(false);
   const resumeTimer = useRef<number | null>(null);
   const stripRef = useRef<HTMLDivElement>(null);
   const chipRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const count = platforms.length;
 
   useEffect(() => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    setEnabled(!reduce);
-  }, []);
-
-  useEffect(() => {
-    if (!enabled || paused) return;
+    if (paused) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const id = window.setInterval(() => {
       setActive((current) => (current + 1) % count);
     }, INTERVAL_MS);
     return () => window.clearInterval(id);
-  }, [enabled, paused, count]);
+  }, [paused, count]);
 
   useEffect(() => {
     const chip = chipRefs.current[active];
@@ -85,11 +80,7 @@ export function Platforms() {
           </p>
         </div>
 
-        <div
-          className="relative mx-auto mt-10 max-w-5xl sm:mt-16"
-          onPointerEnter={() => setPaused(true)}
-          onPointerLeave={() => setPaused(false)}
-        >
+        <div className="relative mx-auto mt-10 max-w-5xl sm:mt-16">
           <div className="pointer-events-none absolute inset-y-8 left-0 z-20 w-10 bg-gradient-to-r from-black to-transparent sm:w-28" />
           <div className="pointer-events-none absolute inset-y-8 right-0 z-20 w-10 bg-gradient-to-l from-black to-transparent sm:w-28" />
 
@@ -153,7 +144,7 @@ export function Platforms() {
                         selected ? "w-8 bg-white/25" : "w-2 bg-white/25"
                       }`}
                     >
-                      {selected && enabled ? (
+                      {selected ? (
                         <span
                           key={`${platform.id}-progress-${active}-${paused ? "p" : "r"}`}
                           className="block h-full rounded-full bg-white"
