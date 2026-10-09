@@ -7,22 +7,45 @@ import { VoucherDesk } from "@/components/voucher-desk";
 import { ButtonLink } from "@/components/ui/button-link";
 import type { PublicProduct } from "@/lib/types";
 
-/** Keep readable size; only scale X so the line ends on EXTRA's right edge. */
-function fitTopToMain(top: HTMLElement, main: HTMLElement) {
+/** EVERY DEPOSIT: keep normal spacing, nudge width to EXTRA's edge. */
+function fitTopToMain(top: HTMLElement, target: number) {
   top.style.transform = "none";
-  const target = main.getBoundingClientRect().width;
   const width = top.getBoundingClientRect().width;
   if (target < 8 || width < 8) return;
-  const scale = target / width;
-  // Cap so words stay close — never crush or wildly stretch.
-  const safe = Math.min(1.28, Math.max(0.94, scale));
-  top.style.transform = `scaleX(${safe})`;
+  const scale = Math.min(1.28, Math.max(0.94, target / width));
+  top.style.transform = `scaleX(${scale})`;
   top.style.transformOrigin = "left center";
+}
+
+/**
+ * BONUS: solid heavy word (no letter gaps). Grow font-size until it
+ * fills the same width as "5% EXTRA".
+ */
+function fitBonusToMain(bonus: HTMLElement, target: number) {
+  if (target < 8) return;
+  bonus.style.transform = "none";
+  bonus.style.letterSpacing = "-0.02em";
+  let size = Math.max(28, target * 0.22);
+  bonus.style.fontSize = `${size}px`;
+
+  // Grow until the solid word reaches EXTRA's right edge.
+  let guard = 0;
+  while (bonus.scrollWidth < target - 0.5 && size < target * 0.55 && guard < 80) {
+    size += 0.6;
+    bonus.style.fontSize = `${size}px`;
+    guard += 1;
+  }
+  while (bonus.scrollWidth > target + 0.5 && size > 18 && guard < 160) {
+    size -= 0.35;
+    bonus.style.fontSize = `${size}px`;
+    guard += 1;
+  }
 }
 
 export function Hero({ products, loggedIn = false }: { products: PublicProduct[]; loggedIn?: boolean }) {
   const mainRef = useRef<HTMLSpanElement>(null);
   const topRef = useRef<HTMLSpanElement>(null);
+  const bonusRef = useRef<HTMLSpanElement>(null);
 
   useLayoutEffect(() => {
     let alive = true;
@@ -33,8 +56,10 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
       } catch {
         /* ignore */
       }
-      if (!alive || !mainRef.current || !topRef.current) return;
-      fitTopToMain(topRef.current, mainRef.current);
+      if (!alive || !mainRef.current) return;
+      const target = mainRef.current.getBoundingClientRect().width;
+      if (topRef.current) fitTopToMain(topRef.current, target);
+      if (bonusRef.current) fitBonusToMain(bonusRef.current, target);
     }
 
     sync();
@@ -71,10 +96,11 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
             >
               5% extra
             </span>
-            <span className="hero-offer-bonus mt-[2px] display-hero text-[clamp(1.75rem,7.5vw,3.3rem)] leading-none text-white">
-              {"BONUS".split("").map((letter, index) => (
-                <span key={`${letter}-${index}`}>{letter}</span>
-              ))}
+            <span
+              ref={bonusRef}
+              className="hero-offer-bonus display-hero mt-[2px] text-[clamp(2.4rem,11vw,5.2rem)] leading-none text-white"
+            >
+              Bonus
             </span>
           </motion.h1>
 

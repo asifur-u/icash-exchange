@@ -93,11 +93,11 @@ body {
   }
 
   .hero-offer-bonus {
-    display: flex;
-    width: 100%;
-    justify-content: space-between;
+    display: block;
+    width: max-content;
+    max-width: 100%;
     white-space: nowrap;
-    letter-spacing: 0;
+    letter-spacing: -0.02em;
   }
 
   .hero-offer-power {
