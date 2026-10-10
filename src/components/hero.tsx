@@ -80,10 +80,9 @@ function EventLetters({
   );
 }
 
-type CapPhase = "idle" | "toy" | "flip" | "letters" | "bonus" | "done";
+type CapPhase = "idle" | "toy" | "flip" | "letters" | "done";
 
 const EXTRA = "5% EXTRA";
-const BONUS = "BONUS";
 
 export function Hero({ products, loggedIn = false }: { products: PublicProduct[]; loggedIn?: boolean }) {
   const mainRef = useRef<HTMLSpanElement>(null);
@@ -121,19 +120,17 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
     };
   }, [phase]);
 
-  // Google-event sequence loops: toy → cap → letters → BONUS → pause → again
+  // Google-event sequence loops: toy → cap → EXTRA letters → pause → again (BONUS stays static)
   useEffect(() => {
     let alive = true;
     setPhase("idle");
     const letterEnd = 1100 + EXTRA.length * 55;
-    const bonusEnd = letterEnd + 180 + BONUS.length * 50;
-    const doneAt = bonusEnd + 200;
+    const doneAt = letterEnd + 350;
     const loopAt = doneAt + 2400;
     const ids = [
       window.setTimeout(() => alive && setPhase("toy"), 200),
       window.setTimeout(() => alive && setPhase("flip"), 780),
       window.setTimeout(() => alive && setPhase("letters"), 1100),
-      window.setTimeout(() => alive && setPhase("bonus"), letterEnd + 120),
       window.setTimeout(() => alive && setPhase("done"), doneAt),
       window.setTimeout(() => alive && setSeq((n) => n + 1), loopAt),
     ];
@@ -153,8 +150,7 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
 
   const showToy = phase === "toy" || phase === "flip" || phase === "letters";
   const capOpen = phase !== "idle" && phase !== "toy";
-  const showExtra = phase === "letters" || phase === "bonus" || phase === "done";
-  const showBonus = phase === "bonus" || phase === "done";
+  const showExtra = phase === "letters" || phase === "done";
 
   return (
     <section className="relative overflow-x-clip overflow-y-visible bg-black pb-14 pt-[calc(5.5rem+env(safe-area-inset-top))] sm:pb-24 sm:pt-36 md:pb-28 md:pt-40">
@@ -218,7 +214,7 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
               ref={bonusRef}
               className="hero-offer-bonus display-hero text-[clamp(2.35rem,10.5vw,4.8rem)] leading-[0.9] text-white"
             >
-              <EventLetters key={`bonus-${seq}`} text={BONUS} show={showBonus} stagger={0.05} originY={32} />
+              Bonus
             </span>
           </h1>
 
