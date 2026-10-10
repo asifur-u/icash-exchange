@@ -80,8 +80,7 @@ body {
     max-width: 100%;
     flex-direction: column;
     align-items: flex-start;
-    /* Tight equal gap above + below 5% EXTRA */
-    gap: 0.14rem;
+    gap: 0;
     overflow: visible;
   }
 
@@ -95,13 +94,13 @@ body {
   }
 
   .hero-offer-top {
-    margin: 0;
+    margin: 0 0 0.14rem;
     line-height: 0.9;
   }
 
   .hero-offer-bonus {
     display: block;
-    margin: 0;
+    margin: 0.04rem 0 0;
     width: max-content;
     max-width: 100%;
     white-space: nowrap;
