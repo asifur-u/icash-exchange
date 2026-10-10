@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { depositAccounts, type PaymentMethodId } from "@/lib/deposit";
 import { formatBdt } from "@/lib/format";
+import { notifyError, notifySuccess } from "@/lib/swal";
 
 export function PayPanel({
   orderId,
@@ -28,28 +29,26 @@ export function PayPanel({
   const [transactionId, setTransactionId] = useState("");
   const [proofDataUrl, setProofDataUrl] = useState<string | null>(null);
   const [proofName, setProofName] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const selected = accounts.find((item) => item.id === method) ?? accounts[0]!;
 
   async function onFile(file: File | null) {
-    setError(null);
     setProofDataUrl(null);
     setProofName(null);
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      setError("Upload a screenshot image");
+      await notifyError("Invalid file", "Upload a screenshot image");
       return;
     }
     if (file.size > 2_400_000) {
-      setError("Screenshot must be under 2.5 MB");
+      await notifyError("File too large", "Screenshot must be under 2.5 MB");
       return;
     }
     const reader = new FileReader();
     reader.onload = () => {
       const result = typeof reader.result === "string" ? reader.result : null;
       if (!result) {
-        setError("Could not read that screenshot");
+        void notifyError("Upload failed", "Could not read that screenshot");
         return;
       }
       setProofDataUrl(result);
@@ -61,11 +60,10 @@ export function PayPanel({
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!proofDataUrl) {
-      setError("Add the payment screenshot");
+      await notifyError("Screenshot needed", "Add the payment screenshot");
       return;
     }
     setPending(true);
-    setError(null);
     try {
       const response = await fetch("/api/checkout/payment", {
         method: "POST",
@@ -80,13 +78,17 @@ export function PayPanel({
       });
       const data = (await response.json()) as { orderUrl?: string; error?: { message?: string } };
       if (!response.ok || !data.orderUrl) {
-        setError(data.error?.message ?? "Could not submit the deposit proof");
+        await notifyError(
+          "Submit failed",
+          data.error?.message ?? "Could not submit the deposit proof",
+        );
         setPending(false);
         return;
       }
+      await notifySuccess("Proof submitted", "The desk will review your deposit.");
       window.location.assign(data.orderUrl);
     } catch {
-      setError("Could not submit the deposit proof");
+      await notifyError("Submit failed", "Could not submit the deposit proof");
       setPending(false);
     }
   }
@@ -195,7 +197,6 @@ export function PayPanel({
           <img src={proofDataUrl} alt="Payment proof preview" className="mt-4 max-h-48 rounded-2xl border border-white/10 object-contain" />
         ) : null}
 
-        {error ? <p className="mt-6 text-sm text-[#e8c4b8]">{error}</p> : null}
 
         <Button type="submit" className="mt-8 h-14 w-full text-base" disabled={pending} aria-busy={pending}>
           {pending ? "Submitting…" : "Submit deposit proof"}

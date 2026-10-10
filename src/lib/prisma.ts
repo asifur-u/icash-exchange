@@ -4,5 +4,14 @@
 // Prisma 7 has no MongoDB connector, and Prisma 8 MongoDB is still a release candidate.
 
 export function databaseConfigured() {
-  return Boolean(process.env.DATABASE_URL);
+  const url = process.env.DATABASE_URL?.trim();
+  if (!url) return false;
+  if (!(url.startsWith("mongodb://") || url.startsWith("mongodb+srv://"))) return false;
+  try {
+    // Atlas rejects URLs with an empty path (`…mongodb.net/` / `…mongodb.net`).
+    const dbName = new URL(url).pathname.replace(/^\//, "").trim();
+    return Boolean(dbName);
+  } catch {
+    return false;
+  }
 }

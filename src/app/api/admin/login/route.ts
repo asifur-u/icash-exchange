@@ -9,8 +9,8 @@ import { loginSchema } from "@/lib/schemas";
 export async function POST(req: Request) {
   try {
     assertSameOrigin(req);
-    if (!limit(`login:${clientIp(req)}`, 8, 10 * 60_000)) {
-      throw new DeskError("RATE_LIMITED", "Too many attempts. Wait ten minutes.");
+    if (!limit(`login:${clientIp(req)}`, 3, 10 * 60_000)) {
+      throw new DeskError("RATE_LIMITED", "Max 3 login attempts. Wait ten minutes.");
     }
     const body = loginSchema.parse(await readJson(req));
     if (!adminPasswordMatches(body.password)) {

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { notifyError, notifySuccess } from "@/lib/swal";
 
 export function AuthPortal({ nextPath }: { nextPath: string }) {
   const router = useRouter();
@@ -13,13 +14,11 @@ export function AuthPortal({ nextPath }: { nextPath: string }) {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     setBusy(true);
-    setError("");
     try {
       const response = await fetch(mode === "login" ? "/api/auth/login" : "/api/auth/register", {
         method: "POST",
@@ -30,15 +29,23 @@ export function AuthPortal({ nextPath }: { nextPath: string }) {
       });
       const data = await response.json();
       if (!response.ok) {
-        setError(data.error?.message ?? "Could not continue.");
         setBusy(false);
+        await notifyError(
+          mode === "login" ? "Login failed" : "Registration failed",
+          data.error?.message ?? "Could not continue.",
+        );
         return;
       }
+      setBusy(false);
+      await notifySuccess(
+        mode === "login" ? "Welcome back" : "Account created",
+        "Opening your dashboard…",
+      );
       router.replace(nextPath || "/account");
       router.refresh();
     } catch {
-      setError("Could not continue. Try again.");
       setBusy(false);
+      await notifyError("Something went wrong", "Could not continue. Try again.");
     }
   }
 
@@ -116,13 +123,12 @@ export function AuthPortal({ nextPath }: { nextPath: string }) {
           </div>
         </label>
 
-        {error ? (
-          <div className="rounded-xl border border-[#ff2d2d]/40 bg-[#ff2d2d]/10 px-4 py-3 text-sm text-[#ffb4b4]">
-            {error}
-          </div>
-        ) : null}
-
-        <Button className="mt-2 h-12 w-full text-base font-semibold" disabled={busy} aria-busy={busy}>
+        <Button
+          type="submit"
+          className="mt-2 h-12 w-full text-base font-semibold"
+          disabled={busy}
+          aria-busy={busy}
+        >
           {busy ? "Working…" : mode === "login" ? "Log in to dashboard" : "Create account"}
         </Button>
       </form>
@@ -133,10 +139,7 @@ export function AuthPortal({ nextPath }: { nextPath: string }) {
             New here?{" "}
             <button
               type="button"
-              onClick={() => {
-                setMode("register");
-                setError("");
-              }}
+              onClick={() => setMode("register")}
               className="font-semibold text-white underline decoration-white/30 underline-offset-4 hover:decoration-white"
             >
               Create an account
@@ -147,10 +150,7 @@ export function AuthPortal({ nextPath }: { nextPath: string }) {
             Already have an account?{" "}
             <button
               type="button"
-              onClick={() => {
-                setMode("login");
-                setError("");
-              }}
+              onClick={() => setMode("login")}
               className="font-semibold text-white underline decoration-white/30 underline-offset-4 hover:decoration-white"
             >
               Log in

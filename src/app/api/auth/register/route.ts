@@ -9,8 +9,8 @@ import { registerUser } from "@/lib/users";
 export async function POST(req: Request) {
   try {
     assertSameOrigin(req);
-    if (!limit(`register:${clientIp(req)}`, 8, 10 * 60_000)) {
-      throw new DeskError("RATE_LIMITED", "Too many attempts. Wait a few minutes.");
+    if (!limit(`register:${clientIp(req)}`, 3, 10 * 60_000)) {
+      throw new DeskError("RATE_LIMITED", "Max 3 register attempts. Wait a few minutes.");
     }
     const body = userRegisterSchema.parse(await readJson(req));
     const user = await registerUser(body);

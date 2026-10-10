@@ -25,9 +25,6 @@ export function SiteFooter() {
           <Link href="/legal/privacy" className="hover:text-white">
             Privacy
           </Link>
-          <Link href="/admin" className="hover:text-white">
-            Owner desk
-          </Link>
         </div>
       </Frame>
     </footer>

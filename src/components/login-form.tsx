@@ -2,16 +2,15 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { notifyError, notifySuccess } from "@/lib/swal";
 
 export function LoginForm() {
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setPending(true);
-    setError(null);
     try {
       const response = await fetch("/api/admin/login", {
         method: "POST",
@@ -20,13 +19,14 @@ export function LoginForm() {
       });
       const data = (await response.json()) as { error?: { message?: string } };
       if (!response.ok) {
-        setError(data.error?.message ?? "That password does not match.");
+        await notifyError("Access denied", data.error?.message ?? "That password does not match.");
         setPending(false);
         return;
       }
+      await notifySuccess("Welcome", "Opening the owner desk…");
       window.location.assign("/admin");
     } catch {
-      setError("That password does not match.");
+      await notifyError("Access denied", "That password does not match.");
       setPending(false);
     }
   }
@@ -45,7 +45,6 @@ export function LoginForm() {
         onChange={(event) => setPassword(event.target.value)}
         className="mt-2 w-full border-b border-white/20 bg-transparent py-3 text-white outline-none focus:border-gold"
       />
-      {error ? <p className="mt-4 text-sm text-[#e8c4b8]">{error}</p> : null}
       <Button type="submit" className="mt-8" disabled={pending}>
         {pending ? "Checking…" : "Enter"}
       </Button>

@@ -2,8 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { cn } from "@/lib/cn";
 
-export function LogoutButton() {
+export function LogoutButton({ className }: { className?: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
 
@@ -17,7 +18,10 @@ export function LogoutButton() {
         router.replace("/auth");
         router.refresh();
       }}
-      className="inline-flex h-12 items-center rounded-full border border-white/25 px-6 text-sm font-semibold text-white disabled:opacity-50"
+      className={cn(
+        "inline-flex h-11 w-full items-center justify-center rounded-full border border-white/25 px-6 text-sm font-semibold text-white disabled:opacity-50",
+        className,
+      )}
     >
       Log out
     </button>
