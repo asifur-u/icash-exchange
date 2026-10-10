@@ -11,7 +11,7 @@ function fitTopToMain(top: HTMLElement, target: number) {
   top.style.transform = "none";
   const width = top.getBoundingClientRect().width;
   if (target < 8 || width < 8) return;
-  const scale = Math.min(1.28, Math.max(0.94, target / width));
+  const scale = Math.min(1.36, Math.max(0.94, target / width));
   top.style.transform = `scaleX(${scale})`;
   top.style.transformOrigin = "left center";
 }
