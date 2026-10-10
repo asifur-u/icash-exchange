@@ -7,7 +7,6 @@ import { VoucherDesk } from "@/components/voucher-desk";
 import { ButtonLink } from "@/components/ui/button-link";
 import type { PublicProduct } from "@/lib/types";
 
-/** EVERY DEPOSIT: keep normal spacing, nudge width to EXTRA's edge. */
 function fitTopToMain(top: HTMLElement, target: number) {
   top.style.transform = "none";
   const width = top.getBoundingClientRect().width;
@@ -17,26 +16,21 @@ function fitTopToMain(top: HTMLElement, target: number) {
   top.style.transformOrigin = "left center";
 }
 
-/**
- * BONUS: solid heavy word (no letter gaps). Grow font-size until it
- * fills the same width as "5% EXTRA".
- */
 function fitBonusToMain(bonus: HTMLElement, target: number) {
   if (target < 8) return;
   bonus.style.transform = "none";
   bonus.style.letterSpacing = "-0.02em";
-  let size = Math.max(28, target * 0.22);
+  let size = Math.max(26, target * 0.2);
   bonus.style.fontSize = `${size}px`;
 
-  // Grow until the solid word reaches EXTRA's right edge.
   let guard = 0;
-  while (bonus.scrollWidth < target - 0.5 && size < target * 0.55 && guard < 80) {
-    size += 0.6;
+  while (bonus.scrollWidth < target - 0.5 && size < target * 0.42 && guard < 80) {
+    size += 0.55;
     bonus.style.fontSize = `${size}px`;
     guard += 1;
   }
   while (bonus.scrollWidth > target + 0.5 && size > 18 && guard < 160) {
-    size -= 0.35;
+    size -= 0.3;
     bonus.style.fontSize = `${size}px`;
     guard += 1;
   }
@@ -62,6 +56,8 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
       if (bonusRef.current) fitBonusToMain(bonusRef.current, target);
     }
 
+    // Fit after the cap reveal has room; also on each frame of early animation.
+    const timers = [0, 700, 1200, 1800].map((ms) => window.setTimeout(sync, ms));
     sync();
     requestAnimationFrame(sync);
     const ro = new ResizeObserver(() => requestAnimationFrame(sync));
@@ -69,6 +65,7 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
     window.addEventListener("resize", sync);
     return () => {
       alive = false;
+      timers.forEach((id) => window.clearTimeout(id));
       ro.disconnect();
       window.removeEventListener("resize", sync);
     };
@@ -80,9 +77,9 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
         <div className="min-w-0 max-w-2xl">
           <motion.h1
             className="hero-offer"
-            initial={{ y: 16, opacity: 0.92 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.75, delay: 0.05 }}
+            initial={{ opacity: 0.92 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
           >
             <span
               ref={topRef}
@@ -90,34 +87,50 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
             >
               Every deposit
             </span>
-            <span
-              ref={mainRef}
-              className="hero-offer-main hero-offer-power display-hero mt-[2px] text-[clamp(3.35rem,15.5vw,7.4rem)] leading-[0.86]"
-            >
-              5% extra
+
+            <span className="hero-cap-stage" aria-hidden="false">
+              <span className="hero-toy" aria-hidden="true">
+                <span className="hero-toy-cap">
+                  <span className="hero-toy-cap-top" />
+                  <span className="hero-toy-cap-brim" />
+                </span>
+                <span className="hero-toy-face">
+                  <span className="hero-toy-eye" />
+                  <span className="hero-toy-eye" />
+                  <span className="hero-toy-smile" />
+                </span>
+              </span>
+
+              <span
+                ref={mainRef}
+                className="hero-offer-main hero-offer-power display-hero text-[clamp(3.35rem,15.5vw,7.4rem)] leading-[0.86]"
+              >
+                5% extra
+              </span>
             </span>
+
             <span
               ref={bonusRef}
-              className="hero-offer-bonus display-hero mt-[2px] text-[clamp(2.4rem,11vw,5.2rem)] leading-none text-white"
+              className="hero-offer-bonus display-hero text-[clamp(2.2rem,10vw,4.6rem)] leading-none text-white"
             >
               Bonus
             </span>
           </motion.h1>
 
           <motion.p
-            className="mt-6 max-w-md text-base leading-[1.55] text-white/70 sm:mt-8 sm:text-xl sm:leading-[1.6]"
+            className="mt-5 max-w-md text-base leading-[1.55] text-white/70 sm:mt-7 sm:text-xl sm:leading-[1.6]"
             initial={{ y: 14 }}
             animate={{ y: 0 }}
-            transition={{ duration: 0.7, delay: 0.1 }}
+            transition={{ duration: 0.7, delay: 1.4 }}
           >
             Buy iCash vouchers using local payment methods and enjoy an extra 5% on every eligible deposit
           </motion.p>
 
           <motion.div
-            className="mt-8 sm:mt-10"
+            className="mt-7 sm:mt-9"
             initial={{ y: 14 }}
             animate={{ y: 0 }}
-            transition={{ duration: 0.7, delay: 0.14 }}
+            transition={{ duration: 0.7, delay: 1.5 }}
           >
             <ButtonLink
               href="#desk"
