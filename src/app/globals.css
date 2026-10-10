@@ -80,8 +80,8 @@ body {
     max-width: 100%;
     flex-direction: column;
     align-items: flex-start;
-    /* Equal small gap above + below 5% EXTRA */
-    gap: 0.42rem;
+    /* Tight equal gap above + below 5% EXTRA */
+    gap: 0.14rem;
     overflow: visible;
   }
 
@@ -96,7 +96,7 @@ body {
 
   .hero-offer-top {
     margin: 0;
-    line-height: 0.92;
+    line-height: 0.9;
   }
 
   .hero-offer-bonus {
@@ -108,7 +108,12 @@ body {
     letter-spacing: -0.02em;
   }
 
-  /* Cap-toy stage: Motion drives the sequence */
+  .hero-event-char {
+    display: inline-block;
+    will-change: transform, opacity;
+  }
+
+  /* Cap-toy stage → Google-event letter pop */
   .hero-cap-stage {
     position: relative;
     display: block;
@@ -120,12 +125,12 @@ body {
   .hero-toy {
     position: absolute;
     left: 50%;
-    top: 8%;
+    top: 10%;
     z-index: 4;
     display: block;
-    width: clamp(3.4rem, 11vw, 4.6rem);
-    height: clamp(3.4rem, 11vw, 4.6rem);
-    margin-left: calc(clamp(3.4rem, 11vw, 4.6rem) * -0.5);
+    width: clamp(3.6rem, 12vw, 4.8rem);
+    height: clamp(3.6rem, 12vw, 4.8rem);
+    margin-left: calc(clamp(3.6rem, 12vw, 4.8rem) * -0.5);
     pointer-events: none;
     filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.55));
   }
@@ -203,30 +208,11 @@ body {
       0 0 26px rgba(159, 232, 112, 0.4);
   }
 
-  .hero-offer-power {
+  .hero-offer-extra {
     position: relative;
     display: inline-block;
     margin: 0;
     color: #9fe870;
-    transform-origin: 50% 100%;
-    text-shadow: 0 0 12px rgba(159, 232, 112, 0.35);
-    animation: hero-power-glow 1.8s ease-in-out 1.7s infinite;
-  }
-
-  .hero-offer-power::after {
-    content: "";
-    pointer-events: none;
-    position: absolute;
-    inset: -10% -8%;
-    background: linear-gradient(
-      100deg,
-      transparent 30%,
-      rgba(212, 255, 154, 0.55) 50%,
-      transparent 70%
-    );
-    mix-blend-mode: screen;
-    transform: translateX(-130%);
-    animation: hero-power-shine 2.2s cubic-bezier(0.22, 1, 0.36, 1) 1.7s infinite;
   }
 
   .eyebrow {
