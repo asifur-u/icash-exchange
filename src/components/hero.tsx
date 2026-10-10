@@ -171,13 +171,13 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
                     key="toy"
                     className="hero-toy"
                     aria-hidden="true"
-                    initial={{ opacity: 0, y: "50%", scale: 0.15, rotate: -14 }}
+                    initial={{ opacity: 0, x: -18, y: "40%", scale: 0.15, rotate: -14 }}
                     animate={
                       phase === "letters"
-                        ? { opacity: 0, y: "-70%", scale: 0.4, rotate: 6 }
-                        : { opacity: 1, y: "-12%", scale: 1.12, rotate: 0 }
+                        ? { opacity: 0, x: -8, y: "-55%", scale: 0.4, rotate: 8 }
+                        : { opacity: 1, x: 0, y: "-8%", scale: 1.1, rotate: 0 }
                     }
-                    exit={{ opacity: 0, scale: 0.35, y: "-75%" }}
+                    exit={{ opacity: 0, scale: 0.35, y: "-60%", x: -6 }}
                     transition={{ type: "spring", stiffness: 400, damping: 18, mass: 0.85 }}
                   >
                     <motion.span
@@ -185,7 +185,7 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
                       initial={{ rotate: 0, x: 0, y: 0, opacity: 1, scale: 1 }}
                       animate={
                         capOpen
-                          ? { rotate: -160, x: 32, y: -40, opacity: 0, scale: 0.75 }
+                          ? { rotate: -145, x: 18, y: -36, opacity: 0, scale: 0.75 }
                           : { rotate: 0, x: 0, y: 0, opacity: 1, scale: 1 }
                       }
                       transition={{ type: "spring", stiffness: 240, damping: 13, mass: 0.8 }}
