@@ -1,9 +1,6 @@
-// Prisma ORM 6.19 — current stable release with a MongoDB connector.
-// Prisma ORM 7 does not ship a MongoDB connector.
-// Prisma ORM 8 MongoDB (October 2026) is still a release candidate and uses
-// contract.prisma plus `db update`, not this file. Stay on 6.19 until 8 is stable.
-// Apply changes with `npx prisma db push` against a replica set. Atlas provides one.
-// There are no Prisma migrations on MongoDB.
+// Prisma ORM 6.19 — MongoDB connector.
+// Apply with: npx prisma db push
+// Atlas provides a replica set URL.
 
 generator client {
   provider = "prisma-client-js"
@@ -35,12 +32,19 @@ enum CodeStatus {
 }
 
 model User {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  email     String   @unique
-  phone     String?
-  role      Role     @default(CUSTOMER)
-  orders    Order[]
-  createdAt DateTime @default(now())
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  email          String   @unique
+  phone          String
+  passwordHash   String
+  role           Role     @default(CUSTOMER)
+  avatarUrl      String?
+  imageKitFileId String?
+  orders         Order[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([phone])
 }
 
 model Category {

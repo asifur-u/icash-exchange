@@ -269,6 +269,10 @@ export async function listOrdersForUser(userId: string) {
         total: order.total,
         title: productTitle(db, order),
         createdAt: order.createdAt,
+        paymentMethod: order.paymentMethod,
+        transactionId: order.transactionId,
+        proofSubmittedAt: order.proofSubmittedAt,
+        deliveredAt: order.deliveredAt,
         token: signOrderAccess(order.id),
       }));
   });

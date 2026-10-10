@@ -13,6 +13,9 @@ export async function GET(_req: Request, context: { params: Promise<{ id: string
       if (!order?.proofFile) throw new DeskError("NOT_FOUND", "No screenshot on this order");
       return order.proofFile;
     });
+    if (proofFile.startsWith("https://") || proofFile.startsWith("http://")) {
+      return Response.redirect(proofFile, 302);
+    }
     const { bytes, type } = await readPaymentProof(proofFile);
     return new Response(new Uint8Array(bytes), {
       headers: {
