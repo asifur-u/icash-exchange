@@ -118,16 +118,32 @@ export function publicUser(user: User) {
   return toPublic(user);
 }
 
+/** Prisma Mongo `@db.ObjectId` only accepts 24-char hex — skip JSON ids like `usr_…`. */
+function isMongoObjectId(id: string) {
+  return /^[a-f0-9]{24}$/i.test(id);
+}
+
+/** Prefer Mongo when configured; fall back to JSON if Atlas/schema is unavailable. */
+async function mongoTry<T>(label: string, fn: () => Promise<T>): Promise<T | "fallback"> {
+  if (!databaseConfigured()) return "fallback";
+  try {
+    return await fn();
+  } catch (error) {
+    if (error instanceof DeskError) throw error;
+    console.warn(`mongo_users_${label}_fallback`, error instanceof Error ? error.message : "error");
+    return "fallback";
+  }
+}
+
 export async function registerUser(input: { name: string; email: string; phone: string; password: string }) {
   const email = input.email.trim().toLowerCase();
   const name = input.name.trim();
   const phone = input.phone.trim();
   const passwordHash = hashPassword(input.password);
 
-  if (databaseConfigured()) {
-    const prisma = getPrisma();
+  const mongo = await mongoTry("register", async () => {
     try {
-      const row = await prisma.user.create({
+      const row = await getPrisma().user.create({
         data: { name, email, phone, passwordHash },
       });
       return toPublic(mapPrismaUser(row));
@@ -137,7 +153,8 @@ export async function registerUser(input: { name: string; email: string; phone: 
       }
       throw error;
     }
-  }
+  });
+  if (mongo !== "fallback") return mongo;
 
   return withUsers((db) => {
     if (db.users.some((user) => user.email === email)) {
@@ -160,11 +177,18 @@ export async function authenticateUser(email: string, password: string) {
   const normalized = email.trim().toLowerCase();
 
   if (databaseConfigured()) {
-    const row = await getPrisma().user.findUnique({ where: { email: normalized } });
-    if (!row || !verifyPassword(password, row.passwordHash)) {
-      throw new DeskError("UNAUTHORIZED", "Email or password is wrong.");
+    try {
+      const row = await getPrisma().user.findUnique({ where: { email: normalized } });
+      if (row) {
+        if (!verifyPassword(password, row.passwordHash)) {
+          throw new DeskError("UNAUTHORIZED", "Email or password is wrong.");
+        }
+        return toPublic(mapPrismaUser(row));
+      }
+    } catch (error) {
+      if (error instanceof DeskError) throw error;
+      console.warn("mongo_users_login_fallback", error instanceof Error ? error.message : "error");
     }
-    return toPublic(mapPrismaUser(row));
   }
 
   const db = await readUsers();
@@ -176,10 +200,15 @@ export async function authenticateUser(email: string, password: string) {
 }
 
 export async function getUserById(id: string) {
-  if (databaseConfigured()) {
-    const row = await getPrisma().user.findUnique({ where: { id } });
-    return row ? toPublic(mapPrismaUser(row)) : null;
+  if (databaseConfigured() && isMongoObjectId(id)) {
+    try {
+      const row = await getPrisma().user.findUnique({ where: { id } });
+      if (row) return toPublic(mapPrismaUser(row));
+    } catch (error) {
+      console.warn("mongo_users_get_fallback", error instanceof Error ? error.message : "error");
+    }
   }
+
   const db = await readUsers();
   const user = db.users.find((item) => item.id === id);
   return user ? toPublic(user) : null;
@@ -189,15 +218,18 @@ export async function updateUserProfile(id: string, input: { name: string; phone
   const name = input.name.trim();
   const phone = input.phone.trim();
 
-  if (databaseConfigured()) {
+  if (databaseConfigured() && isMongoObjectId(id)) {
     try {
       const row = await getPrisma().user.update({
         where: { id },
         data: { name, phone },
       });
       return toPublic(mapPrismaUser(row));
-    } catch {
-      throw new DeskError("NOT_FOUND", "Account not found.");
+    } catch (error) {
+      if (error instanceof DeskError) throw error;
+      if ((error as { code?: string }).code !== "P2025") {
+        console.warn("mongo_users_profile_fallback", error instanceof Error ? error.message : "error");
+      }
     }
   }
 
@@ -211,16 +243,23 @@ export async function updateUserProfile(id: string, input: { name: string; phone
 }
 
 export async function changeUserPassword(id: string, currentPassword: string, nextPassword: string) {
-  if (databaseConfigured()) {
-    const row = await getPrisma().user.findUnique({ where: { id } });
-    if (!row || !verifyPassword(currentPassword, row.passwordHash)) {
-      throw new DeskError("UNAUTHORIZED", "Current password is wrong.");
+  if (databaseConfigured() && isMongoObjectId(id)) {
+    try {
+      const row = await getPrisma().user.findUnique({ where: { id } });
+      if (row) {
+        if (!verifyPassword(currentPassword, row.passwordHash)) {
+          throw new DeskError("UNAUTHORIZED", "Current password is wrong.");
+        }
+        await getPrisma().user.update({
+          where: { id },
+          data: { passwordHash: hashPassword(nextPassword) },
+        });
+        return;
+      }
+    } catch (error) {
+      if (error instanceof DeskError) throw error;
+      console.warn("mongo_users_password_fallback", error instanceof Error ? error.message : "error");
     }
-    await getPrisma().user.update({
-      where: { id },
-      data: { passwordHash: hashPassword(nextPassword) },
-    });
-    return;
   }
 
   await withUsers((db) => {
@@ -233,12 +272,19 @@ export async function changeUserPassword(id: string, currentPassword: string, ne
 }
 
 export async function updateUserAvatar(id: string, avatarUrl: string, imageKitFileId: string) {
-  if (databaseConfigured()) {
-    const row = await getPrisma().user.update({
-      where: { id },
-      data: { avatarUrl, imageKitFileId },
-    });
-    return toPublic(mapPrismaUser(row));
+  if (databaseConfigured() && isMongoObjectId(id)) {
+    try {
+      const row = await getPrisma().user.update({
+        where: { id },
+        data: { avatarUrl, imageKitFileId },
+      });
+      return toPublic(mapPrismaUser(row));
+    } catch (error) {
+      if (error instanceof DeskError) throw error;
+      if ((error as { code?: string }).code !== "P2025") {
+        console.warn("mongo_users_avatar_fallback", error instanceof Error ? error.message : "error");
+      }
+    }
   }
 
   return withUsers((db) => {
@@ -251,10 +297,15 @@ export async function updateUserAvatar(id: string, avatarUrl: string, imageKitFi
 }
 
 export async function getUserRecordById(id: string) {
-  if (databaseConfigured()) {
-    const row = await getPrisma().user.findUnique({ where: { id } });
-    return row ? mapPrismaUser(row) : null;
+  if (databaseConfigured() && isMongoObjectId(id)) {
+    try {
+      const row = await getPrisma().user.findUnique({ where: { id } });
+      if (row) return mapPrismaUser(row);
+    } catch (error) {
+      console.warn("mongo_users_record_fallback", error instanceof Error ? error.message : "error");
+    }
   }
+
   const db = await readUsers();
   return db.users.find((item) => item.id === id) ?? null;
 }

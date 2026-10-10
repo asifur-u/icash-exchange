@@ -627,3 +627,26 @@ summary::-webkit-details-marker {
     transition: none;
   }
 }
+
+/* SweetAlert2 — match black desk UI */
+.icash-swal {
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 1.25rem !important;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.65) !important;
+}
+
+.icash-swal-title {
+  color: #fff !important;
+  font-weight: 600 !important;
+}
+
+.icash-swal-text {
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+
+.icash-swal-confirm {
+  color: #000 !important;
+  font-weight: 600 !important;
+  border-radius: 999px !important;
+  padding: 0.65rem 1.4rem !important;
+}

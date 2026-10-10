@@ -51,3 +51,9 @@ export function clientIp(req: Request) {
   if (forwarded) return forwarded.split(",")[0]?.trim() || "local";
   return req.headers.get("x-real-ip") ?? "local";
 }
+
+/** Clears in-memory rate-limit buckets (dev/smoke only). */
+export function resetLimits() {
+  hits.clear();
+  inflight.clear();
+}

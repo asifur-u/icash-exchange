@@ -21,10 +21,10 @@ function isActive(pathname: string, href: string) {
   return false;
 }
 
-export function SiteHeader() {
+export function SiteHeader({ initialLoggedIn = false }: { initialLoggedIn?: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(initialLoggedIn);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -32,6 +32,10 @@ export function SiteHeader() {
       document.body.style.overflow = "";
     };
   }, [open]);
+
+  useEffect(() => {
+    setLoggedIn(initialLoggedIn);
+  }, [initialLoggedIn]);
 
   useEffect(() => {
     let alive = true;
@@ -80,9 +84,13 @@ export function SiteHeader() {
           })}
           <Link
             href={accountHref}
-            aria-current={pathname.startsWith("/account") || pathname.startsWith("/auth") ? "page" : undefined}
+            aria-current={
+              pathname.startsWith("/account") || pathname.startsWith("/auth") ? "page" : undefined
+            }
             className={`transition hover:text-white ${
-              pathname.startsWith("/account") || pathname.startsWith("/auth") ? "font-semibold text-white" : ""
+              pathname.startsWith("/account") || pathname.startsWith("/auth")
+                ? "font-semibold text-white"
+                : ""
             }`}
           >
             {accountLabel}

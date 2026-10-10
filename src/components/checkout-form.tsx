@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { formatBdt } from "@/lib/format";
+import { notifyError, notifySuccess } from "@/lib/swal";
 
 export function CheckoutForm({
   productSlug,
@@ -21,13 +22,11 @@ export function CheckoutForm({
 }) {
   const [email, setEmail] = useState(defaultEmail);
   const [phone, setPhone] = useState(defaultPhone);
-  const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setPending(true);
-    setError(null);
     try {
       const response = await fetch("/api/checkout", {
         method: "POST",
@@ -36,13 +35,17 @@ export function CheckoutForm({
       });
       const data = (await response.json()) as { paymentUrl?: string; error?: { message?: string } };
       if (!response.ok || !data.paymentUrl) {
-        setError(data.error?.message ?? "The desk could not reserve that note");
+        await notifyError(
+          "Could not reserve",
+          data.error?.message ?? "The desk could not reserve that note",
+        );
         setPending(false);
         return;
       }
+      await notifySuccess("Note reserved", "Continue to the deposit step.");
       window.location.assign(data.paymentUrl);
     } catch {
-      setError("The desk could not reserve that note");
+      await notifyError("Could not reserve", "The desk could not reserve that note");
       setPending(false);
     }
   }
@@ -89,8 +92,6 @@ export function CheckoutForm({
         {title} × {quantity}. You pay <span className="font-medium text-white">{formatBdt(total)}</span>.
         Next step: send the deposit, upload the screenshot, and enter the TrxID.
       </div>
-
-      {error ? <p className="text-sm text-[#e8c4b8]">{error}</p> : null}
 
       <Button type="submit" className="h-14 w-full text-base" disabled={pending} aria-busy={pending}>
         {pending ? "Reserving…" : "Continue to deposit"}
