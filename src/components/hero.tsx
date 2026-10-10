@@ -24,7 +24,7 @@ function fitBonusToMain(bonus: HTMLElement, target: number) {
   bonus.style.fontSize = `${size}px`;
 
   let guard = 0;
-  while (bonus.scrollWidth < target - 0.5 && size < target * 0.42 && guard < 80) {
+  while (bonus.scrollWidth < target - 0.5 && size < target * 0.52 && guard < 80) {
     size += 0.55;
     bonus.style.fontSize = `${size}px`;
     guard += 1;
@@ -83,7 +83,7 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
           >
             <span
               ref={topRef}
-              className="hero-offer-top display-hero text-[clamp(1.65rem,6.8vw,2.85rem)] leading-none text-white"
+              className="hero-offer-top display-hero text-[clamp(1.8rem,7.2vw,3rem)] leading-none text-white"
             >
               Every deposit
             </span>
@@ -103,7 +103,7 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
 
               <span
                 ref={mainRef}
-                className="hero-offer-main hero-offer-power display-hero text-[clamp(3.35rem,15.5vw,7.4rem)] leading-[0.86]"
+                className="hero-offer-main hero-offer-power display-hero text-[clamp(3.55rem,16.5vw,7.8rem)] leading-[0.84]"
               >
                 5% extra
               </span>
@@ -111,26 +111,26 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
 
             <span
               ref={bonusRef}
-              className="hero-offer-bonus display-hero text-[clamp(2.2rem,10vw,4.6rem)] leading-none text-white"
+              className="hero-offer-bonus display-hero text-[clamp(2.35rem,10.5vw,4.8rem)] leading-none text-white"
             >
               Bonus
             </span>
           </motion.h1>
 
           <motion.p
-            className="mt-5 max-w-md text-base leading-[1.55] text-white/70 sm:mt-7 sm:text-xl sm:leading-[1.6]"
-            initial={{ y: 14 }}
-            animate={{ y: 0 }}
-            transition={{ duration: 0.7, delay: 1.4 }}
+            className="mt-4 max-w-md text-base leading-[1.55] text-white/70 sm:mt-5 sm:text-xl sm:leading-[1.6]"
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.65, delay: 1.55 }}
           >
             Buy iCash vouchers using local payment methods and enjoy an extra 5% on every eligible deposit
           </motion.p>
 
           <motion.div
-            className="mt-7 sm:mt-9"
-            initial={{ y: 14 }}
-            animate={{ y: 0 }}
-            transition={{ duration: 0.7, delay: 1.5 }}
+            className="mt-6 sm:mt-8"
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.65, delay: 1.65 }}
           >
             <ButtonLink
               href="#desk"

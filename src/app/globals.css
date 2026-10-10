@@ -95,72 +95,79 @@ body {
 
   .hero-offer-top {
     margin-bottom: 0;
+    line-height: 0.86;
   }
 
   .hero-offer-bonus {
     display: block;
-    margin-top: 0;
+    margin-top: -0.08em;
     width: max-content;
     max-width: 100%;
     white-space: nowrap;
     letter-spacing: -0.02em;
-    animation: hero-bonus-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) 1.35s both;
+    animation: hero-bonus-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) 1.45s both;
   }
 
   /* Cap-toy stage: toy pops in, lid flips off, 5% EXTRA rises out */
   .hero-cap-stage {
     position: relative;
     display: block;
-    margin-top: 0.15rem;
-    margin-bottom: 0.1rem;
-    min-height: 1.1em;
+    margin: 0;
+    line-height: 0;
+    overflow: visible;
   }
 
   .hero-toy {
     position: absolute;
-    left: 0.15em;
-    top: 50%;
-    z-index: 3;
-    width: 2.4rem;
-    height: 2.4rem;
-    transform: translateY(-40%) scale(0.4);
+    left: 50%;
+    top: 8%;
+    z-index: 4;
+    width: clamp(3.4rem, 11vw, 4.6rem);
+    height: clamp(3.4rem, 11vw, 4.6rem);
+    margin-left: calc(clamp(3.4rem, 11vw, 4.6rem) * -0.5);
+    transform: translateY(-20%) scale(0.28);
     opacity: 0;
-    animation: hero-toy-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both,
-      hero-toy-out 0.5s cubic-bezier(0.4, 0, 1, 1) 1.05s forwards;
+    pointer-events: none;
+    filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.55));
+    animation: hero-toy-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both,
+      hero-toy-out 0.5s cubic-bezier(0.4, 0, 1, 1) 1.2s forwards;
   }
 
   .hero-toy-face {
     position: absolute;
-    inset: 28% 12% 8%;
+    inset: 30% 14% 10%;
     border-radius: 50%;
-    background: linear-gradient(180deg, #ffe8a8, #f5c56b);
-    box-shadow: inset 0 -4px 8px rgba(0, 0, 0, 0.12);
+    background: linear-gradient(180deg, #ffe8a8 0%, #f5c56b 70%, #e8a84a 100%);
+    box-shadow:
+      inset 0 -5px 10px rgba(0, 0, 0, 0.14),
+      0 2px 0 rgba(255, 255, 255, 0.2);
   }
 
   .hero-toy-eye {
     position: absolute;
-    top: 38%;
-    width: 0.28rem;
-    height: 0.28rem;
+    top: 36%;
+    width: 0.32rem;
+    height: 0.32rem;
     border-radius: 50%;
     background: #1a1a1a;
+    box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.35);
   }
 
   .hero-toy-eye:first-child {
-    left: 28%;
+    left: 27%;
   }
 
   .hero-toy-eye:nth-child(2) {
-    right: 28%;
+    right: 27%;
   }
 
   .hero-toy-smile {
     position: absolute;
     left: 50%;
-    bottom: 28%;
-    width: 0.7rem;
-    height: 0.35rem;
-    border: 2px solid #1a1a1a;
+    bottom: 26%;
+    width: 0.78rem;
+    height: 0.38rem;
+    border: 2.5px solid #1a1a1a;
     border-top: 0;
     border-radius: 0 0 1rem 1rem;
     transform: translateX(-50%);
@@ -168,43 +175,66 @@ body {
 
   .hero-toy-cap {
     position: absolute;
-    left: 8%;
-    right: 8%;
-    top: 0;
+    left: 4%;
+    right: 4%;
+    top: -6%;
     z-index: 2;
-    height: 48%;
-    transform-origin: 50% 100%;
-    animation: hero-cap-flip 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.55s forwards;
+    height: 56%;
+    transform-origin: 50% 95%;
+    animation: hero-cap-flip 0.8s cubic-bezier(0.34, 1.45, 0.64, 1) 0.55s forwards;
   }
 
   .hero-toy-cap-top {
     display: block;
-    height: 70%;
-    margin: 0 14%;
-    border-radius: 0.65rem 0.65rem 0.2rem 0.2rem;
-    background: linear-gradient(180deg, #ff4d4d, #c91818);
-    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+    height: 78%;
+    margin: 0 10%;
+    border-radius: 0.85rem 0.85rem 0.2rem 0.2rem;
+    background: linear-gradient(180deg, #ff6b6b 0%, #ff2d2d 40%, #a80e0e 100%);
+    box-shadow:
+      inset 0 3px 0 rgba(255, 255, 255, 0.3),
+      0 4px 0 rgba(0, 0, 0, 0.28);
   }
 
   .hero-toy-cap-brim {
     display: block;
-    height: 0.28rem;
-    margin-top: -0.08rem;
+    height: 0.42rem;
+    margin-top: -0.12rem;
     border-radius: 999px;
-    background: #9fe870;
-    box-shadow: 0 0 10px rgba(159, 232, 112, 0.55);
+    background: linear-gradient(90deg, #7bcf4a, #9fe870, #c8ff9a);
+    box-shadow:
+      0 0 14px rgba(159, 232, 112, 0.85),
+      0 0 26px rgba(159, 232, 112, 0.4);
   }
 
   .hero-offer-power {
     position: relative;
     display: inline-block;
+    margin-top: -0.12em;
+    margin-bottom: -0.1em;
     color: #9fe870;
-    transform-origin: left center;
+    transform-origin: 50% 100%;
     text-shadow: 0 0 18px rgba(159, 232, 112, 0.45);
-    clip-path: inset(0 0 100% 0);
+    clip-path: inset(100% 18% 0 18% round 4px);
+    opacity: 0;
     animation:
-      hero-extra-reveal 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.85s both,
-      hero-power-glow 1.8s ease-in-out 1.7s infinite;
+      hero-extra-reveal 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.88s both,
+      hero-power-glow 1.8s ease-in-out 1.85s infinite;
+  }
+
+  .hero-offer-power::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    z-index: -1;
+    width: 0.4em;
+    height: 0.4em;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(159, 232, 112, 0.55) 0%, transparent 70%);
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+    animation: hero-cap-burst 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.88s both;
   }
 
   .hero-offer-power::after {
@@ -220,7 +250,7 @@ body {
     );
     mix-blend-mode: screen;
     transform: translateX(-130%);
-    animation: hero-power-shine 2.2s cubic-bezier(0.22, 1, 0.36, 1) 1.7s infinite;
+    animation: hero-power-shine 2.2s cubic-bezier(0.22, 1, 0.36, 1) 1.85s infinite;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -237,6 +267,7 @@ body {
       text-shadow: 0 0 14px rgba(159, 232, 112, 0.35);
     }
 
+    .hero-offer-power::before,
     .hero-offer-power::after {
       display: none;
     }
@@ -475,54 +506,88 @@ summary::-webkit-details-marker {
 @keyframes hero-toy-in {
   0% {
     opacity: 0;
-    transform: translateY(-10%) scale(0.35);
+    transform: translateY(40%) scale(0.2) rotate(-10deg);
   }
-  70% {
+  55% {
     opacity: 1;
-    transform: translateY(-42%) scale(1.08);
+    transform: translateY(-28%) scale(1.14) rotate(4deg);
+  }
+  78% {
+    transform: translateY(-12%) scale(0.96) rotate(-2deg);
   }
   100% {
     opacity: 1;
-    transform: translateY(-40%) scale(1);
+    transform: translateY(-18%) scale(1) rotate(0deg);
   }
 }
 
 @keyframes hero-cap-flip {
   0% {
-    transform: rotate(0deg) translateY(0);
+    transform: rotate(0deg) translate(0, 0) scale(1);
     opacity: 1;
   }
-  55% {
-    transform: rotate(-28deg) translateY(-0.55rem);
+  35% {
+    transform: rotate(-18deg) translate(0.1rem, -0.35rem) scale(1.05);
+    opacity: 1;
+  }
+  70% {
+    transform: rotate(-95deg) translate(0.85rem, -1.1rem) scale(1.08);
     opacity: 1;
   }
   100% {
-    transform: rotate(-110deg) translate(0.9rem, -1.4rem);
+    transform: rotate(-150deg) translate(1.35rem, -1.85rem) scale(0.85);
     opacity: 0;
   }
 }
 
 @keyframes hero-toy-out {
-  to {
+  0% {
+    opacity: 1;
+    transform: translateY(-18%) scale(1);
+  }
+  100% {
     opacity: 0;
-    transform: translateY(-48%) scale(0.7);
+    transform: translateY(-55%) scale(0.5);
+  }
+}
+
+@keyframes hero-cap-burst {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+  40% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(2.4);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(4.2);
   }
 }
 
 @keyframes hero-extra-reveal {
   0% {
-    clip-path: inset(0 0 100% 0);
-    transform: translateY(0.55em) scale(0.86);
-    filter: brightness(1.4);
+    clip-path: inset(100% 22% 0 22% round 4px);
+    transform: translateY(0.35em) scale(0.42);
+    opacity: 0;
+    filter: brightness(1.55);
   }
-  55% {
-    clip-path: inset(0 0 0 0);
-    transform: translateY(-0.06em) scale(1.04);
-    filter: brightness(1.2);
+  28% {
+    opacity: 1;
+    clip-path: inset(35% 8% 0 8% round 4px);
+    transform: translateY(0.12em) scale(0.72);
+    filter: brightness(1.35);
+  }
+  62% {
+    clip-path: inset(0 0 0 0 round 2px);
+    transform: translateY(-0.04em) scale(1.06);
+    filter: brightness(1.15);
   }
   100% {
     clip-path: inset(0 0 0 0);
     transform: translateY(0) scale(1);
+    opacity: 1;
     filter: brightness(1);
   }
 }
@@ -530,11 +595,11 @@ summary::-webkit-details-marker {
 @keyframes hero-bonus-in {
   from {
     opacity: 0;
-    transform: translateY(0.35em);
+    transform: translateY(0.28em) scale(0.96);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
