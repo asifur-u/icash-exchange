@@ -103,7 +103,7 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
 
               <span
                 ref={mainRef}
-                className="hero-offer-main hero-offer-power display-hero text-[clamp(3.55rem,16.5vw,7.8rem)] leading-[0.8]"
+                className="hero-offer-main hero-offer-power display-hero text-[clamp(3.55rem,16.5vw,7.8rem)] leading-[0.9]"
               >
                 5% extra
               </span>
@@ -111,7 +111,7 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
 
             <span
               ref={bonusRef}
-              className="hero-offer-bonus display-hero text-[clamp(2.35rem,10.5vw,4.8rem)] leading-[0.82] text-white"
+              className="hero-offer-bonus display-hero text-[clamp(2.35rem,10.5vw,4.8rem)] leading-[0.92] text-white"
             >
               Bonus
             </span>

@@ -94,13 +94,13 @@ body {
   }
 
   .hero-offer-top {
-    margin-bottom: 0;
-    line-height: 0.86;
+    margin-bottom: 0.14em;
+    line-height: 0.92;
   }
 
   .hero-offer-bonus {
     display: block;
-    margin-top: -0.12em;
+    margin-top: 0.08em;
     width: max-content;
     max-width: 100%;
     white-space: nowrap;
@@ -209,11 +209,11 @@ body {
   .hero-offer-power {
     position: relative;
     display: inline-block;
-    margin-top: -0.16em;
-    margin-bottom: -0.14em;
+    margin-top: 0;
+    margin-bottom: 0;
     color: #9fe870;
     transform-origin: 50% 100%;
-    text-shadow: 0 0 18px rgba(159, 232, 112, 0.45);
+    text-shadow: 0 0 12px rgba(159, 232, 112, 0.35);
     clip-path: inset(100% 18% 0 18% round 4px);
     opacity: 0;
     animation:
@@ -606,14 +606,14 @@ summary::-webkit-details-marker {
 @keyframes hero-power-glow {
   0%,
   100% {
-    text-shadow: 0 0 8px rgba(159, 232, 112, 0.25);
+    text-shadow: 0 0 6px rgba(159, 232, 112, 0.22);
     filter: brightness(1);
   }
   50% {
     text-shadow:
-      0 0 18px rgba(159, 232, 112, 0.7),
-      0 0 36px rgba(159, 232, 112, 0.35);
-    filter: brightness(1.18);
+      0 0 12px rgba(159, 232, 112, 0.45),
+      0 0 22px rgba(159, 232, 112, 0.22);
+    filter: brightness(1.1);
   }
 }
 
