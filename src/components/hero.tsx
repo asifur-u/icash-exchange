@@ -8,11 +8,12 @@ import { ButtonLink } from "@/components/ui/button-link";
 import type { PublicProduct } from "@/lib/types";
 
 function fitTopToMain(top: HTMLElement, target: number) {
+  // Keep natural width — never stretch wider than EXTRA; only shrink if it overflows
   top.style.transform = "none";
   const width = top.getBoundingClientRect().width;
   if (target < 8 || width < 8) return;
-  const scale = Math.min(1.36, Math.max(0.94, target / width));
-  top.style.transform = `scaleX(${scale})`;
+  if (width <= target) return;
+  top.style.transform = `scaleX(${target / width})`;
   top.style.transformOrigin = "left center";
 }
 
@@ -120,18 +121,21 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
     };
   }, [phase]);
 
-  // Google-event sequence: toy → cap flip → letters pop → BONUS letters → done
+  // Google-event sequence loops: toy → cap → letters → BONUS → pause → again
   useEffect(() => {
     let alive = true;
     setPhase("idle");
     const letterEnd = 1100 + EXTRA.length * 55;
     const bonusEnd = letterEnd + 180 + BONUS.length * 50;
+    const doneAt = bonusEnd + 200;
+    const loopAt = doneAt + 2400;
     const ids = [
       window.setTimeout(() => alive && setPhase("toy"), 200),
       window.setTimeout(() => alive && setPhase("flip"), 780),
       window.setTimeout(() => alive && setPhase("letters"), 1100),
       window.setTimeout(() => alive && setPhase("bonus"), letterEnd + 120),
-      window.setTimeout(() => alive && setPhase("done"), bonusEnd + 200),
+      window.setTimeout(() => alive && setPhase("done"), doneAt),
+      window.setTimeout(() => alive && setSeq((n) => n + 1), loopAt),
     ];
     return () => {
       alive = false;
@@ -159,7 +163,7 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
           <h1 className="hero-offer" data-cap-phase={phase}>
             <span
               ref={topRef}
-              className="hero-offer-top display-hero text-[clamp(1.8rem,7.2vw,3rem)] leading-none text-white"
+              className="hero-offer-top display-hero text-[clamp(1.45rem,5.6vw,2.6rem)] leading-none text-white"
             >
               Every deposit
             </span>
@@ -168,7 +172,7 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
               <AnimatePresence>
                 {showToy ? (
                   <motion.span
-                    key="toy"
+                    key={`toy-${seq}`}
                     className="hero-toy"
                     aria-hidden="true"
                     initial={{ opacity: 0, x: -18, y: "40%", scale: 0.15, rotate: -14 }}
@@ -206,7 +210,7 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
                 ref={mainRef}
                 className="hero-offer-main hero-offer-extra display-hero text-[clamp(3.55rem,16.5vw,7.8rem)] leading-[0.88]"
               >
-                <EventLetters text={EXTRA} show={showExtra} stagger={0.055} originY={48} />
+                <EventLetters key={`extra-${seq}`} text={EXTRA} show={showExtra} stagger={0.055} originY={48} />
               </span>
             </span>
 
@@ -214,7 +218,7 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
               ref={bonusRef}
               className="hero-offer-bonus display-hero text-[clamp(2.35rem,10.5vw,4.8rem)] leading-[0.9] text-white"
             >
-              <EventLetters text={BONUS} show={showBonus} stagger={0.05} originY={32} />
+              <EventLetters key={`bonus-${seq}`} text={BONUS} show={showBonus} stagger={0.05} originY={32} />
             </span>
           </h1>
 
