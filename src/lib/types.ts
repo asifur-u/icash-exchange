@@ -106,9 +106,11 @@ export type AdminSnapshot = {
     createdAt: string;
     paymentMethod?: PaymentMethod;
     transactionId?: string;
-    proofFile?: string;
+    /** True when a screenshot exists — never expose the storage path/URL to the client. */
+    hasProof: boolean;
     proofSubmittedAt?: string;
-    codes?: string[];
+    /** True when delivered codes exist — fetch via reveal API, never embed plaintext. */
+    hasCodes: boolean;
   }>;
   audit: Audit[];
 };

@@ -34,6 +34,7 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [unlockedCodes, setUnlockedCodes] = useState<string[]>([]);
+  const [revealedByOrder, setRevealedByOrder] = useState<Record<string, string[]>>({});
 
   const reviewing = snapshot.orders.filter((order) => order.status === "REVIEWING");
   const others = snapshot.orders.filter((order) => order.status !== "REVIEWING");
@@ -58,6 +59,7 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
         <div>
           <p className="text-[11px] uppercase tracking-[0.22em] text-white/45">Owner</p>
           <h1 className="mt-3 display text-4xl sm:text-5xl">The desk</h1>
+          <p className="mt-2 text-sm text-white/45">Codes stay off the page until you approve or reveal.</p>
         </div>
         <button
           type="button"
@@ -77,7 +79,7 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
           <p className="text-sm text-white/45">{reviewing.length} waiting</p>
         </div>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/50">
-          User screenshots and TrxIDs land here. Approve to unlock the code — copy it and send to the buyer yourself.
+          Screenshots and TrxIDs land here. Approve unlocks the code for copy — max 3 desk actions at a time.
         </p>
 
         {unlockedCodes.length > 0 ? (
@@ -120,7 +122,7 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
           {reviewing.map((order) => (
             <article key={order.id} className="premium-card overflow-hidden rounded-[24px] p-4 sm:rounded-[32px] sm:p-6">
               <div className="grid gap-5 lg:grid-cols-[minmax(240px,0.9fr)_1.1fr]">
-                {order.proofFile ? (
+                {order.hasProof ? (
                   <a
                     href={`/api/admin/orders/${order.id}/proof`}
                     target="_blank"
@@ -181,7 +183,7 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
                     >
                       Approve & show code
                     </Button>
-                    {order.proofFile ? (
+                    {order.hasProof ? (
                       <a
                         href={`/api/admin/orders/${order.id}/proof`}
                         target="_blank"
@@ -226,7 +228,7 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
       <section className="mt-14 max-w-xl">
         <h2 className="display text-3xl">Upload codes</h2>
         <p className="mt-3 text-sm leading-relaxed text-muted">
-          One code per line. Codes are encrypted in `.data` and reserved when a buyer checks out. Approve unlocks one for email + order page.
+          One code per line. Encrypted at rest. Approve unlocks one for the buyer order page.
         </p>
         <label className="mt-6 block text-[11px] uppercase tracking-[0.18em] text-white/45" htmlFor="product">
           Note
@@ -273,96 +275,116 @@ export function AdminDashboard({ snapshot }: { snapshot: AdminSnapshot }) {
         <h2 className="display text-3xl">All orders</h2>
         <ul className="mt-6 divide-y divide-white/10 border-y border-white/10">
           {others.length === 0 ? <li className="py-6 text-muted">No other orders yet.</li> : null}
-          {others.map((order) => (
-            <li key={order.id} className="flex flex-col gap-4 py-6 lg:flex-row lg:items-start lg:justify-between">
-              <div>
-                <p className="font-mono text-xs text-white/50">{order.number}</p>
-                <p className="mt-1 display text-3xl">{formatBdt(order.total)}</p>
-                <p className="mt-2 text-sm text-muted">
-                  {order.email}
-                  {order.phone ? ` · ${order.phone}` : ""} · {order.title} × {order.quantity} ·{" "}
-                  {formatWhen(order.createdAt)}
-                </p>
-                {order.transactionId ? (
-                  <p className="mt-2 font-mono text-sm text-white/70">
-                    {(order.paymentMethod ?? "pay").toUpperCase()} · {order.transactionId}
+          {others.map((order) => {
+            const revealed = revealedByOrder[order.id] ?? [];
+            return (
+              <li key={order.id} className="flex flex-col gap-4 py-6 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <p className="font-mono text-xs text-white/50">{order.number}</p>
+                  <p className="mt-1 display text-3xl">{formatBdt(order.total)}</p>
+                  <p className="mt-2 text-sm text-muted">
+                    {order.email}
+                    {order.phone ? ` · ${order.phone}` : ""} · {order.title} × {order.quantity} ·{" "}
+                    {formatWhen(order.createdAt)}
                   </p>
-                ) : null}
-                {order.status === "DELIVERED" && order.codes && order.codes.length > 0 ? (
-                  <div className="mt-3 space-y-2">
-                    {order.codes.map((code) => (
-                      <div
-                        key={code}
-                        className="flex flex-col gap-2 rounded-[16px] border border-white/15 bg-white/[0.04] px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between"
-                      >
-                        <p className="break-all font-mono text-sm tracking-[0.08em] text-white">{code}</p>
-                        <button
-                          type="button"
-                          className="inline-flex h-10 items-center justify-center rounded-full border border-white/20 px-4 text-xs text-white transition hover:bg-white hover:text-black"
-                          onClick={async () => {
-                            try {
-                              await copyText(code);
-                              setMessage("Code copied");
-                              setError(null);
-                            } catch {
-                              setError("Could not copy");
-                            }
-                          }}
+                  {order.transactionId ? (
+                    <p className="mt-2 font-mono text-sm text-white/70">
+                      {(order.paymentMethod ?? "pay").toUpperCase()} · {order.transactionId}
+                    </p>
+                  ) : null}
+                  {revealed.length > 0 ? (
+                    <div className="mt-3 space-y-2">
+                      {revealed.map((code) => (
+                        <div
+                          key={code}
+                          className="flex flex-col gap-2 rounded-[16px] border border-white/15 bg-white/[0.04] px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between"
                         >
-                          Copy
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="text-[11px] uppercase tracking-[0.16em] text-white/70">{order.status}</span>
-                {order.proofFile ? (
-                  <a
-                    href={`/api/admin/orders/${order.id}/proof`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex h-12 items-center rounded-full border border-white/20 px-5 text-sm text-white transition hover:border-white hover:bg-white/5"
-                  >
-                    Screenshot
-                  </a>
-                ) : null}
-                {order.status === "PENDING" ? (
-                  <Button
-                    variant="ghost"
-                    disabled={pending}
-                    onClick={() => run(async () => (await post(`/api/admin/orders/${order.id}/release`), "Hold released"))}
-                  >
-                    Release hold
-                  </Button>
-                ) : null}
-                {order.status === "PAID" || order.status === "DELIVERED" ? (
-                  <Button
-                    variant="ghost"
-                    disabled={pending}
-                    onClick={() => run(async () => (await post(`/api/admin/orders/${order.id}/refund`), "Order refunded"))}
-                  >
-                    Refund
-                  </Button>
-                ) : null}
-                {order.status === "DELIVERED" ? (
-                  <Button
-                    variant="ghost"
-                    disabled={pending}
-                    onClick={() =>
-                      run(async () => {
-                        const data = await post(`/api/admin/orders/${order.id}/resend`);
-                        return data.message ?? "Sent";
-                      })
-                    }
-                  >
-                    Email buyer
-                  </Button>
-                ) : null}
-              </div>
-            </li>
-          ))}
+                          <p className="break-all font-mono text-sm tracking-[0.08em] text-white">{code}</p>
+                          <button
+                            type="button"
+                            className="inline-flex h-10 items-center justify-center rounded-full border border-white/20 px-4 text-xs text-white transition hover:bg-white hover:text-black"
+                            onClick={async () => {
+                              try {
+                                await copyText(code);
+                                setMessage("Code copied");
+                                setError(null);
+                              } catch {
+                                setError("Could not copy");
+                              }
+                            }}
+                          >
+                            Copy
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-[11px] uppercase tracking-[0.16em] text-white/70">{order.status}</span>
+                  {order.hasProof ? (
+                    <a
+                      href={`/api/admin/orders/${order.id}/proof`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex h-12 items-center rounded-full border border-white/20 px-5 text-sm text-white transition hover:border-white hover:bg-white/5"
+                    >
+                      Screenshot
+                    </a>
+                  ) : null}
+                  {order.hasCodes ? (
+                    <Button
+                      variant="ghost"
+                      disabled={pending}
+                      onClick={() =>
+                        run(async () => {
+                          const data = await post(`/api/admin/orders/${order.id}/reveal`);
+                          if (data.codes?.length) {
+                            setRevealedByOrder((prev) => ({ ...prev, [order.id]: data.codes! }));
+                          }
+                          return "Codes revealed for this session.";
+                        })
+                      }
+                    >
+                      Reveal codes
+                    </Button>
+                  ) : null}
+                  {order.status === "PENDING" ? (
+                    <Button
+                      variant="ghost"
+                      disabled={pending}
+                      onClick={() => run(async () => (await post(`/api/admin/orders/${order.id}/release`), "Hold released"))}
+                    >
+                      Release hold
+                    </Button>
+                  ) : null}
+                  {order.status === "PAID" || order.status === "DELIVERED" ? (
+                    <Button
+                      variant="ghost"
+                      disabled={pending}
+                      onClick={() => run(async () => (await post(`/api/admin/orders/${order.id}/refund`), "Order refunded"))}
+                    >
+                      Refund
+                    </Button>
+                  ) : null}
+                  {order.status === "DELIVERED" ? (
+                    <Button
+                      variant="ghost"
+                      disabled={pending}
+                      onClick={() =>
+                        run(async () => {
+                          const data = await post(`/api/admin/orders/${order.id}/resend`);
+                          return data.message ?? "Sent";
+                        })
+                      }
+                    >
+                      Email buyer
+                    </Button>
+                  ) : null}
+                </div>
+              </li>
+            );
+          })}
         </ul>
       </section>
 

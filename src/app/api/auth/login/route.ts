@@ -9,8 +9,8 @@ import { authenticateUser } from "@/lib/users";
 export async function POST(req: Request) {
   try {
     assertSameOrigin(req);
-    if (!limit(`user-login:${clientIp(req)}`, 12, 10 * 60_000)) {
-      throw new DeskError("RATE_LIMITED", "Too many attempts. Wait a few minutes.");
+    if (!limit(`user-login:${clientIp(req)}`, 3, 10 * 60_000)) {
+      throw new DeskError("RATE_LIMITED", "Max 3 login attempts. Wait a few minutes.");
     }
     const body = userLoginSchema.parse(await readJson(req));
     const user = await authenticateUser(body.email, body.password);

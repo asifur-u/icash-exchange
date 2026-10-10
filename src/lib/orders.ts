@@ -33,11 +33,13 @@ export async function createCheckout(input: {
     releaseStale(db);
     const product = requireProduct(db, input.productSlug);
     const email = input.email.toLowerCase();
-    const pending = db.orders.filter(
-      (order) => order.email === email && (order.status === "PENDING" || order.status === "REVIEWING"),
-    ).length;
+    const pending = db.orders.filter((order) => {
+      if (order.status !== "PENDING" && order.status !== "REVIEWING") return false;
+      if (input.userId && order.userId === input.userId) return true;
+      return order.email === email;
+    }).length;
     if (pending >= 3) {
-      throw new DeskError("TOO_MANY_PENDING", "You already have unpaid orders. Finish one, or wait 15 minutes.");
+      throw new DeskError("TOO_MANY_PENDING", "Max 3 open requests at a time. Finish one, or wait 15 minutes.");
     }
 
     const total = lineTotal(product.price, input.quantity);
@@ -325,29 +327,43 @@ export async function getAdminSnapshot(): Promise<AdminSnapshot> {
       orders: [...db.orders]
         .reverse()
         .slice(0, 40)
-        .map((order) => ({
-          id: order.id,
-          number: order.number,
-          email: order.email,
-          phone: order.phone,
-          status: order.status,
-          total: order.total,
-          quantity: order.items[0]?.quantity ?? 0,
-          title: productTitle(db, order),
-          createdAt: order.createdAt,
-          paymentMethod: order.paymentMethod,
-          transactionId: order.transactionId,
-          proofFile: order.proofFile,
-          proofSubmittedAt: order.proofSubmittedAt,
-          codes:
-            order.status === "DELIVERED"
-              ? db.codes
-                  .filter((code) => code.orderId === order.id && code.status === "SOLD")
-                  .map((code) => decrypt(code.cipher))
-              : [],
-        })),
+        .map((order) => {
+          const soldCodes = db.codes.filter((code) => code.orderId === order.id && code.status === "SOLD");
+          return {
+            id: order.id,
+            number: order.number,
+            email: order.email,
+            phone: order.phone,
+            status: order.status,
+            total: order.total,
+            quantity: order.items[0]?.quantity ?? 0,
+            title: productTitle(db, order),
+            createdAt: order.createdAt,
+            paymentMethod: order.paymentMethod,
+            transactionId: order.transactionId,
+            hasProof: Boolean(order.proofFile),
+            proofSubmittedAt: order.proofSubmittedAt,
+            hasCodes: order.status === "DELIVERED" && soldCodes.length > 0,
+          };
+        }),
       audit: [...db.audit].reverse().slice(0, 20),
     };
+  });
+}
+
+/** On-demand plaintext codes for the owner desk — never put these in page props. */
+export async function revealOrderCodes(orderId: string) {
+  return withStore((db) => {
+    const order = requireOrder(db, orderId);
+    if (order.status !== "DELIVERED" && order.status !== "PAID") {
+      throw new DeskError("NOT_FOUND", "Codes are only available after approval.");
+    }
+    const codes = db.codes
+      .filter((code) => code.orderId === order.id && (code.status === "SOLD" || code.status === "RESERVED"))
+      .map((code) => decrypt(code.cipher));
+    if (codes.length === 0) throw new DeskError("NOT_FOUND", "No codes on this order yet.");
+    addAudit(db, "admin", "order.reveal_codes", order.id);
+    return { codes };
   });
 }
 
