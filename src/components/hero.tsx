@@ -1,7 +1,7 @@
 ﻿"use client";
 
-import { motion } from "motion/react";
-import { useLayoutEffect, useRef } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Frame } from "@/components/frame";
 import { VoucherDesk } from "@/components/voucher-desk";
 import { ButtonLink } from "@/components/ui/button-link";
@@ -36,10 +36,14 @@ function fitBonusToMain(bonus: HTMLElement, target: number) {
   }
 }
 
+type CapPhase = "idle" | "toy" | "flip" | "reveal" | "done";
+
 export function Hero({ products, loggedIn = false }: { products: PublicProduct[]; loggedIn?: boolean }) {
   const mainRef = useRef<HTMLSpanElement>(null);
   const topRef = useRef<HTMLSpanElement>(null);
   const bonusRef = useRef<HTMLSpanElement>(null);
+  const [phase, setPhase] = useState<CapPhase>("idle");
+  const [seq, setSeq] = useState(0);
 
   useLayoutEffect(() => {
     let alive = true;
@@ -56,8 +60,7 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
       if (bonusRef.current) fitBonusToMain(bonusRef.current, target);
     }
 
-    // Fit after the cap reveal has room; also on each frame of early animation.
-    const timers = [0, 700, 1200, 1800].map((ms) => window.setTimeout(sync, ms));
+    const timers = [0, 500, 1200, 2000, 2800].map((ms) => window.setTimeout(sync, ms));
     sync();
     requestAnimationFrame(sync);
     const ro = new ResizeObserver(() => requestAnimationFrame(sync));
@@ -69,18 +72,42 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
       ro.disconnect();
       window.removeEventListener("resize", sync);
     };
+  }, [phase]);
+
+  // Cap-toy sequence — Motion-driven, always plays (survives OS reduced-motion)
+  useEffect(() => {
+    let alive = true;
+    setPhase("idle");
+    const ids = [
+      window.setTimeout(() => alive && setPhase("toy"), 250),
+      window.setTimeout(() => alive && setPhase("flip"), 950),
+      window.setTimeout(() => alive && setPhase("reveal"), 1550),
+      window.setTimeout(() => alive && setPhase("done"), 2300),
+    ];
+    return () => {
+      alive = false;
+      ids.forEach((id) => window.clearTimeout(id));
+    };
+  }, [seq]);
+
+  useEffect(() => {
+    function replay() {
+      setSeq((n) => n + 1);
+    }
+    window.addEventListener("icash-replay-cap", replay);
+    return () => window.removeEventListener("icash-replay-cap", replay);
   }, []);
 
+  const showToy = phase === "toy" || phase === "flip" || phase === "reveal";
+  const capOpen = phase === "flip" || phase === "reveal" || phase === "done";
+  const showExtra = phase === "reveal" || phase === "done";
+  const showBonus = phase === "done";
+
   return (
-    <section className="relative overflow-hidden bg-black pb-14 pt-[calc(5.5rem+env(safe-area-inset-top))] sm:pb-24 sm:pt-36 md:pb-28 md:pt-40">
+    <section className="relative overflow-x-clip overflow-y-visible bg-black pb-14 pt-[calc(5.5rem+env(safe-area-inset-top))] sm:pb-24 sm:pt-36 md:pb-28 md:pt-40">
       <Frame className="relative grid items-center gap-12 sm:gap-14 lg:grid-cols-[1.05fr_1fr] lg:gap-16 xl:gap-24">
         <div className="min-w-0 max-w-2xl">
-          <motion.h1
-            className="hero-offer"
-            initial={{ opacity: 0.92 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-          >
+          <h1 className="hero-offer" data-cap-phase={phase}>
             <span
               ref={topRef}
               className="hero-offer-top display-hero text-[clamp(1.8rem,7.2vw,3rem)] leading-none text-white"
@@ -88,49 +115,84 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
               Every deposit
             </span>
 
-            <span className="hero-cap-stage" aria-hidden="false">
-              <span className="hero-toy" aria-hidden="true">
-                <span className="hero-toy-cap">
-                  <span className="hero-toy-cap-top" />
-                  <span className="hero-toy-cap-brim" />
-                </span>
-                <span className="hero-toy-face">
-                  <span className="hero-toy-eye" />
-                  <span className="hero-toy-eye" />
-                  <span className="hero-toy-smile" />
-                </span>
-              </span>
+            <span className="hero-cap-stage">
+              <AnimatePresence>
+                {showToy ? (
+                  <motion.span
+                    key="toy"
+                    className="hero-toy"
+                    aria-hidden="true"
+                    initial={{ opacity: 0, y: "45%", scale: 0.2, rotate: -12 }}
+                    animate={
+                      phase === "reveal"
+                        ? { opacity: 0, y: "-60%", scale: 0.45, rotate: 0 }
+                        : { opacity: 1, y: "-18%", scale: 1.08, rotate: 0 }
+                    }
+                    exit={{ opacity: 0, y: "-65%", scale: 0.4 }}
+                    transition={{ type: "spring", stiffness: 380, damping: 20, mass: 0.9 }}
+                  >
+                    <motion.span
+                      className="hero-toy-cap"
+                      initial={{ rotate: 0, x: 0, y: 0, opacity: 1, scale: 1 }}
+                      animate={
+                        capOpen
+                          ? { rotate: -155, x: 28, y: -36, opacity: 0, scale: 0.8 }
+                          : { rotate: 0, x: 0, y: 0, opacity: 1, scale: 1 }
+                      }
+                      transition={{ type: "spring", stiffness: 220, damping: 14, mass: 0.85 }}
+                    >
+                      <span className="hero-toy-cap-top" />
+                      <span className="hero-toy-cap-brim" />
+                    </motion.span>
+                    <span className="hero-toy-face">
+                      <span className="hero-toy-eye" />
+                      <span className="hero-toy-eye" />
+                      <span className="hero-toy-smile" />
+                    </span>
+                  </motion.span>
+                ) : null}
+              </AnimatePresence>
 
-              <span
+              <motion.span
                 ref={mainRef}
                 className="hero-offer-main hero-offer-power display-hero text-[clamp(3.55rem,16.5vw,7.8rem)] leading-[0.9]"
+                initial={{ opacity: 0, y: "0.2em", clipPath: "inset(100% 18% 0 18%)" }}
+                animate={
+                  showExtra
+                    ? { opacity: 1, y: 0, clipPath: "inset(0% 0% 0% 0%)" }
+                    : { opacity: 0, y: "0.2em", clipPath: "inset(100% 18% 0 18%)" }
+                }
+                transition={{ type: "spring", stiffness: 280, damping: 22, mass: 0.9 }}
               >
                 5% extra
-              </span>
+              </motion.span>
             </span>
 
-            <span
+            <motion.span
               ref={bonusRef}
               className="hero-offer-bonus display-hero text-[clamp(2.35rem,10.5vw,4.8rem)] leading-[0.92] text-white"
+              initial={{ opacity: 0, y: "0.15em" }}
+              animate={showBonus ? { opacity: 1, y: 0 } : { opacity: 0, y: "0.15em" }}
+              transition={{ type: "spring", stiffness: 320, damping: 24 }}
             >
               Bonus
-            </span>
-          </motion.h1>
+            </motion.span>
+          </h1>
 
           <motion.p
             className="mt-4 max-w-md text-base leading-[1.55] text-white/70 sm:mt-5 sm:text-xl sm:leading-[1.6]"
-            initial={{ opacity: 0, y: 14 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, delay: 1.55 }}
+            transition={{ duration: 0.55, delay: 0.35 }}
           >
             Buy iCash vouchers using local payment methods and enjoy an extra 5% on every eligible deposit
           </motion.p>
 
           <motion.div
             className="mt-6 sm:mt-8"
-            initial={{ opacity: 0, y: 14 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, delay: 1.65 }}
+            transition={{ duration: 0.55, delay: 0.5 }}
           >
             <ButtonLink
               href="#desk"
@@ -155,8 +217,8 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
 
         <motion.div
           className="w-full min-w-0 justify-self-stretch lg:justify-self-end lg:max-w-[560px]"
-          initial={{ y: 28 }}
-          animate={{ y: 0 }}
+          initial={{ y: 28, opacity: 0.96 }}
+          animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.9, delay: 0.08 }}
         >
           <VoucherDesk products={products} loggedIn={loggedIn} />

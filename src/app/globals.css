@@ -80,7 +80,8 @@ body {
     max-width: 100%;
     flex-direction: column;
     align-items: flex-start;
-    gap: 0;
+    /* Equal small gap above + below 5% EXTRA */
+    gap: 0.42rem;
     overflow: visible;
   }
 
@@ -94,21 +95,20 @@ body {
   }
 
   .hero-offer-top {
-    margin-bottom: 0.14em;
+    margin: 0;
     line-height: 0.92;
   }
 
   .hero-offer-bonus {
     display: block;
-    margin-top: 0.08em;
+    margin: 0;
     width: max-content;
     max-width: 100%;
     white-space: nowrap;
     letter-spacing: -0.02em;
-    animation: hero-bonus-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) 1.45s both;
   }
 
-  /* Cap-toy stage: toy pops in, lid flips off, 5% EXTRA rises out */
+  /* Cap-toy stage: Motion drives the sequence */
   .hero-cap-stage {
     position: relative;
     display: block;
@@ -122,15 +122,12 @@ body {
     left: 50%;
     top: 8%;
     z-index: 4;
+    display: block;
     width: clamp(3.4rem, 11vw, 4.6rem);
     height: clamp(3.4rem, 11vw, 4.6rem);
     margin-left: calc(clamp(3.4rem, 11vw, 4.6rem) * -0.5);
-    transform: translateY(-20%) scale(0.28);
-    opacity: 0;
     pointer-events: none;
     filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.55));
-    animation: hero-toy-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both,
-      hero-toy-out 0.5s cubic-bezier(0.4, 0, 1, 1) 1.2s forwards;
   }
 
   .hero-toy-face {
@@ -179,9 +176,9 @@ body {
     right: 4%;
     top: -6%;
     z-index: 2;
+    display: block;
     height: 56%;
     transform-origin: 50% 95%;
-    animation: hero-cap-flip 0.8s cubic-bezier(0.34, 1.45, 0.64, 1) 0.55s forwards;
   }
 
   .hero-toy-cap-top {
@@ -209,32 +206,11 @@ body {
   .hero-offer-power {
     position: relative;
     display: inline-block;
-    margin-top: 0;
-    margin-bottom: 0;
+    margin: 0;
     color: #9fe870;
     transform-origin: 50% 100%;
     text-shadow: 0 0 12px rgba(159, 232, 112, 0.35);
-    clip-path: inset(100% 18% 0 18% round 4px);
-    opacity: 0;
-    animation:
-      hero-extra-reveal 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.88s both,
-      hero-power-glow 1.8s ease-in-out 1.85s infinite;
-  }
-
-  .hero-offer-power::before {
-    content: "";
-    pointer-events: none;
-    position: absolute;
-    left: 50%;
-    top: 45%;
-    z-index: -1;
-    width: 0.4em;
-    height: 0.4em;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(159, 232, 112, 0.55) 0%, transparent 70%);
-    transform: translate(-50%, -50%) scale(0);
-    opacity: 0;
-    animation: hero-cap-burst 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.88s both;
+    animation: hero-power-glow 1.8s ease-in-out 1.7s infinite;
   }
 
   .hero-offer-power::after {
@@ -245,32 +221,12 @@ body {
     background: linear-gradient(
       100deg,
       transparent 30%,
-      rgba(212, 255, 154, 0.65) 50%,
+      rgba(212, 255, 154, 0.55) 50%,
       transparent 70%
     );
     mix-blend-mode: screen;
     transform: translateX(-130%);
-    animation: hero-power-shine 2.2s cubic-bezier(0.22, 1, 0.36, 1) 1.85s infinite;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .hero-toy {
-      display: none;
-    }
-
-    .hero-offer-power,
-    .hero-offer-bonus {
-      animation: none;
-      clip-path: none;
-      opacity: 1;
-      transform: none;
-      text-shadow: 0 0 14px rgba(159, 232, 112, 0.35);
-    }
-
-    .hero-offer-power::before,
-    .hero-offer-power::after {
-      display: none;
-    }
+    animation: hero-power-shine 2.2s cubic-bezier(0.22, 1, 0.36, 1) 1.7s infinite;
   }
 
   .eyebrow {
