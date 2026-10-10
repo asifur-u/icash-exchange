@@ -20,17 +20,17 @@ function fitBonusToMain(bonus: HTMLElement, target: number) {
   if (target < 8) return;
   bonus.style.transform = "none";
   bonus.style.letterSpacing = "-0.02em";
-  let size = Math.max(26, target * 0.2);
+  let size = Math.max(28, target * 0.22);
   bonus.style.fontSize = `${size}px`;
 
   let guard = 0;
-  while (bonus.scrollWidth < target - 0.5 && size < target * 0.52 && guard < 80) {
-    size += 0.55;
+  while (bonus.scrollWidth < target - 0.5 && size < target * 0.7 && guard < 140) {
+    size += 0.65;
     bonus.style.fontSize = `${size}px`;
     guard += 1;
   }
-  while (bonus.scrollWidth > target + 0.5 && size > 18 && guard < 160) {
-    size -= 0.3;
+  while (bonus.scrollWidth > target + 0.5 && size > 18 && guard < 220) {
+    size -= 0.35;
     bonus.style.fontSize = `${size}px`;
     guard += 1;
   }
@@ -103,7 +103,7 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
 
               <span
                 ref={mainRef}
-                className="hero-offer-main hero-offer-power display-hero text-[clamp(3.55rem,16.5vw,7.8rem)] leading-[0.84]"
+                className="hero-offer-main hero-offer-power display-hero text-[clamp(3.55rem,16.5vw,7.8rem)] leading-[0.8]"
               >
                 5% extra
               </span>
@@ -111,7 +111,7 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
 
             <span
               ref={bonusRef}
-              className="hero-offer-bonus display-hero text-[clamp(2.35rem,10.5vw,4.8rem)] leading-none text-white"
+              className="hero-offer-bonus display-hero text-[clamp(2.35rem,10.5vw,4.8rem)] leading-[0.82] text-white"
             >
               Bonus
             </span>

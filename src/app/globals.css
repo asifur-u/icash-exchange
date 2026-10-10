@@ -100,7 +100,7 @@ body {
 
   .hero-offer-bonus {
     display: block;
-    margin-top: -0.08em;
+    margin-top: -0.12em;
     width: max-content;
     max-width: 100%;
     white-space: nowrap;
@@ -209,8 +209,8 @@ body {
   .hero-offer-power {
     position: relative;
     display: inline-block;
-    margin-top: -0.12em;
-    margin-bottom: -0.1em;
+    margin-top: -0.16em;
+    margin-bottom: -0.14em;
     color: #9fe870;
     transform-origin: 50% 100%;
     text-shadow: 0 0 18px rgba(159, 232, 112, 0.45);
