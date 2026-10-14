@@ -300,100 +300,183 @@ summary::-webkit-details-marker {
 }
 
 .voucher-stage {
-  perspective: 1600px;
+  perspective: 2000px;
 }
 
+/* Black-titanium hybrid: Apple Card grain + Amex Platinum weight + Sapphire depth */
 .voucher-card {
+  --rx: 6deg;
+  --ry: -10deg;
+  --mx: 22%;
+  --my: 18%;
   background:
-    radial-gradient(70% 55% at 100% 0%, rgba(255, 45, 45, 0.1), transparent 42%),
-    radial-gradient(120% 90% at 8% 0%, rgba(255, 255, 255, 0.16), transparent 42%),
-    linear-gradient(155deg, #1c1c1c 0%, #080808 46%, #141414 100%);
+    linear-gradient(145deg, #3a3a3c 0%, #1c1c1e 22%, #0a0a0b 52%, #161618 78%, #2c2c2e 100%);
   box-shadow:
-    0 50px 120px rgba(0, 0, 0, 0.7),
-    0 0 0 1px rgba(255, 255, 255, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22);
-  transform: rotateX(var(--rx, 8deg)) rotateY(var(--ry, -14deg));
+    0 48px 100px rgba(0, 0, 0, 0.75),
+    0 16px 36px rgba(0, 0, 0, 0.45),
+    0 0 0 0.5px rgba(255, 255, 255, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.55),
+    inset 1px 0 0 rgba(255, 255, 255, 0.08),
+    inset -1px 0 0 rgba(0, 0, 0, 0.35);
+  transform: rotateX(var(--rx)) rotateY(var(--ry));
   transform-style: preserve-3d;
-  transition: transform 160ms linear;
+  transition: transform 120ms linear;
 }
 
-.voucher-pattern {
+.voucher-titanium {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.22;
-  background-image:
-    linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.05) 50%, transparent 60%),
-    repeating-linear-gradient(
-      -18deg,
-      rgba(255, 255, 255, 0.035) 0 1px,
-      transparent 1px 14px
-    );
+  background:
+    radial-gradient(120% 80% at 0% 0%, rgba(255, 255, 255, 0.22), transparent 42%),
+    radial-gradient(90% 70% at 100% 100%, rgba(255, 45, 45, 0.08), transparent 46%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 38%, rgba(0, 0, 0, 0.25) 100%);
+}
+
+/* Horizontal brush like real milled titanium (Apple Card) */
+.voucher-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.55;
+  mix-blend-mode: soft-light;
+  background-image: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.045) 0px,
+    rgba(255, 255, 255, 0.045) 1px,
+    transparent 1px,
+    transparent 3px
+  );
 }
 
 .voucher-sheen {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  mix-blend-mode: screen;
+  mix-blend-mode: soft-light;
   background: radial-gradient(
-    520px circle at var(--mx, 30%) var(--my, 18%),
-    rgba(255, 255, 255, 0.42),
-    rgba(255, 255, 255, 0.08) 28%,
-    transparent 58%
+    420px circle at var(--mx) var(--my),
+    rgba(255, 255, 255, 0.55),
+    rgba(255, 255, 255, 0.12) 24%,
+    transparent 52%
   );
 }
 
-.voucher-holo {
+.voucher-bevel {
   position: absolute;
-  right: 10%;
-  top: 18%;
-  width: clamp(56px, 16vw, 88px);
-  height: clamp(56px, 16vw, 88px);
-  border-radius: 18px;
+  inset: 0;
   pointer-events: none;
-  opacity: 0.55;
-  background:
-    conic-gradient(
-      from 120deg,
-      rgba(255, 255, 255, 0.08),
-      rgba(255, 80, 80, 0.22),
-      rgba(255, 255, 255, 0.18),
-      rgba(180, 180, 255, 0.16),
-      rgba(255, 255, 255, 0.08)
-    );
-  filter: blur(0.2px);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+    inset 0 0 0 2px rgba(0, 0, 0, 0.25);
+}
+
+/* Slow luxury glint across the face */
+.voucher-glint {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.14) 49%,
+    rgba(255, 255, 255, 0.02) 52%,
+    transparent 60%
+  );
+  background-size: 220% 100%;
+  animation: card-glint 5.5s ease-in-out infinite;
   mix-blend-mode: screen;
 }
 
+@keyframes card-glint {
+  0%,
+  55% {
+    background-position: 120% 0;
+    opacity: 0;
+  }
+  62% {
+    opacity: 1;
+  }
+  78% {
+    background-position: -40% 0;
+    opacity: 0.85;
+  }
+  100% {
+    background-position: -40% 0;
+    opacity: 0;
+  }
+}
+
+.card-emboss {
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.28),
+    0 -1px 0 rgba(0, 0, 0, 0.65),
+    0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.card-pan {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.14), 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Realistic EMV chip with contact matrix */
 .metal-chip {
   position: relative;
-  width: clamp(40px, 12vw, 52px);
-  height: clamp(30px, 9vw, 40px);
-  border-radius: 8px;
-  background: linear-gradient(135deg, #fff, #b8b8b8 38%, #f7f7f7 62%, #7a7a7a);
+  width: clamp(44px, 11.5vw, 56px);
+  height: clamp(34px, 8.8vw, 44px);
+  border-radius: 6px;
+  background:
+    linear-gradient(160deg, #f3efe4 0%, #d4c49a 24%, #faf6ec 48%, #a8946a 72%, #e8dfc8 100%);
   box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.28),
-    0 8px 18px rgba(0, 0, 0, 0.35);
+    inset 0 0 0 1px rgba(255, 255, 255, 0.65),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.28),
+    0 4px 10px rgba(0, 0, 0, 0.45);
 }
 
-.metal-chip::before,
-.metal-chip::after {
-  content: "";
+.metal-chip-grid {
   position: absolute;
-  left: 6px;
-  right: 6px;
-  height: 1px;
-  background: rgba(0, 0, 0, 0.35);
+  inset: 5px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 2px;
 }
 
-.metal-chip::before {
-  top: 12px;
+.metal-chip-grid i {
+  display: block;
+  border-radius: 1.5px;
+  background: linear-gradient(180deg, rgba(80, 60, 20, 0.22), rgba(40, 30, 10, 0.12));
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.18);
 }
 
-.metal-chip::after {
-  top: 22px;
+.card-network {
+  position: relative;
+  height: clamp(36px, 9.5vw, 48px);
+  width: clamp(56px, 14vw, 74px);
+  flex-shrink: 0;
+}
+
+.card-network-orb {
+  position: absolute;
+  top: 50%;
+  height: 86%;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  transform: translateY(-50%);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.35), 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.card-network-orb-a {
+  left: 4%;
+  background: radial-gradient(circle at 32% 30%, #ffffff 0%, #c8c8c8 42%, #7a7a7a 100%);
+}
+
+.card-network-orb-b {
+  right: 4%;
+  background: radial-gradient(circle at 32% 30%, #ff9a9a 0%, #ff2d2d 46%, #8a1212 100%);
+  mix-blend-mode: screen;
+  opacity: 0.92;
 }
 
 @keyframes float-soft {
@@ -590,6 +673,175 @@ summary::-webkit-details-marker {
   animation-play-state: paused;
 }
 
+/* —— Loyalty ladder power loop (desk CTA) —— */
+@keyframes ladder-card-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.12),
+      0 0 0 rgba(255, 255, 255, 0);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.35),
+      0 0 36px rgba(255, 255, 255, 0.14);
+  }
+}
+
+@keyframes ladder-shine {
+  0% {
+    transform: translateX(-140%) skewX(-18deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  45% {
+    transform: translateX(220%) skewX(-18deg);
+    opacity: 1;
+  }
+  50%,
+  100% {
+    transform: translateX(220%) skewX(-18deg);
+    opacity: 0;
+  }
+}
+
+@keyframes ladder-bar-rise {
+  0% {
+    transform: scaleY(0.15);
+    opacity: 0.45;
+  }
+  35% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+  70% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(0.2);
+    opacity: 0.5;
+  }
+}
+
+@keyframes ladder-chip-pop {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    background: rgba(0, 0, 0, 0.28);
+    color: rgba(255, 255, 255, 0.55);
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: none;
+  }
+  40%,
+  60% {
+    transform: translateY(-4px) scale(1.08);
+    background: #fff;
+    color: #000;
+    border-color: #fff;
+    box-shadow: 0 0 18px rgba(255, 255, 255, 0.35);
+  }
+}
+
+@keyframes ladder-explore-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.45);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 0 0 8px rgba(255, 255, 255, 0);
+  }
+}
+
+@keyframes ladder-arrow-nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes ladder-line-fill {
+  0% {
+    transform: scaleX(0);
+  }
+  55% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+/* Note picker chips (showcase grid) */
+.note-pick-ring {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    120deg,
+    transparent 30%,
+    rgba(0, 0, 0, 0.06) 48%,
+    transparent 65%
+  );
+  background-size: 220% 100%;
+  animation: note-pick-shine 2.8s ease-in-out infinite;
+}
+
+@keyframes note-pick-shine {
+  0%,
+  40% {
+    background-position: 120% 0;
+    opacity: 0;
+  }
+  55% {
+    opacity: 1;
+  }
+  85%,
+  100% {
+    background-position: -40% 0;
+    opacity: 0;
+  }
+}
+
+.ladder-power {
+  animation: ladder-card-glow 2.2s ease-in-out infinite;
+}
+
+.ladder-power-shine {
+  animation: ladder-shine 2.8s ease-in-out infinite;
+}
+
+.ladder-power-bar {
+  transform-origin: bottom center;
+  animation: ladder-bar-rise 2.6s ease-in-out infinite;
+}
+
+.ladder-power-chip {
+  animation: ladder-chip-pop 2.8s ease-in-out infinite;
+}
+
+.ladder-power-explore {
+  animation: ladder-explore-pulse 1.8s ease-in-out infinite;
+}
+
+.ladder-power-arrow {
+  display: inline-block;
+  animation: ladder-arrow-nudge 0.9s ease-in-out infinite;
+}
+
+.ladder-power-line {
+  transform-origin: left center;
+  animation: ladder-line-fill 2.8s ease-in-out infinite;
+}
+
 @media (max-width: 640px) {
   .voucher-card {
     --rx: 0deg;
@@ -609,9 +861,6 @@ summary::-webkit-details-marker {
     animation: none;
   }
 
-  .voucher-holo {
-    opacity: 0.35;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -620,6 +869,7 @@ summary::-webkit-details-marker {
   }
 
   .voucher-card,
+  .voucher-glint,
   .float-soft,
   .marquee-track {
     animation: none;

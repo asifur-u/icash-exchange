@@ -9,6 +9,8 @@ export function CheckoutForm({
   productSlug,
   title,
   quantity,
+  voucher,
+  fee,
   total,
   defaultEmail = "",
   defaultPhone = "",
@@ -16,6 +18,8 @@ export function CheckoutForm({
   productSlug: string;
   title: string;
   quantity: number;
+  voucher: number;
+  fee: number;
   total: number;
   defaultEmail?: string;
   defaultPhone?: string;
@@ -89,8 +93,26 @@ export function CheckoutForm({
       </div>
 
       <div className="rounded-[24px] border border-white/12 bg-white/[0.03] px-5 py-4 text-sm leading-relaxed text-white/60">
-        {title} × {quantity}. You pay <span className="font-medium text-white">{formatBdt(total)}</span>.
-        Next step: send the deposit, upload the screenshot, and enter the TrxID.
+        <p className="font-medium text-white/80">
+          {title} × {quantity}
+        </p>
+        <div className="mt-3 space-y-1.5">
+          <p className="flex justify-between gap-3">
+            <span>Voucher</span>
+            <span className="tabular-nums text-white/80">{formatBdt(voucher)}</span>
+          </p>
+          <p className="flex justify-between gap-3">
+            <span>Desk fee 2.5%</span>
+            <span className="tabular-nums text-white/80">{formatBdt(fee)}</span>
+          </p>
+          <p className="flex justify-between gap-3 border-t border-white/10 pt-2 font-medium text-white">
+            <span>Total to pay</span>
+            <span className="tabular-nums">{formatBdt(total)}</span>
+          </p>
+        </div>
+        <p className="mt-3 text-white/40">
+          Next: send this deposit, upload the screenshot, and enter the TrxID.
+        </p>
       </div>
 
       <Button type="submit" className="h-14 w-full text-base" disabled={pending} aria-busy={pending}>

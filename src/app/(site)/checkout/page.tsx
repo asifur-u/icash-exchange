@@ -5,6 +5,7 @@ import { Frame } from "@/components/frame";
 import { ProcessSteps } from "@/components/process-steps";
 import { CheckoutForm } from "@/components/checkout-form";
 import { ButtonLink } from "@/components/ui/button-link";
+import { deskBreakdown } from "@/lib/desk-fee";
 import { formatBdt } from "@/lib/format";
 import { getCurrentUser } from "@/lib/session";
 import { getPublicProduct } from "@/lib/store";
@@ -30,6 +31,7 @@ export default async function CheckoutPage({
   const requested = Number(query.qty ?? "1");
   const quantity = Number.isInteger(requested) ? Math.min(5, Math.max(1, requested)) : 1;
   const qty = product ? Math.min(quantity, product.stock) : quantity;
+  const fees = product ? deskBreakdown(product.price * qty) : null;
 
   return (
     <section className="relative overflow-hidden py-16 sm:py-24 md:py-32">
@@ -52,7 +54,9 @@ export default async function CheckoutPage({
                 productSlug={product.slug}
                 title={product.title}
                 quantity={qty}
-                total={product.price * qty}
+                voucher={fees!.voucher}
+                fee={fees!.fee}
+                total={fees!.total}
                 defaultEmail={user.email}
                 defaultPhone={user.phone}
               />
@@ -75,7 +79,9 @@ export default async function CheckoutPage({
               <p className="mt-5 text-base leading-relaxed text-white/50">{product.blurb}</p>
               <div className="mt-8 space-y-3 text-sm text-white/55">
                 <p>Quantity · {qty}</p>
-                <p>Total · <span className="font-medium text-white">{formatBdt(product.price * qty)}</span></p>
+                <p>Voucher · <span className="font-medium text-white">{formatBdt(fees!.voucher)}</span></p>
+                <p>Desk fee 2.5% · <span className="font-medium text-white">{formatBdt(fees!.fee)}</span></p>
+                <p>Total to pay · <span className="font-medium text-white">{formatBdt(fees!.total)}</span></p>
                 <p>{product.stock} ready on the desk</p>
               </div>
               <div className="mt-8 flex flex-wrap gap-3">

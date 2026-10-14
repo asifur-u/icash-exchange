@@ -9,6 +9,7 @@ import { Frame } from "@/components/frame";
 const links = [
   { href: "/catalog", label: "Catalog" },
   { href: "/order/note-1000", label: "Buy" },
+  { href: "/explore", label: "Explore" },
   { href: "/faq", label: "FAQ" },
 ];
 
@@ -17,6 +18,7 @@ function isActive(pathname: string, href: string) {
   if (href === "/order/note-1000") {
     return pathname.startsWith("/order") || pathname.startsWith("/checkout") || pathname.startsWith("/pay");
   }
+  if (href === "/explore") return pathname.startsWith("/explore");
   if (href === "/faq") return pathname.startsWith("/faq");
   return false;
 }

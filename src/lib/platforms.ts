@@ -1,14 +1,70 @@
-export const platforms = [
-  { id: "1xbet", label: "1xBet", logo: "/partners/1xbet.png" },
-  { id: "melbet", label: "Melbet", logo: "/partners/melbet.png" },
-  { id: "mostbet", label: "Mostbet", logo: "/partners/mostbet.png" },
-  { id: "parimatch", label: "Parimatch", logo: "/partners/parimatch.png" },
-  { id: "betway", label: "Betway", logo: "/partners/betway.png" },
-  { id: "22bet", label: "22Bet", logo: "/partners/22bet.png" },
-  { id: "megapari", label: "Mega Pari", logo: "/partners/megapari.png" },
-  { id: "linebet", label: "Linebet", logo: "/partners/linebet.png" },
-  { id: "888starz", label: "888starz", logo: "/partners/888starz.png" },
-  { id: "stake", label: "Stake", logo: "/partners/stake.png" },
-  { id: "bcgame", label: "BC.Game", logo: "/partners/bcgame.png" },
-  { id: "bet365", label: "Bet365", logo: "/partners/bet365.png" },
-] as const;
+/**
+ * iCash.one collaborators only — no betting / gambling brands.
+ * Marketplaces, distributors, payment partners, authorized agents.
+ */
+export type Platform = {
+  id: string;
+  label: string;
+  blurb: string;
+  logo: string;
+  role: "network" | "marketplace" | "distributor" | "agent" | "payments";
+  href?: string;
+};
+
+export const platforms: Platform[] = [
+  {
+    id: "icash-one",
+    label: "iCash.one",
+    blurb: "The global prepaid network this desk is authorized under.",
+    logo: "/brand/icash-one-wordmark-dark.svg",
+    role: "network",
+    href: "https://www.icash.one",
+  },
+  {
+    id: "eneba",
+    label: "Eneba",
+    blurb: "Official marketplace partner — buy iCash.one vouchers on Eneba.",
+    logo: "/partners/eneba.svg",
+    role: "marketplace",
+    href: "https://www.eneba.com",
+  },
+  {
+    id: "bamboo",
+    label: "Bamboo Card",
+    blurb: "B2B distributor partner for iCash.one digital vouchers.",
+    logo: "/partners/bamboo.svg",
+    role: "distributor",
+    href: "https://www.bamboocard.co",
+  },
+  {
+    id: "praxis",
+    label: "Praxis",
+    blurb: "Payments collaborator expanding merchant access with iCash.one.",
+    logo: "/partners/praxis.svg",
+    role: "payments",
+  },
+  {
+    id: "baxity",
+    label: "Baxity",
+    blurb: "Authorized agent channel for genuine iCash.one notes.",
+    logo: "/partners/baxity.svg",
+    role: "agent",
+    href: "https://www.baxity.com",
+  },
+  {
+    id: "offgamers",
+    label: "OffGamers",
+    blurb: "Verified gift & game marketplace listed with iCash.one agents.",
+    logo: "/partners/offgamers.svg",
+    role: "agent",
+    href: "https://www.offgamers.com",
+  },
+  {
+    id: "moogold",
+    label: "MooGold",
+    blurb: "Authorized reseller for iCash.one prepaid voucher delivery.",
+    logo: "/partners/moogold.svg",
+    role: "agent",
+    href: "https://www.moogold.com",
+  },
+];
