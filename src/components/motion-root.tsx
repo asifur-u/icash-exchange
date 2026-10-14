@@ -21,5 +21,7 @@ export function MotionRoot({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  return <MotionConfig reducedMotion="user">{children}</MotionConfig>;
+  // Always play motion — loyalty ladder + desk rely on visible animation.
+  // OS "reduce motion" still softens Lenis above; UI springs stay on.
+  return <MotionConfig reducedMotion="never">{children}</MotionConfig>;
 }

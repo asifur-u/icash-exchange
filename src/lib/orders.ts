@@ -3,6 +3,7 @@ import { assertOrderToken, signOrderAccess } from "@/lib/auth";
 import { decrypt } from "@/lib/crypto";
 import { deliveryProviders, dispatchCodes } from "@/lib/deliver";
 import { DeskError } from "@/lib/errors";
+import { deskPayTotal } from "@/lib/desk-fee";
 import { lineTotal } from "@/lib/money";
 import { paymentMode } from "@/lib/payments";
 import { savePaymentProof } from "@/lib/proofs";
@@ -42,7 +43,8 @@ export async function createCheckout(input: {
       throw new DeskError("TOO_MANY_PENDING", "Max 3 open requests at a time. Finish one, or wait 15 minutes.");
     }
 
-    const total = lineTotal(product.price, input.quantity);
+    const voucher = lineTotal(product.price, input.quantity);
+    const total = deskPayTotal(voucher);
     const orderId = `ord_${randomBytes(8).toString("hex")}`;
     const codeIds = reserveIn(db, orderId, product.id, input.quantity);
     const number = `IX-${String(db.nextNumber).padStart(4, "0")}`;

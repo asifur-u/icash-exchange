@@ -54,27 +54,98 @@ export function VoucherShowcase({ products }: { products: PublicProduct[] }) {
           </AnimatePresence>
         </div>
 
-        <div className="mx-auto mt-10 grid max-w-[640px] grid-cols-2 gap-2 sm:mt-12 sm:grid-cols-4" role="listbox" aria-label="Voucher values">
-          {products.map((product, productIndex) => {
-            const selected = productIndex === index;
-            return (
-              <button
-                key={product.id}
-                type="button"
-                role="option"
-                aria-selected={selected}
-                onClick={() => setIndex(productIndex)}
-                className={`rounded-2xl px-4 py-4 text-left transition ${
-                  selected ? "bg-white text-black" : "bg-white/[0.06] text-white hover:bg-white/10"
-                }`}
-              >
-                <p className="text-lg font-semibold tracking-tight">{formatBdt(product.faceValue)}</p>
-                <p className={`mt-1 text-xs ${selected ? "text-black/50" : "text-white/40"}`}>
-                  {product.stock > 0 ? `${product.stock} ready` : "Sold out"}
-                </p>
-              </button>
-            );
-          })}
+        <div className="mx-auto mt-10 max-w-[640px] sm:mt-12">
+          <div className="mb-3 flex items-end justify-between gap-3 px-0.5">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40">
+              Choose a note
+            </p>
+            <p className="text-xs text-white/35">
+              {products.filter((p) => p.stock > 0).length} of {products.length} in stock
+            </p>
+          </div>
+
+          <div
+            className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3"
+            role="listbox"
+            aria-label="Voucher values"
+          >
+            {products.map((product, productIndex) => {
+              const selected = productIndex === index;
+              const soldOut = product.stock < 1;
+              const maxStock = Math.max(...products.map((p) => p.stock), 1);
+              const fill = soldOut ? 0 : Math.max(12, Math.round((product.stock / maxStock) * 100));
+
+              return (
+                <motion.button
+                  key={product.id}
+                  type="button"
+                  role="option"
+                  aria-selected={selected}
+                  disabled={soldOut}
+                  onClick={() => setIndex(productIndex)}
+                  whileHover={soldOut ? undefined : { y: -4, scale: 1.02 }}
+                  whileTap={soldOut ? undefined : { scale: 0.98 }}
+                  transition={{ type: "spring", stiffness: 380, damping: 22 }}
+                  className={`note-pick group relative overflow-hidden rounded-[18px] border px-3.5 py-3.5 text-left sm:rounded-[20px] sm:px-4 sm:py-4 ${
+                    selected
+                      ? "note-pick-active border-white bg-white text-black shadow-[0_16px_40px_rgba(255,255,255,0.12)]"
+                      : soldOut
+                        ? "cursor-not-allowed border-white/8 bg-white/[0.03] text-white/35"
+                        : "border-white/12 bg-gradient-to-b from-white/[0.09] to-white/[0.03] text-white hover:border-white/25"
+                  }`}
+                >
+                  {selected ? <span aria-hidden="true" className="note-pick-ring" /> : null}
+
+                  <div className="relative flex items-start justify-between gap-2">
+                    <span
+                      className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold tracking-tight ${
+                        selected ? "bg-black text-white" : "bg-white/10 text-white/70"
+                      }`}
+                    >
+                      {String(productIndex + 1).padStart(2, "0")}
+                    </span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] ${
+                        soldOut
+                          ? "bg-white/5 text-white/30"
+                          : selected
+                            ? "bg-black/8 text-black/50"
+                            : "bg-white/8 text-white/45"
+                      }`}
+                    >
+                      {soldOut ? "Out" : "Live"}
+                    </span>
+                  </div>
+
+                  <p className="relative mt-3 text-[1.05rem] font-semibold tracking-tight sm:text-lg">
+                    {formatBdt(product.faceValue)}
+                  </p>
+                  <p
+                    className={`relative mt-1 text-[11px] ${
+                      selected ? "text-black/50" : soldOut ? "text-white/25" : "text-white/40"
+                    }`}
+                  >
+                    {soldOut ? "Sold out" : `${product.stock} ready`}
+                  </p>
+
+                  <div
+                    className={`relative mt-3 h-1 overflow-hidden rounded-full ${
+                      selected ? "bg-black/10" : "bg-white/10"
+                    }`}
+                  >
+                    <motion.span
+                      className={`absolute inset-y-0 left-0 rounded-full ${
+                        selected ? "bg-black" : soldOut ? "bg-white/15" : "bg-white/70"
+                      }`}
+                      initial={false}
+                      animate={{ width: `${fill}%` }}
+                      transition={{ type: "spring", stiffness: 120, damping: 18 }}
+                    />
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
         </div>
       </Frame>
     </section>
