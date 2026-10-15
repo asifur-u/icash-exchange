@@ -95,12 +95,12 @@ export function AccountProfile({ user }: { user: PublicUser }) {
 
   return (
     <div className="space-y-5">
-      <header className="rounded-[28px] border border-white/12 bg-[#0a0a0a] p-6 sm:p-8">
+      <header className="rounded-[28px] border border-zinc-200 bg-white shadow-sm p-6 sm:p-8">
         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#ff2d2d]">Profile</p>
         <h1 className="mt-2 display text-[clamp(2rem,6vw,3.2rem)] leading-[0.95]">
           Update account.
         </h1>
-        <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/55">
+        <p className="mt-3 max-w-xl text-sm leading-relaxed text-zinc-500">
           Change your name, mobile, password, or photo anytime.
         </p>
       </header>
@@ -108,32 +108,32 @@ export function AccountProfile({ user }: { user: PublicUser }) {
       <div className="grid gap-4 lg:grid-cols-2">
         <form
           onSubmit={saveProfile}
-          className="rounded-[26px] border border-white/12 bg-[#0a0a0a] p-5 sm:p-6"
+          className="rounded-[26px] border border-zinc-200 bg-white shadow-sm p-5 sm:p-6"
         >
-          <p className="text-sm font-semibold text-white">Account details</p>
+          <p className="text-sm font-semibold text-zinc-900">Account details</p>
           <label className="mt-5 block">
-            <span className="mb-1.5 block text-xs text-white/45">Full name</span>
+            <span className="mb-1.5 block text-xs text-zinc-500">Full name</span>
             <input
-              className="h-11 w-full rounded-xl border border-white/12 bg-black px-3 text-sm text-white outline-none focus:border-white/35"
+              className="h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 outline-none focus:border-zinc-400"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
             />
           </label>
           <label className="mt-3 block">
-            <span className="mb-1.5 block text-xs text-white/45">Mobile</span>
+            <span className="mb-1.5 block text-xs text-zinc-500">Mobile</span>
             <input
-              className="h-11 w-full rounded-xl border border-white/12 bg-black px-3 text-sm text-white outline-none focus:border-white/35"
+              className="h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 outline-none focus:border-zinc-400"
               value={phone}
               onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
               required
             />
           </label>
-          <p className="mt-3 text-xs text-white/35">Email is fixed: {user.email}</p>
+          <p className="mt-3 text-xs text-zinc-400">Email is fixed: {user.email}</p>
           <button
             type="submit"
             disabled={busy === "profile"}
-            className="mt-5 inline-flex h-11 items-center rounded-full bg-white px-5 text-sm font-semibold text-black disabled:opacity-60"
+            className="mt-5 inline-flex h-11 items-center rounded-xl bg-[#ff2d2d] px-5 text-sm font-semibold text-white disabled:opacity-60"
           >
             {busy === "profile" ? "Saving…" : "Save profile"}
           </button>
@@ -141,24 +141,24 @@ export function AccountProfile({ user }: { user: PublicUser }) {
 
         <form
           onSubmit={savePassword}
-          className="rounded-[26px] border border-white/12 bg-[#0a0a0a] p-5 sm:p-6"
+          className="rounded-[26px] border border-zinc-200 bg-white shadow-sm p-5 sm:p-6"
         >
-          <p className="text-sm font-semibold text-white">Change password</p>
+          <p className="text-sm font-semibold text-zinc-900">Change password</p>
           <label className="mt-5 block">
-            <span className="mb-1.5 block text-xs text-white/45">Current password</span>
+            <span className="mb-1.5 block text-xs text-zinc-500">Current password</span>
             <input
               type="password"
-              className="h-11 w-full rounded-xl border border-white/12 bg-black px-3 text-sm text-white outline-none focus:border-white/35"
+              className="h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 outline-none focus:border-zinc-400"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               required
             />
           </label>
           <label className="mt-3 block">
-            <span className="mb-1.5 block text-xs text-white/45">New password</span>
+            <span className="mb-1.5 block text-xs text-zinc-500">New password</span>
             <input
               type="password"
-              className="h-11 w-full rounded-xl border border-white/12 bg-black px-3 text-sm text-white outline-none focus:border-white/35"
+              className="h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 outline-none focus:border-zinc-400"
               value={nextPassword}
               onChange={(e) => setNextPassword(e.target.value)}
               minLength={6}
@@ -168,28 +168,28 @@ export function AccountProfile({ user }: { user: PublicUser }) {
           <button
             type="submit"
             disabled={busy === "password"}
-            className="mt-5 inline-flex h-11 items-center rounded-full bg-white px-5 text-sm font-semibold text-black disabled:opacity-60"
+            className="mt-5 inline-flex h-11 items-center rounded-xl bg-[#ff2d2d] px-5 text-sm font-semibold text-white disabled:opacity-60"
           >
             {busy === "password" ? "Updating…" : "Update password"}
           </button>
         </form>
 
-        <div className="rounded-[26px] border border-white/12 bg-[#0a0a0a] p-5 sm:p-6 lg:col-span-2">
-          <p className="text-sm font-semibold text-white">Avatar</p>
+        <div className="rounded-[26px] border border-zinc-200 bg-white shadow-sm p-5 sm:p-6 lg:col-span-2">
+          <p className="text-sm font-semibold text-zinc-900">Avatar</p>
           <div className="mt-5 flex flex-col gap-5 sm:flex-row sm:items-center">
-            <div className="relative h-20 w-20 overflow-hidden rounded-full border border-white/15 bg-[#151515]">
+            <div className="relative h-20 w-20 overflow-hidden rounded-full border border-zinc-200 bg-zinc-100">
               {avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
               ) : (
-                <div className="flex h-full w-full items-center justify-center text-2xl font-semibold text-white/60">
+                <div className="flex h-full w-full items-center justify-center text-2xl font-semibold text-zinc-500">
                   {initial}
                 </div>
               )}
             </div>
             <div>
-              <p className="text-sm text-white/50">PNG, JPG or WebP under 2.5 MB.</p>
-              <label className="mt-3 inline-flex h-11 cursor-pointer items-center rounded-full border border-white/20 px-5 text-sm font-semibold text-white/90 transition hover:border-white/40">
+              <p className="text-sm text-zinc-500">PNG, JPG or WebP under 2.5 MB.</p>
+              <label className="mt-3 inline-flex h-11 cursor-pointer items-center rounded-xl border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-800 transition hover:border-zinc-300 hover:bg-zinc-50">
                 {busy === "avatar" ? "Uploading…" : "Choose photo"}
                 <input
                   type="file"

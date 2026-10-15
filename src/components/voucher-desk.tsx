@@ -16,6 +16,7 @@ import {
   parseDeskMoney,
   type DeskCurrency,
 } from "@/lib/desk-rates";
+import { useT } from "@/i18n/provider";
 import { formatBdt } from "@/lib/format";
 import type { PublicProduct } from "@/lib/types";
 
@@ -129,6 +130,7 @@ export function VoucherDesk({
   products: PublicProduct[];
   loggedIn?: boolean;
 }) {
+  const t = useT();
   const router = useRouter();
   const house = products.find((product) => product.slug === "note-1000") ?? products[0];
   const [bdtAmount, setBdtAmount] = useState(house?.price ?? 1000);
@@ -212,20 +214,19 @@ export function VoucherDesk({
       <div className="relative px-4 pb-[3.75rem] pt-6 sm:px-8 sm:pb-[5.25rem] sm:pt-8">
         <div className="flex items-center justify-between gap-3">
           <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-white/45">
-            iCash desk
+            {t("desk.brand")}
           </p>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/55">
             <span className="h-1.5 w-1.5 rounded-full bg-white" />
-            Live
+            {t("desk.live")}
           </span>
         </div>
         <h2 className="display mt-4 text-[clamp(1.35rem,5.4vw,1.9rem)] leading-[0.92] tracking-tight text-white">
-          <span className="block">Pay securely with</span>
-          <span className="block">iCash vouchers</span>
+          <span className="block">{t("desk.paySecurely")}</span>
+          <span className="block">{t("desk.withVouchers")}</span>
         </h2>
         <p className="mt-3 max-w-md text-sm leading-relaxed text-white/55 sm:text-[15px]">
-          Enter an amount, pick a coin, and the desk exchanges both sides instantly. Payment settles
-          in BDT after you confirm.
+          {t("desk.deskLead")}
         </p>
         <Link
           href="/explore"
@@ -233,10 +234,10 @@ export function VoucherDesk({
         >
           <div className="relative flex items-center justify-between gap-2">
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/45">
-              Loyalty ladder
+              {t("desk.loyaltyLadder")}
             </p>
             <span className="ladder-power-explore inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-black">
-              Explore
+              {t("desk.explore")}
               <span aria-hidden="true" className="ladder-power-arrow">
                 →
               </span>
@@ -244,10 +245,10 @@ export function VoucherDesk({
           </div>
 
           <p className="relative mt-2.5 text-[15px] font-semibold leading-snug tracking-tight text-white">
-            Unlock Silver at ৳1 lakh
+            {t("desk.unlockSilver")}
           </p>
           <p className="relative mt-1 text-xs leading-relaxed text-white/50">
-            Then climb Gold → Platinum → Diamond. Animated rewards wait inside.
+            {t("desk.climbTiers")}
           </p>
 
           {/* Mini rising bars — obvious power loop */}
@@ -294,13 +295,13 @@ export function VoucherDesk({
 
           <div className="flex items-center justify-between gap-3">
             <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-black/35">
-              You send exactly
+              {t("desk.youSend")}
             </p>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-black/[0.08] bg-[#f6f6f6] px-2.5 py-1 text-[11px] font-semibold tracking-tight text-black/55">
               <svg aria-hidden="true" viewBox="0 0 16 16" className="h-3 w-3 fill-current">
                 <path d="M8 1.5a3.5 3.5 0 00-3.5 3.5v1.2H4a1.5 1.5 0 00-1.5 1.5v5.3A1.5 1.5 0 004 14.5h8a1.5 1.5 0 001.5-1.5V7.7A1.5 1.5 0 0012 6.2h-.5V5A3.5 3.5 0 008 1.5zm-2 3.5a2 2 0 114 0v1.2H6V5z" />
               </svg>
-              {selected && selected.stock > 0 ? "Protected" : "Unavailable"}
+              {selected && selected.stock > 0 ? t("desk.protected") : t("desk.unavailable")}
             </span>
           </div>
 
@@ -378,7 +379,7 @@ export function VoucherDesk({
           <div className="relative">
             <div className="rounded-[18px] border border-black/[0.07] bg-[linear-gradient(180deg,#fafafa_0%,#f1f1f1_100%)] px-3 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] sm:px-4 sm:py-3.5">
               <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-black/35">
-                You pay
+                {t("desk.youPay")}
               </p>
               <div className="mt-2 flex min-w-0 items-center justify-between gap-2 sm:gap-3">
                 <button
@@ -425,7 +426,7 @@ export function VoucherDesk({
               </div>
               {payCurrency !== "BDT" ? (
                 <p className="mt-2 text-[11px] font-medium text-black/40">
-                  Settles in {formatBdt(Math.round(bdtAmount))}
+                  {t("desk.settlesIn", { amount: formatBdt(Math.round(bdtAmount)) })}
                 </p>
               ) : null}
             </div>
@@ -445,14 +446,14 @@ export function VoucherDesk({
                   </svg>
                 </span>
                 <span>
-                  <span className="font-semibold text-black">Arrives on your order page</span>
+                  <span className="font-semibold text-black">{t("desk.arrives")}</span>
                   <span className="mt-0.5 block text-xs text-black/40">
-                    After the desk confirms the deposit
+                    {t("desk.arrivesAfter")}
                   </span>
                 </span>
               </p>
               <span className="shrink-0 rounded-full bg-black/[0.04] px-2.5 py-1 text-[11px] font-semibold text-black/70">
-                Usually minutes
+                {t("desk.usuallyMinutes")}
               </span>
             </div>
             <div className="flex items-start justify-between gap-3">
@@ -463,9 +464,9 @@ export function VoucherDesk({
                   </svg>
                 </span>
                 <span>
-                  <span className="font-semibold text-black">Desk fee · 2.5%</span>
+                  <span className="font-semibold text-black">{t("desk.deskFeeLabel")}</span>
                   <span className="mt-0.5 block text-xs text-black/40">
-                    Added on top · pay {formatBdt(fees.total)}
+                    {t("desk.feeAddedOnTop", { amount: formatBdt(fees.total) })}
                   </span>
                 </span>
               </p>
@@ -480,7 +481,7 @@ export function VoucherDesk({
               href={href}
               loggedIn={loggedIn}
               disabled={!selected || selected.stock < 1}
-              label="Continue securely"
+              label={t("desk.continue")}
               onContinue={() => setConfirmOpen(true)}
               className="!h-12 !rounded-full !bg-black !text-[0.95rem] !font-semibold !tracking-tight !text-white shadow-[0_14px_34px_rgba(0,0,0,0.22)] transition hover:!bg-[#161616] sm:!h-[3.6rem] sm:!text-base"
             />
@@ -503,7 +504,7 @@ export function VoucherDesk({
                 } catch {
                   /* ignore */
                 }
-                router.push("/auth?next=/account");
+                router.push(`/auth?next=${encodeURIComponent("/account")}`);
                 return;
               }
               router.push(href);
@@ -512,13 +513,13 @@ export function VoucherDesk({
 
           <div className="mt-3 flex flex-col items-center gap-1.5 text-center">
             {!loggedIn && selected && selected.stock > 0 ? (
-              <p className="text-xs text-black/40">Account required before checkout.</p>
+              <p className="text-xs text-black/40">{t("desk.accountRequired")}</p>
             ) : null}
             <Link
               href="/catalog"
               className="text-xs font-semibold text-black/50 underline decoration-black/15 underline-offset-4 transition hover:text-black hover:decoration-black/40"
             >
-              View catalog →
+              {t("desk.viewCatalog")}
             </Link>
           </div>
         </div>

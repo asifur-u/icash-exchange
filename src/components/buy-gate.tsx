@@ -44,7 +44,8 @@ export function BuyGate({
           } catch {
             /* ignore */
           }
-          router.push("/auth?next=/account");
+          // Login first — land on dashboard; ContinueBuy resumes the note.
+          router.push(`/auth?next=${encodeURIComponent("/account")}`);
           return;
         }
         router.push(href);

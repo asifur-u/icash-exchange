@@ -21,7 +21,7 @@ export async function POST(req: Request) {
         productSlug: body.productSlug,
         quantity: body.quantity,
         email: user.email,
-        phone: body.phone || user.phone,
+        phone: user.phone,
         userId: user.id,
       }),
     );

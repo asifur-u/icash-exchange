@@ -1,42 +1,47 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Frame } from "@/components/frame";
-
-const scenes = [
-  {
-    n: "01",
-    title: "Choose a note",
-    body: "Pick a face value in taka. The desk shows how many codes are still ready.",
-    visual: "BDT 1,000",
-    tip: "Catalog → Buy",
-  },
-  {
-    n: "02",
-    title: "Create your account",
-    body: "Log in or register once. Your orders and codes stay in your dashboard.",
-    visual: "Account",
-    tip: "Free · email + mobile",
-  },
-  {
-    n: "03",
-    title: "Send the deposit",
-    body: "Pay with bKash, Nagad, Rocket or bank. Upload the transaction id and a screenshot.",
-    visual: "TrxID",
-    tip: "Exact amount only",
-  },
-  {
-    n: "04",
-    title: "Read the code",
-    body: "When the desk approves your proof, the code opens on your order page. Copy it from there.",
-    visual: "CODE",
-    tip: "Sold once",
-  },
-];
+import { useT } from "@/i18n/provider";
 
 export function HowItWorks() {
+  const t = useT();
   const [active, setActive] = useState(0);
+
+  const scenes = useMemo(
+    () => [
+      {
+        n: "01",
+        title: t("home.how1Title"),
+        body: t("home.how1Body"),
+        visual: "BDT 1,000",
+        tip: t("home.how1Tip"),
+      },
+      {
+        n: "02",
+        title: t("home.how2Title"),
+        body: t("home.how2Body"),
+        visual: "Account",
+        tip: t("home.how2Tip"),
+      },
+      {
+        n: "03",
+        title: t("home.how3Title"),
+        body: t("home.how3Body"),
+        visual: "TrxID",
+        tip: t("home.how3Tip"),
+      },
+      {
+        n: "04",
+        title: t("home.how4Title"),
+        body: t("home.how4Body"),
+        visual: "CODE",
+        tip: t("home.how4Tip"),
+      },
+    ],
+    [t],
+  );
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -44,7 +49,7 @@ export function HowItWorks() {
       setActive((current) => (current + 1) % scenes.length);
     }, 3200);
     return () => window.clearInterval(id);
-  }, []);
+  }, [scenes.length]);
 
   const scene = scenes[active]!;
 
@@ -52,12 +57,12 @@ export function HowItWorks() {
     <section id="how" className="bg-black py-16 sm:py-24 md:py-28">
       <Frame>
         <div className="max-w-2xl">
-          <p className="eyebrow">How it works</p>
+          <p className="eyebrow">{t("home.howEyebrow")}</p>
           <h2 className="mt-4 display text-[clamp(2.4rem,10vw,5.2rem)]">
-            Watch the <span className="accent-red">desk move.</span>
+            {t("home.howTitle")} <span className="accent-red">{t("home.howAccent")}</span>
           </h2>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-white/55 sm:text-lg">
-            One loop. Four steps. From picking a note to reading your code.
+            {t("home.howLead")}
           </p>
         </div>
 
@@ -114,7 +119,7 @@ export function HowItWorks() {
           </div>
 
           <div className="premium-card relative flex min-h-[320px] flex-col justify-between overflow-hidden rounded-[28px] p-6 sm:min-h-[420px] sm:p-10">
-            <p className="text-xs uppercase tracking-[0.2em] text-white/40">Live preview</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-white/40">{t("home.howLivePreview")}</p>
             <AnimatePresence mode="wait">
               <motion.div
                 key={scene.visual}
@@ -129,7 +134,7 @@ export function HowItWorks() {
               </motion.div>
             </AnimatePresence>
             <p className="text-sm text-white/45">
-              Step {active + 1} of {scenes.length}. Auto advances every few seconds.
+              {t("home.howStepOf", { n: active + 1, total: scenes.length })}
             </p>
           </div>
         </div>

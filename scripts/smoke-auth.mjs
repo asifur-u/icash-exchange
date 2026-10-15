@@ -1,5 +1,5 @@
 /**
- * Terminal smoke: register → me → logout → bad login → login → profile → password → relogin → /account
+ * Terminal smoke: csrf → register → me → logout → bad login → login → profile → password → relogin → /account
  * Uses a unique X-Forwarded-For so prior rate-limit hits do not block the run.
  */
 const base = process.env.SMOKE_BASE ?? "http://localhost:3000";
@@ -10,6 +10,7 @@ const nextPassword = "SmokePass456!";
 const ip = `198.51.100.${stamp % 250}`;
 
 const cookieJar = new Map();
+let csrfToken = "";
 
 function storeCookies(res) {
   const raw = typeof res.headers.getSetCookie === "function" ? res.headers.getSetCookie() : [];
@@ -24,13 +25,30 @@ function cookieHeader() {
   return [...cookieJar.entries()].map(([k, v]) => `${k}=${v}`).join("; ");
 }
 
-async function req(step, path, { method = "GET", body } = {}) {
+async function refreshCsrf() {
+  const headers = {
+    Origin: base,
+    Referer: `${base}/auth`,
+    "X-Forwarded-For": ip,
+  };
+  const cookie = cookieHeader();
+  if (cookie) headers.Cookie = cookie;
+  const res = await fetch(`${base}/api/auth/csrf`, { method: "GET", headers });
+  storeCookies(res);
+  const json = await res.json();
+  csrfToken = json.token ?? "";
+  console.log(`[${csrfToken ? "PASS" : "FAIL"}] csrf status=${res.status}`);
+  return Boolean(csrfToken);
+}
+
+async function req(step, path, { method = "GET", body, withCsrf = false } = {}) {
   const headers = {
     Origin: base,
     Referer: `${base}/auth`,
     "X-Forwarded-For": ip,
   };
   if (body !== undefined) headers["Content-Type"] = "application/json";
+  if (withCsrf && csrfToken) headers["X-CSRF-Token"] = csrfToken;
   const cookie = cookieHeader();
   if (cookie) headers.Cookie = cookie;
 
@@ -59,23 +77,31 @@ async function req(step, path, { method = "GET", body } = {}) {
 
 const results = [];
 
+results.push({ ok: await refreshCsrf(), status: csrfToken ? 200 : 500, json: null, text: "" });
 results.push(
   await req("register", "/api/auth/register", {
     method: "POST",
+    withCsrf: true,
     body: { name: "Smoke User", email, phone: "01711112222", password },
   }),
 );
 results.push(await req("me_after_register", "/api/auth/me"));
 results.push(await req("logout", "/api/auth/logout", { method: "POST", body: {} }));
+
+results.push({ ok: await refreshCsrf(), status: csrfToken ? 200 : 500, json: null, text: "" });
 results.push(
   await req("login_wrong", "/api/auth/login", {
     method: "POST",
+    withCsrf: true,
     body: { email, password: "WrongPass!!!" },
   }),
 );
+
+results.push({ ok: await refreshCsrf(), status: csrfToken ? 200 : 500, json: null, text: "" });
 results.push(
   await req("login_ok", "/api/auth/login", {
     method: "POST",
+    withCsrf: true,
     body: { email, password },
   }),
 );
@@ -92,21 +118,25 @@ results.push(
   }),
 );
 results.push(await req("logout2", "/api/auth/logout", { method: "POST", body: {} }));
+
+results.push({ ok: await refreshCsrf(), status: csrfToken ? 200 : 500, json: null, text: "" });
 results.push(
   await req("login_new_password", "/api/auth/login", {
     method: "POST",
+    withCsrf: true,
     body: { email, password: nextPassword },
   }),
 );
 const account = await req("account_page", "/account");
+const hasGreeting = account.text.includes("Hi,") || account.text.includes("Hello");
 results.push({
   ...account,
-  ok: account.status === 200 && account.text.includes("Hello"),
+  ok: account.status === 200 && hasGreeting,
 });
 if (!results.at(-1).ok) {
-  console.log(`[FAIL] account_page missing Hello (status=${account.status})`);
+  console.log(`[FAIL] account_page missing greeting (status=${account.status})`);
 } else {
-  console.log(`[PASS] account_page has Hello`);
+  console.log(`[PASS] account_page has greeting`);
 }
 
 const failed = results.filter((r) => !r.ok);

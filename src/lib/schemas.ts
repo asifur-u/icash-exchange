@@ -3,8 +3,6 @@ import { z } from "zod";
 export const checkoutSchema = z.object({
   productSlug: z.string().trim().min(1).max(80),
   quantity: z.number().int().min(1).max(5),
-  email: z.string().trim().email("Enter a valid email").max(160),
-  phone: z.string().trim().regex(/^01\d{9}$/, "Use an 11-digit mobile number starting with 01"),
 });
 
 export const confirmSchema = z.object({
@@ -24,16 +22,23 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Enter the owner password").max(200),
 });
 
+const strongPassword = z
+  .string()
+  .min(8, "Use at least 8 characters")
+  .max(128, "Password is too long")
+  .regex(/[A-Za-z]/, "Include at least one letter")
+  .regex(/[0-9]/, "Include at least one number");
+
 export const userRegisterSchema = z.object({
   name: z.string().trim().min(2, "Enter your name").max(80),
   email: z.string().trim().email("Enter a valid email").max(160),
   phone: z.string().trim().regex(/^01\d{9}$/, "Use an 11-digit mobile number starting with 01"),
-  password: z.string().min(6, "Use at least 6 characters").max(200),
+  password: strongPassword,
 });
 
 export const userLoginSchema = z.object({
   email: z.string().trim().email("Enter a valid email").max(160),
-  password: z.string().min(1, "Enter your password").max(200),
+  password: z.string().min(1, "Enter your password").max(128),
 });
 
 export const userProfileSchema = z.object({
@@ -42,8 +47,8 @@ export const userProfileSchema = z.object({
 });
 
 export const userPasswordSchema = z.object({
-  currentPassword: z.string().min(1, "Enter your current password").max(200),
-  nextPassword: z.string().min(6, "Use at least 6 characters").max(200),
+  currentPassword: z.string().min(1, "Enter your current password").max(128),
+  nextPassword: strongPassword,
 });
 
 export const userAvatarSchema = z.object({

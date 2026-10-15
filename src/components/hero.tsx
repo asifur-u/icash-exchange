@@ -5,6 +5,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Frame } from "@/components/frame";
 import { VoucherDesk } from "@/components/voucher-desk";
 import { ButtonLink } from "@/components/ui/button-link";
+import { useLocale, useT } from "@/i18n/provider";
 import type { PublicProduct } from "@/lib/types";
 
 function fitTopToMain(top: HTMLElement, target: number) {
@@ -82,9 +83,10 @@ function EventLetters({
 
 type CapPhase = "idle" | "toy" | "flip" | "letters" | "done";
 
-const EXTRA = "5% EXTRA";
-
 export function Hero({ products, loggedIn = false }: { products: PublicProduct[]; loggedIn?: boolean }) {
+  const t = useT();
+  const { locale } = useLocale();
+  const EXTRA = t("hero.extra");
   const mainRef = useRef<HTMLSpanElement>(null);
   const topRef = useRef<HTMLSpanElement>(null);
   const bonusRef = useRef<HTMLSpanElement>(null);
@@ -92,6 +94,7 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
   const [seq, setSeq] = useState(0);
 
   useLayoutEffect(() => {
+    if (locale === "bn") return;
     let alive = true;
 
     async function sync() {
@@ -118,10 +121,14 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
       ro.disconnect();
       window.removeEventListener("resize", sync);
     };
-  }, [phase]);
+  }, [phase, EXTRA, locale]);
 
   // Google-event sequence loops: toy → cap → EXTRA letters → pause → again (BONUS stays static)
   useEffect(() => {
+    if (locale === "bn") {
+      setPhase("done");
+      return;
+    }
     let alive = true;
     setPhase("idle");
     const letterEnd = 1100 + EXTRA.length * 55;
@@ -138,7 +145,7 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
       alive = false;
       ids.forEach((id) => window.clearTimeout(id));
     };
-  }, [seq]);
+  }, [seq, EXTRA, locale]);
 
   useEffect(() => {
     function replay() {
@@ -148,75 +155,99 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
     return () => window.removeEventListener("icash-replay-cap", replay);
   }, []);
 
-  const showToy = phase === "toy" || phase === "flip" || phase === "letters";
+  const isBn = locale === "bn";
+  const showToy = !isBn && (phase === "toy" || phase === "flip" || phase === "letters");
   const capOpen = phase !== "idle" && phase !== "toy";
-  const showExtra = phase === "letters" || phase === "done";
+  const showExtra = isBn || phase === "letters" || phase === "done";
 
   return (
     <section className="relative overflow-x-clip overflow-y-visible bg-black pb-14 pt-[calc(5.5rem+env(safe-area-inset-top))] sm:pb-24 sm:pt-36 md:pb-28 md:pt-40">
       <Frame className="relative grid items-center gap-12 sm:gap-14 lg:grid-cols-[1.05fr_1fr] lg:gap-16 xl:gap-24">
         <div className="min-w-0 max-w-2xl">
-          <h1 className="hero-offer" data-cap-phase={phase}>
-            <span
-              ref={topRef}
-              className="hero-offer-top display-hero text-[clamp(1.45rem,5.6vw,2.6rem)] leading-none text-white"
-            >
-              Every deposit
-            </span>
+          {isBn ? (
+            <h1 key="hero-bn" className="flex max-w-xl flex-col gap-2.5 sm:gap-3">
+              <span className="bn-hero-line text-[clamp(1.4rem,4.2vw,2rem)] text-white/90">
+                {t("hero.everyDeposit")}
+              </span>
+              <motion.span
+                className="bn-hero-extra text-[clamp(2.4rem,9vw,4.25rem)]"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45 }}
+              >
+                {EXTRA}
+              </motion.span>
+              <span className="bn-hero-bonus text-[clamp(1.85rem,7vw,3.25rem)]">{t("hero.bonus")}</span>
+            </h1>
+          ) : (
+            <h1 key="hero-en" className="hero-offer" data-cap-phase={phase}>
+              <span
+                ref={topRef}
+                className="hero-offer-top display-hero text-[clamp(1.45rem,5.6vw,2.6rem)] leading-none text-white"
+              >
+                {t("hero.everyDeposit")}
+              </span>
 
-            <span className="hero-cap-stage">
-              <AnimatePresence>
-                {showToy ? (
-                  <motion.span
-                    key={`toy-${seq}`}
-                    className="hero-toy"
-                    aria-hidden="true"
-                    initial={{ opacity: 0, x: -18, y: "40%", scale: 0.15, rotate: -14 }}
-                    animate={
-                      phase === "letters"
-                        ? { opacity: 0, x: -8, y: "-55%", scale: 0.4, rotate: 8 }
-                        : { opacity: 1, x: 0, y: "-8%", scale: 1.1, rotate: 0 }
-                    }
-                    exit={{ opacity: 0, scale: 0.35, y: "-60%", x: -6 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 18, mass: 0.85 }}
-                  >
+              <span className="hero-cap-stage">
+                <AnimatePresence>
+                  {showToy ? (
                     <motion.span
-                      className="hero-toy-cap"
-                      initial={{ rotate: 0, x: 0, y: 0, opacity: 1, scale: 1 }}
+                      key={`toy-${seq}`}
+                      className="hero-toy"
+                      aria-hidden="true"
+                      initial={{ opacity: 0, x: -18, y: "40%", scale: 0.15, rotate: -14 }}
                       animate={
-                        capOpen
-                          ? { rotate: -145, x: 18, y: -36, opacity: 0, scale: 0.75 }
-                          : { rotate: 0, x: 0, y: 0, opacity: 1, scale: 1 }
+                        phase === "letters"
+                          ? { opacity: 0, x: -8, y: "-55%", scale: 0.4, rotate: 8 }
+                          : { opacity: 1, x: 0, y: "-8%", scale: 1.1, rotate: 0 }
                       }
-                      transition={{ type: "spring", stiffness: 240, damping: 13, mass: 0.8 }}
+                      exit={{ opacity: 0, scale: 0.35, y: "-60%", x: -6 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 18, mass: 0.85 }}
                     >
-                      <span className="hero-toy-cap-top" />
-                      <span className="hero-toy-cap-brim" />
+                      <motion.span
+                        className="hero-toy-cap"
+                        initial={{ rotate: 0, x: 0, y: 0, opacity: 1, scale: 1 }}
+                        animate={
+                          capOpen
+                            ? { rotate: -145, x: 18, y: -36, opacity: 0, scale: 0.75 }
+                            : { rotate: 0, x: 0, y: 0, opacity: 1, scale: 1 }
+                        }
+                        transition={{ type: "spring", stiffness: 240, damping: 13, mass: 0.8 }}
+                      >
+                        <span className="hero-toy-cap-top" />
+                        <span className="hero-toy-cap-brim" />
+                      </motion.span>
+                      <span className="hero-toy-face">
+                        <span className="hero-toy-eye" />
+                        <span className="hero-toy-eye" />
+                        <span className="hero-toy-smile" />
+                      </span>
                     </motion.span>
-                    <span className="hero-toy-face">
-                      <span className="hero-toy-eye" />
-                      <span className="hero-toy-eye" />
-                      <span className="hero-toy-smile" />
-                    </span>
-                  </motion.span>
-                ) : null}
-              </AnimatePresence>
+                  ) : null}
+                </AnimatePresence>
+
+                <span
+                  ref={mainRef}
+                  className="hero-offer-main hero-offer-extra display-hero text-[clamp(3.55rem,16.5vw,7.8rem)] leading-[0.88]"
+                >
+                  <EventLetters
+                    key={`extra-${seq}`}
+                    text={EXTRA}
+                    show={showExtra}
+                    stagger={0.055}
+                    originY={48}
+                  />
+                </span>
+              </span>
 
               <span
-                ref={mainRef}
-                className="hero-offer-main hero-offer-extra display-hero text-[clamp(3.55rem,16.5vw,7.8rem)] leading-[0.88]"
+                ref={bonusRef}
+                className="hero-offer-bonus display-hero text-[clamp(2.35rem,10.5vw,4.8rem)] leading-[0.9] text-white"
               >
-                <EventLetters key={`extra-${seq}`} text={EXTRA} show={showExtra} stagger={0.055} originY={48} />
+                {t("hero.bonus")}
               </span>
-            </span>
-
-            <span
-              ref={bonusRef}
-              className="hero-offer-bonus display-hero text-[clamp(2.35rem,10.5vw,4.8rem)] leading-[0.9] text-white"
-            >
-              Bonus
-            </span>
-          </h1>
+            </h1>
+          )}
 
           <motion.p
             className="mt-4 max-w-md text-base leading-[1.55] text-white/70 sm:mt-5 sm:text-xl sm:leading-[1.6]"
@@ -224,7 +255,7 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            Buy iCash vouchers using local payment methods and enjoy an extra 5% on every eligible deposit
+            {t("hero.support")}
           </motion.p>
 
           <motion.div
@@ -237,7 +268,7 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
               href="#desk"
               className="h-14 w-full gap-2.5 text-base font-semibold sm:h-16 sm:w-auto sm:min-w-[300px] sm:px-10 sm:text-lg"
             >
-              Buy iCash Voucher
+              {t("hero.cta")}
               <svg
                 aria-hidden="true"
                 viewBox="0 0 16 16"

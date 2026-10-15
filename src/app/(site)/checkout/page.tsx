@@ -24,8 +24,13 @@ export default async function CheckoutPage({
 }) {
   const query = await searchParams;
   const user = await getCurrentUser();
-  const next = `/checkout?product=${query.product ?? ""}&qty=${query.qty ?? "1"}`;
-  if (!user) redirect(`/auth?next=${encodeURIComponent(next)}`);
+  const resume = `/checkout?product=${query.product ?? ""}&qty=${query.qty ?? "1"}`;
+  // Guests land on the dashboard after login; resume banner finishes the buy.
+  if (!user) {
+    redirect(
+      `/auth?next=${encodeURIComponent("/account")}&resume=${encodeURIComponent(resume)}`,
+    );
+  }
 
   const product = query.product ? await getPublicProduct(query.product) : null;
   const requested = Number(query.qty ?? "1");
@@ -46,7 +51,8 @@ export default async function CheckoutPage({
           <p className="text-xs uppercase tracking-[0.22em] text-white/45">Checkout</p>
           <h1 className="mt-4 display-soft text-[clamp(2rem,7vw,3.2rem)]">Confirm and deposit</h1>
           <p className="mt-4 max-w-md text-base leading-relaxed text-white/50 sm:text-lg">
-            Signed in as {user.email}. Confirm the mobile if needed, then continue to the deposit page.
+            Review the note total, then continue to the deposit page. Contact details come from your
+            account.
           </p>
           {product && product.stock > 0 ? (
             <div className="mt-10">
@@ -57,8 +63,7 @@ export default async function CheckoutPage({
                 voucher={fees!.voucher}
                 fee={fees!.fee}
                 total={fees!.total}
-                defaultEmail={user.email}
-                defaultPhone={user.phone}
+                signedInAs={user.email}
               />
             </div>
           ) : (

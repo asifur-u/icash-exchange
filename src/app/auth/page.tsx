@@ -28,10 +28,11 @@ const points = [
 export default async function AuthPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; resume?: string }>;
 }) {
   const query = await searchParams;
   const nextPath = safeNext(query.next);
+  const resumePath = safeResume(query.resume);
   const user = await getCurrentUser();
   if (user) redirect(nextPath);
 
@@ -51,11 +52,12 @@ export default async function AuthPage({
               iCash Exchange
             </p>
             <h2 className="mt-5 max-w-md display text-[clamp(2.8rem,5vw,4.4rem)]">
-              Buy a note.
-              <span className="block accent-red">Read the code.</span>
+              Log in first.
+              <span className="block accent-red">Then buy.</span>
             </h2>
             <p className="mt-6 max-w-md text-lg leading-relaxed text-white/55">
-              Sign in once. Your deposits, order status, and voucher codes stay in one place.
+              Guests must log in before checkout. New? Register in one step, then your dashboard
+              opens.
             </p>
           </div>
 
@@ -80,7 +82,7 @@ export default async function AuthPage({
           </div>
 
           <div className="mx-auto flex w-full max-w-[420px] flex-1 flex-col justify-center py-6 lg:py-10">
-            <AuthPortal nextPath={nextPath} />
+            <AuthPortal nextPath={nextPath} resumePath={resumePath} />
           </div>
         </div>
       </div>
@@ -90,5 +92,10 @@ export default async function AuthPage({
 
 function safeNext(value: string | undefined) {
   if (!value || !value.startsWith("/") || value.startsWith("//")) return "/account";
+  return value;
+}
+
+function safeResume(value: string | undefined) {
+  if (!value || !value.startsWith("/checkout") || value.startsWith("//")) return null;
   return value;
 }

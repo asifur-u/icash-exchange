@@ -2,142 +2,352 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
+import { AccountLoyaltyStage } from "@/components/account/account-loyalty-stage";
+import { AccountSpendChart } from "@/components/account/account-spend-chart";
 import { ContinueBuy } from "@/components/continue-buy";
-import { formatBdt, formatWhen } from "@/lib/format";
-import type { PublicUser } from "@/lib/users";
 import { statusTone, type AccountOrder } from "@/components/account/account-types";
+import { useT } from "@/i18n/provider";
+import { deskPayTotal } from "@/lib/desk-fee";
+import { formatBdt, formatWhen } from "@/lib/format";
+import {
+  MONTHLY_GIFT,
+  estimatedBonusBdt,
+  tierProgress,
+} from "@/lib/rewards";
+import type { PublicUser } from "@/lib/users";
 
-export function AccountOverview({ user, orders }: { user: PublicUser; orders: AccountOrder[] }) {
+type DeskNote = {
+  id: string;
+  slug: string;
+  title: string;
+  faceValue: number;
+  price: number;
+  stock: number;
+};
+
+const NOTE_TINTS = ["#e11d2e", "#ea580c", "#ca8a04", "#0284c7", "#059669", "#db2777"];
+
+export function AccountOverview({
+  user,
+  orders,
+  products,
+}: {
+  user: PublicUser;
+  orders: AccountOrder[];
+  products: DeskNote[];
+}) {
+  const t = useT();
   const firstName = user.name.split(" ")[0] || user.name;
+
   const stats = useMemo(() => {
-    const open = orders.filter((o) => o.status === "PENDING" || o.status === "REVIEWING").length;
-    const delivered = orders.filter((o) => o.status === "DELIVERED").length;
+    const openOrders = orders.filter((o) => o.status === "PENDING" || o.status === "REVIEWING");
+    const delivered = orders.filter((o) => o.status === "DELIVERED");
     const spent = orders.reduce((sum, o) => sum + o.total, 0);
-    return { open, delivered, spent, total: orders.length };
+    const openBalance = openOrders.reduce((sum, o) => sum + o.total, 0);
+    const deliveredValue = delivered.reduce((sum, o) => sum + o.total, 0);
+    const progress = tierProgress(spent);
+    const bonus = estimatedBonusBdt(spent);
+    return {
+      open: openOrders.length,
+      delivered: delivered.length,
+      spent,
+      openBalance,
+      deliveredValue,
+      total: orders.length,
+      progress,
+      bonus,
+    };
   }, [orders]);
 
-  const recent = orders.slice(0, 5);
+  const offers = useMemo(() => {
+    const { current, next, remaining } = stats.progress;
+    return [
+      {
+        title: current ? `${current.name} desk` : t("account.startClimbing"),
+        body: current
+          ? t("account.loyaltyRate", { pct: current.bonusPercent })
+          : t("account.startClimbingBody"),
+        href: "/explore",
+        cta: t("account.seeLadder"),
+        tint: "#52525b",
+      },
+      {
+        title: next
+          ? t("account.nextSilver", { name: next.name })
+          : MONTHLY_GIFT.title,
+        body: next
+          ? t("account.nextBody", { amount: formatBdt(remaining), pct: next.bonusPercent })
+          : t("account.diamondGiftBody"),
+        href: "/account/services",
+        cta: t("account.buyNotes"),
+        tint: "#ca8a04",
+      },
+      {
+        title: t("account.feeTitle"),
+        body: t("account.feeBody"),
+        href: "/#desk",
+        cta: t("account.openDeskCta"),
+        tint: "#e11d2e",
+      },
+    ];
+  }, [stats.progress, t]);
+
+  const buyNotes = products.filter((p) => p.stock > 0).slice(0, 6);
+  const recent = orders.slice(0, 6);
 
   return (
-    <div className="space-y-5">
-      <header className="overflow-hidden rounded-[28px] border border-white/12 bg-[#0a0a0a]">
-        <div
-          aria-hidden="true"
-          className="h-px bg-gradient-to-r from-transparent via-[#ff2d2d] to-transparent"
-        />
-        <div className="bg-[radial-gradient(80%_120%_at_0%_0%,rgba(255,45,45,0.22),transparent_50%)] p-6 sm:p-8">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#ff2d2d]">Overview</p>
-          <h1 className="mt-2 display text-[clamp(2.2rem,7vw,3.6rem)] leading-[0.95]">
-            Hello, <span className="accent-red">{firstName}.</span>
-          </h1>
-          <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/55 sm:text-base">
-            Your desk summary — open notes, delivered codes, and a fast path to buy.
+    <div className="space-y-5 sm:space-y-6" style={{ color: "#09090b" }}>
+      <header className="al-card overflow-hidden">
+        <div className="p-5 sm:p-7">
+          <p className="al-chip">
+            <span
+              className="h-1.5 w-1.5 rounded-full"
+              style={{ background: "#e11d2e" }}
+              aria-hidden
+            />
+            {t("account.dashboard")}
           </p>
-          <div className="mt-6 flex flex-wrap gap-2.5">
-            <Link
-              href="/account/services"
-              className="inline-flex h-11 items-center rounded-full bg-white px-5 text-sm font-semibold text-black"
-            >
-              Browse services
-            </Link>
-            <Link
-              href="/account/profile"
-              className="inline-flex h-11 items-center rounded-full border border-white/20 px-5 text-sm font-semibold text-white"
-            >
-              Edit profile
-            </Link>
+          <h1
+            className="mt-3 text-[clamp(1.9rem,5vw,2.75rem)] font-extrabold tracking-tight"
+            style={{ color: "#09090b" }}
+          >
+            {(() => {
+              const [before = "", after = ""] = t("account.hi", { name: "\u0001" }).split("\u0001");
+              return (
+                <>
+                  {before}
+                  <span style={{ color: "#e11d2e" }}>{firstName}</span>
+                  {after}
+                </>
+              );
+            })()}
+          </h1>
+          <p className="al-muted mt-2 max-w-xl text-sm sm:text-base">{t("account.portalLead")}</p>
+        </div>
+
+        <div
+          className="grid gap-3 border-t p-4 sm:grid-cols-2 sm:gap-4 sm:p-6"
+          style={{ borderColor: "#e4e4e7", background: "#fafafa" }}
+        >
+          <div className="al-stat">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: "#0284c7" }}>
+              {t("account.openBalance")}
+            </p>
+            <p className="al-ink mt-2 text-[clamp(1.6rem,4vw,2.2rem)] font-bold tabular-nums">
+              {formatBdt(stats.openBalance)}
+            </p>
+            <p className="al-muted mt-1.5 text-xs">
+              {stats.open === 0
+                ? t("account.noDeposits")
+                : stats.open === 1
+                  ? t("account.ordersInFlight", { n: stats.open })
+                  : t("account.ordersInFlightPlural", { n: stats.open })}
+            </p>
+          </div>
+          <div className="al-stat">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: "#ca8a04" }}>
+              {t("account.lifetimeSpent")}
+            </p>
+            <p className="al-ink mt-2 text-[clamp(1.6rem,4vw,2.2rem)] font-bold tabular-nums">
+              {formatBdt(stats.spent)}
+            </p>
+            <p className="al-muted mt-1.5 text-xs">
+              {t("account.estLoyalty", { amount: formatBdt(stats.bonus) })}
+              {" · "}
+              {stats.progress.current ? stats.progress.current.name : t("account.belowSilver")}
+            </p>
           </div>
         </div>
 
-        <div className="grid border-t border-white/10 sm:grid-cols-4">
-          <Stat label="Orders" value={String(stats.total)} />
-          <Stat label="Open" value={String(stats.open)} />
-          <Stat label="Delivered" value={String(stats.delivered)} hot />
-          <Stat label="Spent" value={formatBdt(stats.spent)} />
+        <div className="grid grid-cols-2 gap-2.5 px-4 pb-4 sm:grid-cols-4 sm:gap-3 sm:px-6 sm:pb-5">
+          {[
+            [t("account.transactions"), String(stats.total)],
+            [t("account.delivered"), String(stats.delivered)],
+            [t("account.open"), String(stats.open)],
+            [t("account.codesPaid"), formatBdt(stats.deliveredValue)],
+          ].map(([label, value]) => (
+            <div key={label} className="al-stat">
+              <p className="al-faint text-[10px] font-semibold uppercase tracking-[0.12em]">{label}</p>
+              <p className="al-ink mt-1 text-lg font-bold tabular-nums">{value}</p>
+            </div>
+          ))}
+        </div>
+
+        <div
+          className="flex flex-wrap gap-2.5 border-t px-4 py-4 sm:px-6 sm:py-5"
+          style={{ borderColor: "#e4e4e7" }}
+        >
+          <Link href="/account/services" className="al-btn al-btn-primary">
+            {t("account.buyANote")}
+          </Link>
+          <Link href="/account/orders" className="al-btn al-btn-ghost">
+            {t("account.viewOrders")}
+          </Link>
+          <Link href="/explore" className="al-btn al-btn-ghost">
+            {t("account.rewards")}
+          </Link>
         </div>
       </header>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <ContinueBuy />
+      <AccountLoyaltyStage spent={stats.spent} progress={stats.progress} />
+      <AccountSpendChart orders={orders} />
+
+      <section>
+        <div className="mb-3 px-0.5">
+          <h2 className="al-ink text-lg font-bold sm:text-xl">{t("account.offers")}</h2>
+          <p className="al-muted mt-0.5 text-xs">{t("account.offersLead")}</p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {offers.map((offer) => (
+            <Link
+              key={offer.title}
+              href={offer.href}
+              className="al-card block p-5 transition hover:shadow-md"
+              style={{ borderTopWidth: 3, borderTopColor: offer.tint }}
+            >
+              <p className="al-ink text-sm font-bold">{offer.title}</p>
+              <p className="al-muted mt-2 text-sm leading-relaxed">{offer.body}</p>
+              <p className="mt-3 text-sm font-semibold" style={{ color: "#e11d2e" }}>
+                {offer.cta} →
+              </p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="al-card overflow-hidden">
+        <div
+          className="flex items-center justify-between gap-3 border-b px-5 py-4 sm:px-6"
+          style={{ borderColor: "#e4e4e7" }}
+        >
+          <div>
+            <h2 className="al-ink text-lg font-bold">{t("account.buyOnDesk")}</h2>
+            <p className="al-muted mt-0.5 text-xs">{t("account.buyOnDeskLead")}</p>
+          </div>
+          <Link href="/account/services" className="al-accent text-sm font-semibold hover:underline">
+            {t("account.allNotes")}
+          </Link>
+        </div>
+        {buyNotes.length === 0 ? (
+          <div className="px-5 py-10 text-center sm:px-6">
+            <p className="al-muted text-sm">{t("account.noStock")}</p>
+          </div>
+        ) : (
+          <div className="grid gap-3 p-3 sm:grid-cols-2 sm:p-4 lg:grid-cols-3">
+            {buyNotes.map((note, index) => {
+              const pay = deskPayTotal(note.price);
+              const tint = NOTE_TINTS[index % NOTE_TINTS.length];
+              return (
+                <Link
+                  key={note.id}
+                  href={`/checkout?product=${note.slug}&qty=1`}
+                  className="rounded-2xl border p-5 transition hover:shadow-sm"
+                  style={{ borderColor: "#e4e4e7", background: "#fafafa", color: "#09090b" }}
+                >
+                  <p
+                    className="text-[11px] font-semibold uppercase tracking-[0.14em]"
+                    style={{ color: tint }}
+                  >
+                    {t("account.ready", { n: note.stock })}
+                  </p>
+                  <p className="mt-2 text-2xl font-bold tabular-nums" style={{ color: "#09090b" }}>
+                    {formatBdt(note.faceValue)}
+                  </p>
+                  <p className="al-muted mt-1 text-xs">
+                    {t("account.payIncl", { amount: formatBdt(pay) })}
+                  </p>
+                  <span
+                    className="mt-4 inline-flex h-9 items-center rounded-xl px-4 text-xs font-bold"
+                    style={{ background: tint, color: "#fff" }}
+                  >
+                    {t("nav.buy")}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { href: "/account/services", label: "Services", body: "Buy a note" },
-          { href: "/account/orders", label: "Orders", body: "Track status" },
-          { href: "/account/payments", label: "Payments", body: "Trx history" },
-          { href: "/account/support", label: "Support", body: "FAQ & tips" },
+          { href: "/account/services", title: t("account.buy"), body: t("account.pickNote") },
+          { href: "/account/orders", title: t("account.orders"), body: t("account.trackStatus") },
+          {
+            href: "/account/payments",
+            title: t("account.payments"),
+            body: t("account.depositTrail"),
+          },
+          { href: "/account/profile", title: t("account.profile"), body: t("account.namePhone") },
         ].map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="rounded-[22px] border border-white/12 bg-[#0a0a0a] px-4 py-4 transition hover:border-white/30"
-          >
-            <p className="text-sm font-semibold text-white">{item.label}</p>
-            <p className="mt-1 text-xs text-white/45">{item.body}</p>
+          <Link key={item.href} href={item.href} className="al-card block px-4 py-4 hover:shadow-md">
+            <p className="al-ink text-sm font-bold">{item.title}</p>
+            <p className="al-muted mt-1 text-xs">{item.body}</p>
           </Link>
         ))}
-      </div>
+      </section>
 
-      <ContinueBuy />
-
-      <section className="overflow-hidden rounded-[28px] border border-white/12 bg-[#0a0a0a]">
-        <div className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-4 sm:px-6">
+      <section className="al-card overflow-hidden">
+        <div
+          className="flex items-center justify-between gap-3 border-b px-5 py-4 sm:px-6"
+          style={{ borderColor: "#e4e4e7" }}
+        >
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40">Recent</p>
-            <h2 className="mt-1 text-xl font-semibold tracking-tight">Latest orders</h2>
+            <h2 className="al-ink text-lg font-bold">{t("account.transactions")}</h2>
+            <p className="al-muted mt-0.5 text-xs">{t("account.latestOrders")}</p>
           </div>
-          <Link href="/account/orders" className="text-sm font-semibold text-white/55 hover:text-white">
-            All orders →
+          <Link href="/account/orders" className="al-muted text-sm font-semibold hover:underline">
+            {t("common.seeAll")}
           </Link>
         </div>
 
         {recent.length === 0 ? (
-          <div className="px-5 py-10 sm:px-6">
-            <p className="text-lg font-semibold">No orders yet.</p>
-            <p className="mt-2 max-w-md text-sm text-white/50">
-              Open Services, pick a note, and your first order will show here.
-            </p>
-            <Link
-              href="/account/services"
-              className="mt-5 inline-flex h-11 items-center rounded-full bg-white px-5 text-sm font-semibold text-black"
-            >
-              Go to services
+          <div className="px-5 py-12 text-center sm:px-6">
+            <p className="al-ink text-lg font-bold">{t("account.nothingYet")}</p>
+            <p className="al-muted mx-auto mt-2 max-w-sm text-sm">{t("account.nothingLead")}</p>
+            <Link href="/account/services" className="al-btn al-btn-primary mt-6">
+              {t("account.startBuying")}
             </Link>
           </div>
         ) : (
-          <ul className="divide-y divide-white/10">
+          <ul>
             {recent.map((order) => (
-              <li key={order.id}>
+              <li key={order.id} style={{ borderTop: "1px solid #f4f4f5" }}>
                 <Link
                   href={`/orders/${order.id}?t=${order.token}`}
-                  className="flex flex-col gap-3 px-5 py-4 transition hover:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between sm:px-6"
+                  className="flex items-center gap-3 px-5 py-4 transition hover:bg-[#fafafa] sm:px-6"
                 >
-                  <div>
-                    <p className="font-mono text-[11px] text-white/40">{order.number}</p>
-                    <p className="mt-1 font-semibold tracking-tight">
-                      {order.title} · {formatBdt(order.total)}
-                    </p>
-                    <p className="mt-1 text-sm text-white/45">{formatWhen(order.createdAt)}</p>
-                  </div>
                   <span
-                    className={`inline-flex h-9 items-center self-start rounded-full border px-3 text-[10px] font-semibold uppercase tracking-[0.14em] ${statusTone(order.status)}`}
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-xs font-bold"
+                    style={{ background: "#f4f4f5", color: "#3f3f46" }}
                   >
-                    {order.status}
+                    {order.title.replace(/[^0-9]/g, "").slice(0, 3) || "N"}
                   </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                      <p className="al-ink truncate text-sm font-bold">{order.title}</p>
+                      <p className="al-ink shrink-0 text-sm font-bold tabular-nums">
+                        {formatBdt(order.total)}
+                      </p>
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                      <p className="al-faint text-xs">
+                        {order.number} · {formatWhen(order.createdAt)}
+                      </p>
+                      <span
+                        className={`inline-flex h-6 items-center rounded-full border px-2 text-[9px] font-semibold uppercase tracking-[0.12em] ${statusTone(order.status)}`}
+                      >
+                        {order.status}
+                      </span>
+                    </div>
+                  </div>
                 </Link>
               </li>
             ))}
           </ul>
         )}
       </section>
-    </div>
-  );
-}
-
-function Stat({ label, value, hot = false }: { label: string; value: string; hot?: boolean }) {
-  return (
-    <div className="border-t border-white/10 px-5 py-4 first:border-t-0 sm:border-l sm:border-t-0 sm:first:border-l-0">
-      <p className="text-[10px] uppercase tracking-[0.16em] text-white/40">{label}</p>
-      <p className={`mt-1.5 display-soft text-2xl sm:text-3xl ${hot ? "text-[#ff2d2d]" : "text-white"}`}>
-        {value}
-      </p>
     </div>
   );
 }

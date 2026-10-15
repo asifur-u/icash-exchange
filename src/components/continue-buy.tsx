@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
+import { useT } from "@/i18n/provider";
 
 function readPendingBuy() {
   try {
@@ -17,22 +18,34 @@ function subscribe() {
 }
 
 export function ContinueBuy() {
+  const t = useT();
   const href = useSyncExternalStore(subscribe, readPendingBuy, () => null);
 
   if (!href) return null;
 
   return (
-    <div className="relative mt-8 overflow-hidden rounded-[28px] border border-[#ff2d2d]/30 bg-[#140a0a]">
-      <div aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-[#ff2d2d]" />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-8 -top-10 h-36 w-36 rounded-full bg-[#ff2d2d]/20 blur-[60px]"
-      />
-      <div className="relative flex flex-col gap-4 px-6 py-6 pl-7 sm:flex-row sm:items-center sm:justify-between sm:px-8 sm:pl-9">
+    <div
+      className="overflow-hidden rounded-[1.25rem] px-5 py-5 sm:px-6"
+      style={{
+        border: "1px solid #bae6fd",
+        background: "linear-gradient(90deg, #f0f9ff, #ffffff)",
+        color: "#09090b",
+        boxShadow: "0 10px 30px rgba(15, 23, 42, 0.05)",
+      }}
+    >
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-semibold tracking-tight text-[#ff2d2d]">Continue your purchase</p>
-          <p className="mt-2 max-w-xl text-base text-white/65">
-            You started a note before logging in. Finish the deposit next.
+          <p
+            className="text-[11px] font-semibold uppercase tracking-[0.16em]"
+            style={{ color: "#0284c7" }}
+          >
+            {t("account.pendingCheckout")}
+          </p>
+          <p className="mt-1 text-base font-bold" style={{ color: "#09090b" }}>
+            {t("account.continuePurchase")}
+          </p>
+          <p className="mt-1.5 max-w-xl text-sm" style={{ color: "#52525b" }}>
+            {t("account.continuePurchaseLead")}
           </p>
         </div>
         <Link
@@ -44,9 +57,10 @@ export function ContinueBuy() {
               /* ignore */
             }
           }}
-          className="inline-flex h-12 shrink-0 items-center justify-center rounded-full bg-white px-6 text-sm font-semibold text-black transition hover:bg-white/90"
+          className="inline-flex h-11 shrink-0 items-center justify-center rounded-xl px-5 text-sm font-semibold"
+          style={{ background: "#0284c7", color: "#fff" }}
         >
-          Continue to deposit
+          {t("account.continueDeposit")}
         </Link>
       </div>
     </div>

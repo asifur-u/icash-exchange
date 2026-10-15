@@ -46,7 +46,8 @@ export function adminPasswordMatches(input: string) {
 }
 
 export function signUserSession(userId: string) {
-  const exp = Date.now() + 30 * 24 * 60 * 60 * 1000;
+  // 7 days — aligns with cookie maxAge in user-session helper
+  const exp = Date.now() + 7 * 24 * 60 * 60 * 1000;
   const payload = `user.${userId}.${exp}`;
   const sig = createHmac("sha256", getAuthSecret()).update(payload).digest("base64url");
   return `${payload}.${sig}`;

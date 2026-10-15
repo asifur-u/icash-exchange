@@ -33,6 +33,75 @@ body {
   padding-right: env(safe-area-inset-right);
 }
 
+/* Bangla locale — Hind Siliguri (never condensed / uppercase English display) */
+html[lang="bn"] body,
+html[data-locale="bn"] body {
+  font-family: var(--font-bangla), var(--font-geist), "Noto Sans Bengali", sans-serif;
+  letter-spacing: 0;
+  line-height: 1.7;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+html[lang="bn"] .display,
+html[lang="bn"] .display-soft,
+html[lang="bn"] .display-hero,
+html[data-locale="bn"] .display,
+html[data-locale="bn"] .display-soft,
+html[data-locale="bn"] .display-hero {
+  font-family: var(--font-bangla), "Noto Sans Bengali", sans-serif !important;
+  font-stretch: 100% !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.25 !important;
+  text-transform: none !important;
+  overflow-wrap: break-word;
+}
+
+html[lang="bn"] .hero-offer-top,
+html[lang="bn"] .hero-offer-main,
+html[lang="bn"] .hero-offer-bonus,
+html[data-locale="bn"] .hero-offer-top,
+html[data-locale="bn"] .hero-offer-main,
+html[data-locale="bn"] .hero-offer-bonus {
+  white-space: normal !important;
+  max-width: 100%;
+}
+
+html[lang="bn"] .bn-hero-line,
+html[data-locale="bn"] .bn-hero-line,
+html[lang="bn"] .bn-hero-extra,
+html[data-locale="bn"] .bn-hero-extra,
+html[lang="bn"] .bn-hero-bonus,
+html[data-locale="bn"] .bn-hero-bonus {
+  font-family: var(--font-bangla), "Noto Sans Bengali", sans-serif !important;
+  font-stretch: 100% !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.25 !important;
+  text-transform: none !important;
+  transform: none !important;
+  white-space: normal !important;
+  max-width: 100%;
+}
+
+html[lang="bn"] .bn-hero-extra,
+html[data-locale="bn"] .bn-hero-extra {
+  color: #9fe870;
+}
+
+html[lang="bn"] .bn-hero-bonus,
+html[data-locale="bn"] .bn-hero-bonus {
+  color: #fff;
+}
+
+/* Desk labels: no uppercase stretch on Bangla */
+html[lang="bn"] .uppercase,
+html[data-locale="bn"] .uppercase {
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
 @layer components {
   /* Wise-style headline: ultra heavy, wide, uppercase, tight leading */
   .display {
@@ -297,6 +366,120 @@ summary::-webkit-details-marker {
   opacity: 0.1;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* Account dashboard — readable light portal (never inherit body white text) */
+html.account-light-root,
+html.account-light-root body {
+  background: #f4f5f7 !important;
+  color: #18181b !important;
+}
+
+html.account-light-root .grain {
+  display: none;
+}
+
+.account-light {
+  --al-ink: #09090b;
+  --al-muted: #52525b;
+  --al-faint: #71717a;
+  --al-line: #e4e4e7;
+  --al-soft: #f4f4f5;
+  --al-card: #ffffff;
+  --al-accent: #e11d2e;
+  color: var(--al-ink);
+  background: #f4f5f7;
+}
+
+.account-light .al-card {
+  background: var(--al-card);
+  color: var(--al-ink);
+  border: 1px solid var(--al-line);
+  border-radius: 1.25rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+}
+
+.account-light .al-ink {
+  color: var(--al-ink) !important;
+}
+
+.account-light .al-muted {
+  color: var(--al-muted) !important;
+}
+
+.account-light .al-faint {
+  color: var(--al-faint) !important;
+}
+
+.account-light .al-accent {
+  color: var(--al-accent) !important;
+}
+
+.account-light .al-btn {
+  display: inline-flex;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  padding: 0 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.account-light .al-btn-primary {
+  background: var(--al-accent);
+  color: #fff !important;
+}
+
+.account-light .al-btn-primary:hover {
+  background: #c41828;
+}
+
+.account-light .al-btn-ghost {
+  background: #fff;
+  color: var(--al-ink) !important;
+  border: 1px solid var(--al-line);
+}
+
+.account-light .al-btn-ghost:hover {
+  background: var(--al-soft);
+}
+
+.account-light .al-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--al-line);
+  background: var(--al-soft);
+  padding: 0.25rem 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--al-muted) !important;
+}
+
+.account-light .al-stat {
+  border-radius: 1rem;
+  border: 1px solid var(--al-line);
+  background: #fff;
+  padding: 0.85rem 1rem;
+}
+
+.account-light .al-nav a {
+  color: var(--al-muted) !important;
+}
+
+.account-light .al-nav a[aria-current="page"] {
+  background: #18181b !important;
+  color: #fff !important;
+}
+
+.account-light .al-nav a:hover:not([aria-current="page"]) {
+  background: var(--al-soft);
+  color: var(--al-ink) !important;
 }
 
 .voucher-stage {
