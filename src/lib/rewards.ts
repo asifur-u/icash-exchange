@@ -55,3 +55,46 @@ export const MONTHLY_GIFT = {
   blurb:
     "Spend more than ৳10,00,000 in a single calendar month and unlock a ৳5,000 special gift on top of your Diamond bonus.",
 };
+
+/** Highest tier unlocked by lifetime (or period) spend. Null = below Silver. */
+export function tierForSpend(spendBdt: number): RewardTier | null {
+  let current: RewardTier | null = null;
+  for (const tier of REWARD_TIERS) {
+    if (spendBdt >= tier.spendBdt) current = tier;
+  }
+  return current;
+}
+
+/** Next ladder step above current spend. */
+export function nextTierForSpend(spendBdt: number): RewardTier | null {
+  return REWARD_TIERS.find((tier) => spendBdt < tier.spendBdt) ?? null;
+}
+
+/** Rough bonus earned so far at the unlocked rate (display only). */
+export function estimatedBonusBdt(spendBdt: number) {
+  const tier = tierForSpend(spendBdt);
+  if (!tier || spendBdt <= 0) return 0;
+  return Math.round((spendBdt * tier.bonusPercent) / 100);
+}
+
+export function tierProgress(spendBdt: number) {
+  const current = tierForSpend(spendBdt);
+  const next = nextTierForSpend(spendBdt);
+  if (!next) {
+    return {
+      current,
+      next: null as RewardTier | null,
+      remaining: 0,
+      ratio: 1,
+    };
+  }
+  const floor = current?.spendBdt ?? 0;
+  const span = Math.max(1, next.spendBdt - floor);
+  const ratio = Math.min(1, Math.max(0, (spendBdt - floor) / span));
+  return {
+    current,
+    next,
+    remaining: Math.max(0, next.spendBdt - spendBdt),
+    ratio,
+  };
+}

@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "motion/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Frame } from "@/components/frame";
+import { useT } from "@/i18n/provider";
 import { platforms, type Platform } from "@/lib/platforms";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -14,21 +15,21 @@ const INTERVAL_MS = 3200;
 const RESUME_MS = 5000;
 
 const payments = [
-  { id: "bkash", label: "bKash", line: "Send Money", logo: "/payments/bkash.png" },
-  { id: "nagad", label: "Nagad", line: "Send Money", logo: "/payments/nagad.png" },
-  { id: "rocket", label: "Rocket", line: "Send Money", logo: "/payments/rocket.png" },
+  { id: "bkash", label: "bKash", logo: "/payments/bkash.png" },
+  { id: "nagad", label: "Nagad", logo: "/payments/nagad.png" },
+  { id: "rocket", label: "Rocket", logo: "/payments/rocket.png" },
   { id: "bank", label: "Bank", line: "NPSB / BEFTN", logo: "/payments/bank.png" },
 ] as const;
 
-const ROLE_LABEL: Record<Platform["role"], string> = {
-  network: "Network",
-  marketplace: "Marketplace",
-  distributor: "Distributor",
-  agent: "Authorized agent",
-  payments: "Payments",
-};
-
 export function Platforms() {
+  const t = useT();
+  const roleLabel: Record<Platform["role"], string> = {
+    network: t("home.roleNetwork"),
+    marketplace: t("home.roleMarketplace"),
+    distributor: t("home.roleDistributor"),
+    agent: t("home.roleAgent"),
+    payments: t("home.rolePayments"),
+  };
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const [soft, setSoft] = useState(false);
@@ -155,13 +156,12 @@ export function Platforms() {
     <section id="partners" className="relative overflow-hidden bg-black py-16 sm:py-24 md:py-32">
       <Frame>
         <div className="mx-auto max-w-2xl text-center">
-          <p className="eyebrow">Collaborators</p>
+          <p className="eyebrow">{t("home.partnersEyebrow")}</p>
           <h2 className="mt-4 display text-[clamp(2.2rem,9vw,4.6rem)]">
-            With <span className="accent-red">icash.one</span>
+            {t("home.partnersTitle")} <span className="accent-red">icash.one</span>
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-white/50 sm:text-lg">
-            Official network partners only — marketplaces, distributors, and authorized agents. No
-            betting or gambling brands.
+            {t("home.partnersLead")}
           </p>
         </div>
 
@@ -200,22 +200,20 @@ export function Platforms() {
                   draggable={false}
                 />
                 <p className="mt-2 text-[8px] font-bold uppercase tracking-[0.18em] text-[#da000f] sm:text-[9px]">
-                  Official partner
+                  {t("home.officialPartner")}
                 </p>
               </div>
             </div>
 
             <div className="partner-banner-copy text-center sm:text-left">
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/40">
-                Authorization seal
+                {t("home.authorizationSeal")}
               </p>
               <h3 className="mt-2 text-[clamp(1.35rem,4vw,1.9rem)] font-semibold tracking-tight text-white">
-                iCash Exchange is an{" "}
-                <span className="text-[#ff2d2d]">official partner</span> of icash.one
+                {t("home.partnerHeading")}
               </h3>
               <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/50">
-                This desk collaborates under the iCash.one network — genuine vouchers, verified
-                partners, zero gambling desks.
+                {t("home.partnerBody")}
               </p>
             </div>
 
@@ -225,14 +223,14 @@ export function Platforms() {
               rel="noopener noreferrer"
               className="partner-banner-link inline-flex h-12 items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-black transition hover:bg-white/90"
             >
-              Visit icash.one →
+              {t("home.visitIcash")}
             </a>
           </div>
         </div>
 
         <div className="relative mx-auto mt-12 max-w-5xl sm:mt-16">
           <p className="mb-6 text-center text-xs font-semibold uppercase tracking-[0.2em] text-white/35">
-            Network collaborators
+            {t("home.networkCollaborators")}
           </p>
           <div className="relative flex min-h-[280px] items-center justify-center sm:min-h-[320px]">
             <AnimatePresence mode="wait">
@@ -254,7 +252,7 @@ export function Platforms() {
                     <span className="relative inline-flex h-2 w-2 rounded-full bg-[#9fe870]" />
                   </span>
                   <span className="text-[10px] uppercase tracking-[0.18em] text-white/60">
-                    {ROLE_LABEL[current.role]}
+                    {roleLabel[current.role]}
                   </span>
                 </div>
                 <p className="mt-5 text-center text-sm leading-relaxed text-white/40">{current.blurb}</p>
@@ -265,7 +263,7 @@ export function Platforms() {
                     rel="noopener noreferrer"
                     className="mt-5 text-xs font-semibold text-white/70 underline decoration-white/20 underline-offset-4 transition hover:text-white"
                   >
-                    Open collaborator →
+                    {t("home.openCollaborator")}
                   </a>
                 ) : null}
               </motion.article>
@@ -275,7 +273,7 @@ export function Platforms() {
           <div className="mt-5 flex items-center justify-center gap-4">
             <button
               type="button"
-              aria-label="Previous collaborator"
+              aria-label={t("home.prevCollaborator")}
               onClick={() => go(-1)}
               className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 text-lg text-white transition hover:bg-white hover:text-black"
             >
@@ -284,7 +282,7 @@ export function Platforms() {
             <div
               className="flex max-w-[min(100%,260px)] flex-wrap items-center justify-center gap-1.5"
               role="tablist"
-              aria-label="Collaborators"
+              aria-label={t("home.partnersEyebrow")}
             >
               {platforms.map((platform, index) => {
                 const selected = index === active;
@@ -320,7 +318,7 @@ export function Platforms() {
             </div>
             <button
               type="button"
-              aria-label="Next collaborator"
+              aria-label={t("home.nextCollaborator")}
               onClick={() => go(1)}
               className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white text-lg text-black transition hover:bg-white/85"
             >
@@ -364,7 +362,7 @@ export function Platforms() {
                       selected ? "text-black/45" : "text-white/40"
                     }`}
                   >
-                    {ROLE_LABEL[platform.role]}
+                    {roleLabel[platform.role]}
                   </span>
                 </span>
               </button>
@@ -375,9 +373,9 @@ export function Platforms() {
 
       <Frame className="mt-16 sm:mt-20">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="eyebrow">Pay rails</p>
+          <p className="eyebrow">{t("home.payRails")}</p>
           <h3 className="mt-3 display-soft text-[clamp(1.8rem,6vw,2.8rem)]">
-            Local ways to <span className="accent-red">deposit.</span>
+            {t("home.payRailsLead")} <span className="accent-red">{t("home.payRailsAccent")}</span>
           </h3>
         </div>
       </Frame>
@@ -401,7 +399,7 @@ export function Platforms() {
             <span className="text-center">
               <span className="block text-sm font-semibold tracking-tight text-white">{method.label}</span>
               <span className="mt-1 block text-[10px] uppercase tracking-[0.16em] text-white/40">
-                {method.line}
+                {"line" in method ? method.line : t("home.sendMoney")}
               </span>
             </span>
           </div>

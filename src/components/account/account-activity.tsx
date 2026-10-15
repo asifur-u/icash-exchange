@@ -72,35 +72,35 @@ export function AccountActivity({ orders }: { orders: AccountOrder[] }) {
 
   return (
     <div className="space-y-5">
-      <header className="rounded-[28px] border border-white/12 bg-[#0a0a0a] p-6 sm:p-8">
+      <header className="rounded-[28px] border border-zinc-200 bg-white shadow-sm p-6 sm:p-8">
         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#ff2d2d]">Activity</p>
         <h1 className="mt-2 display text-[clamp(2rem,6vw,3.2rem)] leading-[0.95]">
           Desk timeline.
         </h1>
-        <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/55">
+        <p className="mt-3 max-w-xl text-sm leading-relaxed text-zinc-500">
           Created, proof submitted, reviewing, and delivered — in one feed.
         </p>
       </header>
 
-      <section className="overflow-hidden rounded-[28px] border border-white/12 bg-[#0a0a0a]">
+      <section className="overflow-hidden rounded-[28px] border border-zinc-200 bg-white shadow-sm">
         {items.length === 0 ? (
           <div className="px-6 py-12">
             <p className="text-xl font-semibold">No activity yet.</p>
-            <p className="mt-2 text-sm text-white/50">Buy a note and your timeline starts here.</p>
+            <p className="mt-2 text-sm text-zinc-500">Buy a note and your timeline starts here.</p>
             <Link
               href="/account/services"
-              className="mt-6 inline-flex h-11 items-center rounded-full bg-white px-5 text-sm font-semibold text-black"
+              className="mt-6 inline-flex h-11 items-center rounded-xl bg-[#ff2d2d] px-5 text-sm font-semibold text-white"
             >
               Open services
             </Link>
           </div>
         ) : (
-          <ul className="divide-y divide-white/10">
+          <ul className="divide-y divide-zinc-100">
             {items.map((item) => (
               <li key={item.id}>
                 <Link
                   href={item.href}
-                  className="flex gap-4 px-5 py-4 transition hover:bg-white/[0.03] sm:px-6"
+                  className="flex gap-4 px-5 py-4 transition hover:bg-zinc-50 sm:px-6"
                 >
                   <span
                     aria-hidden="true"
@@ -109,13 +109,13 @@ export function AccountActivity({ orders }: { orders: AccountOrder[] }) {
                         ? "bg-[#9fe870]"
                         : item.tone === "warn"
                           ? "bg-amber-300"
-                          : "bg-white/35"
+                          : "bg-zinc-300"
                     }`}
                   />
                   <div className="min-w-0">
-                    <p className="font-semibold tracking-tight text-white">{item.title}</p>
-                    <p className="mt-1 text-sm text-white/50">{item.body}</p>
-                    <p className="mt-1 text-xs text-white/35">{formatWhen(item.at)}</p>
+                    <p className="font-semibold tracking-tight text-zinc-900">{item.title}</p>
+                    <p className="mt-1 text-sm text-zinc-500">{item.body}</p>
+                    <p className="mt-1 text-xs text-zinc-400">{formatWhen(item.at)}</p>
                   </div>
                 </Link>
               </li>

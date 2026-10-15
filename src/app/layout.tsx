@@ -1,8 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Archivo, Geist_Mono } from "next/font/google";
+import { cookies } from "next/headers";
+import { Inter, Archivo, Geist_Mono, Hind_Siliguri } from "next/font/google";
+import { LocaleProvider } from "@/i18n/provider";
+import { DEFAULT_LOCALE, LOCALE_COOKIE, isLocale, type Locale } from "@/i18n/types";
 import "./globals.css";
 
-// Body: Inter (what Wise uses for running text)
+// Body: Inter (Wise-like running text) — EN
 const sans = Inter({
   subsets: ["latin"],
   variable: "--font-geist",
@@ -10,7 +13,7 @@ const sans = Inter({
   weight: ["400", "500", "600", "700"],
 });
 
-// Headlines: ultra-heavy wide grotesque, closest free match to Wise Sans
+// Headlines — EN
 const display = Archivo({
   subsets: ["latin"],
   variable: "--font-display",
@@ -23,6 +26,14 @@ const mono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-geist-mono",
   display: "swap",
+});
+
+// Bangla UI — Hind Siliguri
+const bangla = Hind_Siliguri({
+  subsets: ["bengali", "latin"],
+  variable: "--font-bangla",
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -54,10 +65,20 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const jar = await cookies();
+  const raw = jar.get(LOCALE_COOKIE)?.value;
+  const locale: Locale = isLocale(raw) ? raw : DEFAULT_LOCALE;
+
   return (
-    <html lang="en" className={`${sans.variable} ${display.variable} ${mono.variable} h-full antialiased`}>
-      <body className="min-h-full bg-black font-sans text-white text-[16px] leading-relaxed">{children}</body>
+    <html
+      lang={locale}
+      data-locale={locale}
+      className={`${sans.variable} ${display.variable} ${mono.variable} ${bangla.variable} h-full antialiased`}
+    >
+      <body className="min-h-full bg-black font-sans text-white text-[16px] leading-relaxed">
+        <LocaleProvider initialLocale={locale}>{children}</LocaleProvider>
+      </body>
     </html>
   );
 }

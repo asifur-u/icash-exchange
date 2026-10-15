@@ -2,9 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useT } from "@/i18n/provider";
 import { cn } from "@/lib/cn";
 
 export function LogoutButton({ className }: { className?: string }) {
+  const t = useT();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
 
@@ -23,7 +25,7 @@ export function LogoutButton({ className }: { className?: string }) {
         className,
       )}
     >
-      Log out
+      {t("account.logOut")}
     </button>
   );
 }

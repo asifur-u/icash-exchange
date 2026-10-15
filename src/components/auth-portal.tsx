@@ -4,19 +4,29 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/i18n/provider";
 import { notifyError, notifySuccess } from "@/lib/swal";
 
-function passwordHint(password: string) {
-  if (!password) return "";
-  const parts: string[] = [];
-  if (password.length < 8) parts.push("8+ characters");
-  if (!/[A-Za-z]/.test(password)) parts.push("a letter");
-  if (!/[0-9]/.test(password)) parts.push("a number");
-  return parts.length ? `Need: ${parts.join(", ")}` : "Strong enough";
-}
-
-export function AuthPortal({ nextPath }: { nextPath: string }) {
+export function AuthPortal({
+  nextPath,
+  resumePath = null,
+}: {
+  nextPath: string;
+  resumePath?: string | null;
+}) {
+  const t = useT();
   const router = useRouter();
+
+  function passwordHint(password: string) {
+    if (!password) return "";
+    const parts: string[] = [];
+    if (password.length < 8) parts.push("8+ characters");
+    if (!/[A-Za-z]/.test(password)) parts.push("a letter");
+    if (!/[0-9]/.test(password)) parts.push("a number");
+    return parts.length
+      ? t("auth.needChars", { parts: parts.join(", ") })
+      : t("auth.strongEnough");
+  }
   const [mode, setMode] = useState<"login" | "register">("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -38,13 +48,20 @@ export function AuthPortal({ nextPath }: { nextPath: string }) {
 
   useEffect(() => {
     void loadCsrf();
-  }, []);
+    if (resumePath?.startsWith("/checkout")) {
+      try {
+        sessionStorage.setItem("icash_pending_buy", resumePath);
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [resumePath]);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!csrf) {
       await loadCsrf();
-      await notifyError("Security check", "Refresh once, then try again.");
+      await notifyError(t("auth.securityCheck"), t("auth.refreshTry"));
       return;
     }
     setBusy(true);
@@ -66,22 +83,22 @@ export function AuthPortal({ nextPath }: { nextPath: string }) {
         // Rotate CSRF after failures so retries stay valid.
         void loadCsrf();
         await notifyError(
-          mode === "login" ? "Login failed" : "Registration failed",
-          data.error?.message ?? "Could not continue.",
+          mode === "login" ? t("auth.loginFail") : t("auth.registerFail"),
+          data.error?.message ?? t("auth.tryAgain"),
         );
         return;
       }
       setBusy(false);
       await notifySuccess(
-        mode === "login" ? "Welcome back" : "Account ready",
-        "Opening your secure dashboard…",
+        mode === "login" ? t("auth.loginOk") : t("auth.registerOk"),
+        t("auth.openingDash"),
       );
       router.replace(nextPath || "/account");
       router.refresh();
     } catch {
       setBusy(false);
       void loadCsrf();
-      await notifyError("Something went wrong", "Could not continue. Try again.");
+      await notifyError(t("auth.somethingWrong"), t("auth.tryAgain"));
     }
   }
 
@@ -91,15 +108,13 @@ export function AuthPortal({ nextPath }: { nextPath: string }) {
     <div className="w-full">
       <div className="mb-7">
         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/40">
-          Secure access
+          {t("auth.secureAccess")}
         </p>
         <h1 className="mt-2 text-[2rem] font-semibold tracking-tight text-white sm:text-[2.35rem]">
-          {mode === "login" ? "Log in securely" : "Create a secure account"}
+          {mode === "login" ? t("auth.loginHeading") : t("auth.registerHeading")}
         </h1>
         <p className="mt-2 text-base leading-relaxed text-white/55">
-          {mode === "login"
-            ? "Protected login — rate limited, CSRF checked, httpOnly session."
-            : "Use a strong password (8+ chars, letter + number). Then your dashboard opens."}
+          {mode === "login" ? t("auth.loginLead") : t("auth.registerLead")}
         </p>
       </div>
 
@@ -111,7 +126,7 @@ export function AuthPortal({ nextPath }: { nextPath: string }) {
             mode === "login" ? "bg-white text-black" : "text-white/55 hover:text-white"
           }`}
         >
-          Log in
+          {t("auth.loginTitle")}
         </button>
         <button
           type="button"
@@ -120,7 +135,7 @@ export function AuthPortal({ nextPath }: { nextPath: string }) {
             mode === "register" ? "bg-white text-black" : "text-white/55 hover:text-white"
           }`}
         >
-          Register
+          {t("auth.registerTitle")}
         </button>
       </div>
 
@@ -129,7 +144,7 @@ export function AuthPortal({ nextPath }: { nextPath: string }) {
           <>
             <Field
               id="name"
-              label="Full name"
+              label={t("auth.name")}
               value={name}
               onChange={setName}
               placeholder="Asif Rahman"
@@ -138,7 +153,7 @@ export function AuthPortal({ nextPath }: { nextPath: string }) {
             />
             <Field
               id="phone"
-              label="Mobile number"
+              label={t("auth.phone")}
               value={phone}
               onChange={(value) => setPhone(value.replace(/\D/g, "").slice(0, 11))}
               placeholder="01XXXXXXXXX"
@@ -151,7 +166,7 @@ export function AuthPortal({ nextPath }: { nextPath: string }) {
 
         <Field
           id="email"
-          label="Email"
+          label={t("auth.email")}
           value={email}
           onChange={setEmail}
           placeholder="you@email.com"
@@ -161,7 +176,7 @@ export function AuthPortal({ nextPath }: { nextPath: string }) {
         />
 
         <label className="block" htmlFor="password">
-          <span className="mb-2 block text-sm font-medium text-white/70">Password</span>
+          <span className="mb-2 block text-sm font-medium text-white/70">{t("auth.password")}</span>
           <div className="relative">
             <input
               id="password"
@@ -174,7 +189,9 @@ export function AuthPortal({ nextPath }: { nextPath: string }) {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder={
-                mode === "register" ? "8+ characters, letter + number" : "Your password"
+                mode === "register"
+                  ? t("auth.passwordPlaceholderRegister")
+                  : t("auth.passwordPlaceholderLogin")
               }
               className="h-12 w-full rounded-xl border border-white/12 bg-[#111] px-4 pr-20 text-base text-white outline-none transition placeholder:text-white/30 focus:border-white/40 focus:bg-[#141414]"
             />
@@ -183,13 +200,13 @@ export function AuthPortal({ nextPath }: { nextPath: string }) {
               onClick={() => setShowPassword((value) => !value)}
               className="absolute inset-y-0 right-0 px-4 text-sm font-medium text-white/50 transition hover:text-white"
             >
-              {showPassword ? "Hide" : "Show"}
+              {showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
             </button>
           </div>
           {hint ? (
             <p
               className={`mt-1.5 text-xs ${
-                hint === "Strong enough" ? "text-[#9fe870]/80" : "text-white/40"
+                hint === t("auth.strongEnough") ? "text-[#9fe870]/80" : "text-white/40"
               }`}
             >
               {hint}
@@ -204,38 +221,32 @@ export function AuthPortal({ nextPath }: { nextPath: string }) {
           aria-busy={busy}
         >
           {busy
-            ? "Checking…"
+            ? t("auth.checking")
             : !csrf
-              ? "Preparing secure form…"
+              ? t("auth.securityWait")
               : mode === "login"
-                ? "Log in → dashboard"
-                : "Create account → dashboard"}
+                ? t("auth.submitLogin")
+                : t("auth.submitRegister")}
         </Button>
       </form>
 
       <p className="mt-6 text-center text-sm text-white/50">
         {mode === "login" ? (
-          <>
-            New here?{" "}
-            <button
-              type="button"
-              onClick={() => setMode("register")}
-              className="font-semibold text-white underline decoration-white/30 underline-offset-4 hover:decoration-white"
-            >
-              Register
-            </button>
-          </>
+          <button
+            type="button"
+            onClick={() => setMode("register")}
+            className="font-semibold text-white underline decoration-white/30 underline-offset-4 hover:decoration-white"
+          >
+            {t("auth.switchToRegister")}
+          </button>
         ) : (
-          <>
-            Already have an account?{" "}
-            <button
-              type="button"
-              onClick={() => setMode("login")}
-              className="font-semibold text-white underline decoration-white/30 underline-offset-4 hover:decoration-white"
-            >
-              Log in
-            </button>
-          </>
+          <button
+            type="button"
+            onClick={() => setMode("login")}
+            className="font-semibold text-white underline decoration-white/30 underline-offset-4 hover:decoration-white"
+          >
+            {t("auth.switchToLogin")}
+          </button>
         )}
       </p>
 

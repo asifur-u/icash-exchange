@@ -3,8 +3,6 @@ import { z } from "zod";
 export const checkoutSchema = z.object({
   productSlug: z.string().trim().min(1).max(80),
   quantity: z.number().int().min(1).max(5),
-  email: z.string().trim().email("Enter a valid email").max(160),
-  phone: z.string().trim().regex(/^01\d{9}$/, "Use an 11-digit mobile number starting with 01"),
 });
 
 export const confirmSchema = z.object({

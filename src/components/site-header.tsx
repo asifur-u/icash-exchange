@@ -5,13 +5,8 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BrandLogo } from "@/components/brand-logo";
 import { Frame } from "@/components/frame";
-
-const links = [
-  { href: "/catalog", label: "Catalog" },
-  { href: "/order/note-1000", label: "Buy" },
-  { href: "/explore", label: "Explore" },
-  { href: "/faq", label: "FAQ" },
-];
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { useT } from "@/i18n/provider";
 
 function isActive(pathname: string, href: string) {
   if (href === "/catalog") return pathname.startsWith("/catalog");
@@ -24,9 +19,17 @@ function isActive(pathname: string, href: string) {
 }
 
 export function SiteHeader({ initialLoggedIn = false }: { initialLoggedIn?: boolean }) {
+  const t = useT();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [loggedIn, setLoggedIn] = useState(initialLoggedIn);
+
+  const links = [
+    { href: "/catalog", label: t("nav.catalog") },
+    { href: "/order/note-1000", label: t("nav.buy") },
+    { href: "/explore", label: t("nav.explore") },
+    { href: "/faq", label: t("nav.faq") },
+  ];
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -55,7 +58,8 @@ export function SiteHeader({ initialLoggedIn = false }: { initialLoggedIn?: bool
   }, [pathname]);
 
   const accountHref = loggedIn ? "/account" : "/auth?next=/account";
-  const accountLabel = loggedIn ? "Dashboard" : "Log in";
+  const accountLabel = loggedIn ? t("nav.dashboard") : t("nav.login");
+  const ctaLabel = loggedIn ? t("nav.buyNote") : t("nav.getCode");
 
   return (
     <header className="absolute inset-x-0 top-0 z-40 pt-[env(safe-area-inset-top)]">
@@ -63,14 +67,18 @@ export function SiteHeader({ initialLoggedIn = false }: { initialLoggedIn?: bool
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:text-black"
       >
-        Skip to content
+        {t("common.skip")}
       </a>
       <Frame className="flex h-16 items-center justify-between gap-3 sm:h-20 md:h-24 md:gap-6">
-        <Link href="/" aria-label="iCash Exchange home" className="relative z-10 min-w-0 transition hover:opacity-90">
+        <Link
+          href="/"
+          aria-label={t("common.brand")}
+          className="relative z-10 min-w-0 transition hover:opacity-90"
+        >
           <BrandLogo priority size="md" />
         </Link>
 
-        <nav className="hidden items-center gap-10 text-base text-white/70 md:flex">
+        <nav className="hidden items-center gap-8 text-base text-white/70 lg:flex xl:gap-10">
           {links.map((link) => {
             const active = isActive(pathname, link.href);
             return (
@@ -97,35 +105,44 @@ export function SiteHeader({ initialLoggedIn = false }: { initialLoggedIn?: bool
           >
             {accountLabel}
           </Link>
+          <LanguageSwitcher />
         </nav>
 
-        <Link
-          href={loggedIn ? "/order/note-1000" : "/auth?next=/account"}
-          className="hidden h-12 items-center rounded-full bg-white px-6 text-sm font-medium tracking-tight text-black transition hover:bg-white/85 md:inline-flex"
-        >
-          {loggedIn ? "Buy a note" : "Get a code"}
-        </Link>
+        <div className="hidden items-center gap-3 md:flex">
+          <div className="lg:hidden">
+            <LanguageSwitcher />
+          </div>
+          <Link
+            href={loggedIn ? "/order/note-1000" : "/auth?next=/account"}
+            className="inline-flex h-12 items-center rounded-full bg-white px-6 text-sm font-medium tracking-tight text-black transition hover:bg-white/85"
+          >
+            {ctaLabel}
+          </Link>
+        </div>
 
-        <button
-          type="button"
-          aria-label={open ? "Close menu" : "Open menu"}
-          aria-expanded={open}
-          onClick={() => setOpen((value) => !value)}
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 text-white transition hover:bg-white/10 md:hidden"
-        >
-          <span className="sr-only">Menu</span>
-          <span aria-hidden="true" className="relative block h-3.5 w-4">
-            <span
-              className={`absolute left-0 top-0 block h-0.5 w-full bg-white transition ${open ? "top-1.5 rotate-45" : ""}`}
-            />
-            <span
-              className={`absolute left-0 top-1.5 block h-0.5 w-full bg-white transition ${open ? "opacity-0" : ""}`}
-            />
-            <span
-              className={`absolute left-0 top-3 block h-0.5 w-full bg-white transition ${open ? "top-1.5 -rotate-45" : ""}`}
-            />
-          </span>
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <LanguageSwitcher />
+          <button
+            type="button"
+            aria-label={open ? t("nav.closeMenu") : t("nav.openMenu")}
+            aria-expanded={open}
+            onClick={() => setOpen((value) => !value)}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 text-white transition hover:bg-white/10"
+          >
+            <span className="sr-only">{t("nav.menu")}</span>
+            <span aria-hidden="true" className="relative block h-3.5 w-4">
+              <span
+                className={`absolute left-0 top-0 block h-0.5 w-full bg-white transition ${open ? "top-1.5 rotate-45" : ""}`}
+              />
+              <span
+                className={`absolute left-0 top-1.5 block h-0.5 w-full bg-white transition ${open ? "opacity-0" : ""}`}
+              />
+              <span
+                className={`absolute left-0 top-3 block h-0.5 w-full bg-white transition ${open ? "top-1.5 -rotate-45" : ""}`}
+              />
+            </span>
+          </button>
+        </div>
       </Frame>
 
       {open ? (
@@ -161,7 +178,7 @@ export function SiteHeader({ initialLoggedIn = false }: { initialLoggedIn?: bool
               onClick={() => setOpen(false)}
               className="mt-4 inline-flex h-14 items-center justify-center rounded-full bg-white text-base font-medium text-black"
             >
-              {loggedIn ? "Buy a note" : "Get a code"}
+              {ctaLabel}
             </Link>
           </nav>
         </div>

@@ -5,10 +5,12 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { Frame } from "@/components/frame";
 import { VoucherCard } from "@/components/voucher-card";
+import { useT } from "@/i18n/provider";
 import { formatBdt } from "@/lib/format";
 import type { PublicProduct } from "@/lib/types";
 
 export function VoucherShowcase({ products }: { products: PublicProduct[] }) {
+  const t = useT();
   const [index, setIndex] = useState(
     Math.max(
       0,
@@ -18,13 +20,15 @@ export function VoucherShowcase({ products }: { products: PublicProduct[] }) {
   const active = products[index] ?? products[0];
   if (!active) return null;
 
+  const readyInStock = products.filter((p) => p.stock > 0).length;
+
   return (
     <section className="bg-black py-16 sm:py-24 md:py-28">
       <Frame>
         <div className="max-w-xl">
-          <p className="eyebrow">Vouchers</p>
+          <p className="eyebrow">{t("home.vouchersEyebrow")}</p>
           <h2 className="mt-4 display text-[clamp(2.4rem,10vw,5rem)]">
-            Premium <span className="accent-red">notes.</span>
+            {t("home.vouchersTitle")} <span className="accent-red">{t("home.vouchersAccent")}</span>
           </h2>
         </div>
 
@@ -41,13 +45,15 @@ export function VoucherShowcase({ products }: { products: PublicProduct[] }) {
               <div className="mt-6 flex flex-col items-start gap-4 sm:mt-8 sm:flex-row sm:items-center sm:justify-between">
                 <p className="max-w-sm text-base leading-relaxed text-white/55">
                   {active.blurb}{" "}
-                  {active.stock > 0 ? `${active.stock} ready.` : "Sold out."}
+                  {active.stock > 0
+                    ? t("home.readyCount", { n: active.stock })
+                    : t("home.soldOut")}
                 </p>
                 <Link
                   href={`/order/${active.slug}`}
                   className="inline-flex h-12 shrink-0 items-center justify-center rounded-full bg-white px-7 text-sm font-semibold text-black transition hover:bg-white/85"
                 >
-                  Open {active.title}
+                  {t("home.openNote", { title: active.title })}
                 </Link>
               </div>
             </motion.div>
@@ -57,17 +63,17 @@ export function VoucherShowcase({ products }: { products: PublicProduct[] }) {
         <div className="mx-auto mt-10 max-w-[640px] sm:mt-12">
           <div className="mb-3 flex items-end justify-between gap-3 px-0.5">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40">
-              Choose a note
+              {t("home.chooseNote")}
             </p>
             <p className="text-xs text-white/35">
-              {products.filter((p) => p.stock > 0).length} of {products.length} in stock
+              {t("home.inStock", { ready: readyInStock, total: products.length })}
             </p>
           </div>
 
           <div
             className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3"
             role="listbox"
-            aria-label="Voucher values"
+            aria-label={t("home.voucherValues")}
           >
             {products.map((product, productIndex) => {
               const selected = productIndex === index;
@@ -113,7 +119,7 @@ export function VoucherShowcase({ products }: { products: PublicProduct[] }) {
                             : "bg-white/8 text-white/45"
                       }`}
                     >
-                      {soldOut ? "Out" : "Live"}
+                      {soldOut ? t("home.out") : t("home.live")}
                     </span>
                   </div>
 
@@ -125,7 +131,7 @@ export function VoucherShowcase({ products }: { products: PublicProduct[] }) {
                       selected ? "text-black/50" : soldOut ? "text-white/25" : "text-white/40"
                     }`}
                   >
-                    {soldOut ? "Sold out" : `${product.stock} ready`}
+                    {soldOut ? t("home.soldOut") : t("desk.ready", { n: product.stock })}
                   </p>
 
                   <div
