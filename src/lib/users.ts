@@ -40,9 +40,20 @@ function hashPassword(password: string, salt = randomBytes(16).toString("hex")) 
   return `${salt}:${hash}`;
 }
 
+/** Fixed dummy hash so missing-user logins still burn scrypt time. */
+const DUMMY_PASSWORD_HASH = (() => {
+  const salt = "0".repeat(32);
+  const hash = scryptSync("icash-dummy-password", salt, 32).toString("hex");
+  return `${salt}:${hash}`;
+})();
+
 function verifyPassword(password: string, stored: string) {
   const [salt, hash] = stored.split(":");
-  if (!salt || !hash) return false;
+  if (!salt || !hash) {
+    // Still run a scrypt so callers can't skip work on malformed hashes.
+    scryptSync(password, "0".repeat(32), 32);
+    return false;
+  }
   const next = scryptSync(password, salt, 32);
   const expected = Buffer.from(hash, "hex");
   if (next.length !== expected.length) return false;
@@ -175,28 +186,28 @@ export async function registerUser(input: { name: string; email: string; phone: 
 
 export async function authenticateUser(email: string, password: string) {
   const normalized = email.trim().toLowerCase();
+  let matched: User | null = null;
 
   if (databaseConfigured()) {
     try {
       const row = await getPrisma().user.findUnique({ where: { email: normalized } });
-      if (row) {
-        if (!verifyPassword(password, row.passwordHash)) {
-          throw new DeskError("UNAUTHORIZED", "Email or password is wrong.");
-        }
-        return toPublic(mapPrismaUser(row));
-      }
+      if (row) matched = mapPrismaUser(row);
     } catch (error) {
-      if (error instanceof DeskError) throw error;
       console.warn("mongo_users_login_fallback", error instanceof Error ? error.message : "error");
     }
   }
 
-  const db = await readUsers();
-  const user = db.users.find((item) => item.email === normalized);
-  if (!user || !verifyPassword(password, user.passwordHash)) {
+  if (!matched) {
+    const db = await readUsers();
+    matched = db.users.find((item) => item.email === normalized) ?? null;
+  }
+
+  // Always verify against a real or dummy hash (mitigates user-enumeration timing).
+  const ok = verifyPassword(password, matched?.passwordHash ?? DUMMY_PASSWORD_HASH);
+  if (!matched || !ok) {
     throw new DeskError("UNAUTHORIZED", "Email or password is wrong.");
   }
-  return toPublic(user);
+  return toPublic(matched);
 }
 
 export async function getUserById(id: string) {

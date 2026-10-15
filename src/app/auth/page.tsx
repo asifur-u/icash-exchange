@@ -51,11 +51,12 @@ export default async function AuthPage({
               iCash Exchange
             </p>
             <h2 className="mt-5 max-w-md display text-[clamp(2.8rem,5vw,4.4rem)]">
-              Buy a note.
-              <span className="block accent-red">Read the code.</span>
+              Log in first.
+              <span className="block accent-red">Then buy.</span>
             </h2>
             <p className="mt-6 max-w-md text-lg leading-relaxed text-white/55">
-              Sign in once. Your deposits, order status, and voucher codes stay in one place.
+              Guests must log in before checkout. New? Register in one step, then your dashboard
+              opens.
             </p>
           </div>
 

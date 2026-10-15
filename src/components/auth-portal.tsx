@@ -2,27 +2,60 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { notifyError, notifySuccess } from "@/lib/swal";
 
+function passwordHint(password: string) {
+  if (!password) return "";
+  const parts: string[] = [];
+  if (password.length < 8) parts.push("8+ characters");
+  if (!/[A-Za-z]/.test(password)) parts.push("a letter");
+  if (!/[0-9]/.test(password)) parts.push("a number");
+  return parts.length ? `Need: ${parts.join(", ")}` : "Strong enough";
+}
+
 export function AuthPortal({ nextPath }: { nextPath: string }) {
   const router = useRouter();
-  const [mode, setMode] = useState<"login" | "register">("register");
+  const [mode, setMode] = useState<"login" | "register">("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [csrf, setCsrf] = useState("");
+
+  async function loadCsrf() {
+    try {
+      const res = await fetch("/api/auth/csrf", { method: "GET", credentials: "same-origin" });
+      const data = (await res.json()) as { token?: string };
+      if (data.token) setCsrf(data.token);
+    } catch {
+      /* ignore — submit will fail closed */
+    }
+  }
+
+  useEffect(() => {
+    void loadCsrf();
+  }, []);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
+    if (!csrf) {
+      await loadCsrf();
+      await notifyError("Security check", "Refresh once, then try again.");
+      return;
+    }
     setBusy(true);
     try {
       const response = await fetch(mode === "login" ? "/api/auth/login" : "/api/auth/register", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
+        headers: {
+          "content-type": "application/json",
+          "x-csrf-token": csrf,
+        },
         body: JSON.stringify(
           mode === "login" ? { email, password } : { name, email, phone, password },
         ),
@@ -30,6 +63,8 @@ export function AuthPortal({ nextPath }: { nextPath: string }) {
       const data = await response.json();
       if (!response.ok) {
         setBusy(false);
+        // Rotate CSRF after failures so retries stay valid.
+        void loadCsrf();
         await notifyError(
           mode === "login" ? "Login failed" : "Registration failed",
           data.error?.message ?? "Could not continue.",
@@ -38,28 +73,55 @@ export function AuthPortal({ nextPath }: { nextPath: string }) {
       }
       setBusy(false);
       await notifySuccess(
-        mode === "login" ? "Welcome back" : "Account created",
-        "Opening your dashboard…",
+        mode === "login" ? "Welcome back" : "Account ready",
+        "Opening your secure dashboard…",
       );
       router.replace(nextPath || "/account");
       router.refresh();
     } catch {
       setBusy(false);
+      void loadCsrf();
       await notifyError("Something went wrong", "Could not continue. Try again.");
     }
   }
 
+  const hint = mode === "register" ? passwordHint(password) : "";
+
   return (
     <div className="w-full">
-      <div className="mb-8">
-        <h1 className="text-[2rem] font-semibold tracking-tight text-white sm:text-[2.35rem]">
-          {mode === "login" ? "Welcome back" : "Create your account"}
+      <div className="mb-7">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/40">
+          Secure access
+        </p>
+        <h1 className="mt-2 text-[2rem] font-semibold tracking-tight text-white sm:text-[2.35rem]">
+          {mode === "login" ? "Log in securely" : "Create a secure account"}
         </h1>
         <p className="mt-2 text-base leading-relaxed text-white/55">
           {mode === "login"
-            ? "Log in to open your dashboard and continue a purchase."
-            : "One account for notes, deposits, and your voucher codes."}
+            ? "Protected login — rate limited, CSRF checked, httpOnly session."
+            : "Use a strong password (8+ chars, letter + number). Then your dashboard opens."}
         </p>
+      </div>
+
+      <div className="mb-6 grid grid-cols-2 gap-1 rounded-full border border-white/12 bg-[#111] p-1">
+        <button
+          type="button"
+          onClick={() => setMode("login")}
+          className={`h-10 rounded-full text-sm font-semibold transition ${
+            mode === "login" ? "bg-white text-black" : "text-white/55 hover:text-white"
+          }`}
+        >
+          Log in
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("register")}
+          className={`h-10 rounded-full text-sm font-semibold transition ${
+            mode === "register" ? "bg-white text-black" : "text-white/55 hover:text-white"
+          }`}
+        >
+          Register
+        </button>
       </div>
 
       <form className="space-y-4" onSubmit={submit} noValidate>
@@ -107,10 +169,13 @@ export function AuthPortal({ nextPath }: { nextPath: string }) {
               type={showPassword ? "text" : "password"}
               autoComplete={mode === "login" ? "current-password" : "new-password"}
               required
-              minLength={6}
+              minLength={mode === "register" ? 8 : 1}
+              maxLength={128}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder={mode === "register" ? "At least 6 characters" : "Your password"}
+              placeholder={
+                mode === "register" ? "8+ characters, letter + number" : "Your password"
+              }
               className="h-12 w-full rounded-xl border border-white/12 bg-[#111] px-4 pr-20 text-base text-white outline-none transition placeholder:text-white/30 focus:border-white/40 focus:bg-[#141414]"
             />
             <button
@@ -121,15 +186,30 @@ export function AuthPortal({ nextPath }: { nextPath: string }) {
               {showPassword ? "Hide" : "Show"}
             </button>
           </div>
+          {hint ? (
+            <p
+              className={`mt-1.5 text-xs ${
+                hint === "Strong enough" ? "text-[#9fe870]/80" : "text-white/40"
+              }`}
+            >
+              {hint}
+            </p>
+          ) : null}
         </label>
 
         <Button
           type="submit"
           className="mt-2 h-12 w-full text-base font-semibold"
-          disabled={busy}
+          disabled={busy || !csrf}
           aria-busy={busy}
         >
-          {busy ? "Working…" : mode === "login" ? "Log in to dashboard" : "Create account"}
+          {busy
+            ? "Checking…"
+            : !csrf
+              ? "Preparing secure form…"
+              : mode === "login"
+                ? "Log in → dashboard"
+                : "Create account → dashboard"}
         </Button>
       </form>
 
@@ -142,7 +222,7 @@ export function AuthPortal({ nextPath }: { nextPath: string }) {
               onClick={() => setMode("register")}
               className="font-semibold text-white underline decoration-white/30 underline-offset-4 hover:decoration-white"
             >
-              Create an account
+              Register
             </button>
           </>
         ) : (
@@ -160,7 +240,7 @@ export function AuthPortal({ nextPath }: { nextPath: string }) {
       </p>
 
       <p className="mt-8 text-center text-xs leading-relaxed text-white/35">
-        By continuing you agree to our{" "}
+        CSRF + rate limits + httpOnly cookies. By continuing you agree to our{" "}
         <Link href="/legal/terms" className="text-white/55 underline underline-offset-2">
           Terms
         </Link>{" "}

@@ -44,7 +44,9 @@ export function BuyGate({
           } catch {
             /* ignore */
           }
-          router.push("/auth?next=/account");
+          // Login first — after auth, land on checkout (or account if path is odd).
+          const next = href.startsWith("/") ? href : "/account";
+          router.push(`/auth?next=${encodeURIComponent(next)}`);
           return;
         }
         router.push(href);

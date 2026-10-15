@@ -503,7 +503,7 @@ export function VoucherDesk({
                 } catch {
                   /* ignore */
                 }
-                router.push("/auth?next=/account");
+                router.push(`/auth?next=${encodeURIComponent(href)}`);
                 return;
               }
               router.push(href);

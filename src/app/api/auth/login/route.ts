@@ -1,29 +1,57 @@
 import { cookies } from "next/headers";
-import { signUserSession } from "@/lib/auth";
+import { assertCsrf } from "@/lib/csrf";
 import { DeskError, toErrorResponse } from "@/lib/errors";
 import { assertSameOrigin, noStore, readJson } from "@/lib/http";
 import { clientIp, limit } from "@/lib/limit";
 import { userLoginSchema } from "@/lib/schemas";
+import { setUserSessionCookie } from "@/lib/user-session";
 import { authenticateUser } from "@/lib/users";
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function POST(req: Request) {
+  const started = Date.now();
   try {
     assertSameOrigin(req);
-    if (!limit(`user-login:${clientIp(req)}`, 3, 10 * 60_000)) {
-      throw new DeskError("RATE_LIMITED", "Max 3 login attempts. Wait a few minutes.");
+    assertCsrf(req);
+
+    const contentType = req.headers.get("content-type") ?? "";
+    if (!contentType.includes("application/json")) {
+      throw new DeskError("BAD_INPUT", "Send the form as JSON");
     }
-    const body = userLoginSchema.parse(await readJson(req));
+
+    const body = userLoginSchema.parse(await readJson(req, 8_000));
+    const emailKey = body.email.trim().toLowerCase();
+    const ip = clientIp(req);
+
+    if (!limit(`user-login-ip:${ip}`, 5, 15 * 60_000)) {
+      throw new DeskError(
+        "RATE_LIMITED",
+        "Too many login attempts from this network. Wait 15 minutes.",
+      );
+    }
+    if (!limit(`user-login-email:${emailKey}`, 3, 15 * 60_000)) {
+      throw new DeskError(
+        "RATE_LIMITED",
+        "Too many tries for this email. Wait 15 minutes, then try again.",
+      );
+    }
+
     const user = await authenticateUser(body.email, body.password);
     const jar = await cookies();
-    jar.set("icash_user", signUserSession(user.id), {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 30 * 24 * 60 * 60,
-    });
+    setUserSessionCookie(jar, user.id);
+
+    // Floor response time so success/fail look similar.
+    const elapsed = Date.now() - started;
+    if (elapsed < 400) await sleep(400 - elapsed);
+
     return Response.json({ user }, { headers: noStore });
   } catch (error) {
+    const elapsed = Date.now() - started;
+    // Slow failed attempts (brute-force friction) without blocking the event loop forever.
+    if (elapsed < 700) await sleep(700 - elapsed);
     return toErrorResponse(error);
   }
 }

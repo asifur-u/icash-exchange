@@ -19,7 +19,7 @@ export function LogoutButton({ className }: { className?: string }) {
         router.refresh();
       }}
       className={cn(
-        "inline-flex h-11 w-full items-center justify-center rounded-full border border-white/25 px-6 text-sm font-semibold text-white disabled:opacity-50",
+        "inline-flex h-11 w-full items-center justify-center rounded-full border border-white/12 px-6 text-sm font-medium text-white/70 transition hover:border-white/25 hover:text-white disabled:opacity-50",
         className,
       )}
     >
