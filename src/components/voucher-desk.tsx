@@ -167,7 +167,7 @@ export function VoucherDesk({
 
   const href = useMemo(() => {
     if (!selected || selected.stock < 1) return "/catalog";
-    return `/checkout?product=${selected.slug}&qty=${quantity}`;
+    return `/account/checkout?product=${selected.slug}&qty=${quantity}`;
   }, [selected, quantity]);
 
   function pickCurrency(code: DeskCurrency) {

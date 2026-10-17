@@ -427,6 +427,21 @@ html.account-light-root .grain {
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
+@media (max-width: 639px) {
+  .account-light .al-btn {
+    flex: 1 1 auto;
+    min-width: calc(50% - 0.35rem);
+  }
+
+  .account-light .al-stat {
+    padding: 0.75rem 0.85rem;
+  }
+
+  .account-light .al-card {
+    border-radius: 1.1rem;
+  }
+}
+
 .account-light .al-btn-primary {
   background: var(--al-accent);
   color: #fff !important;
@@ -466,15 +481,6 @@ html.account-light-root .grain {
   border: 1px solid var(--al-line);
   background: #fff;
   padding: 0.85rem 1rem;
-}
-
-.account-light .al-nav a {
-  color: var(--al-muted) !important;
-}
-
-.account-light .al-nav a[aria-current="page"] {
-  background: #18181b !important;
-  color: #fff !important;
 }
 
 .account-light .al-nav a:hover:not([aria-current="page"]) {

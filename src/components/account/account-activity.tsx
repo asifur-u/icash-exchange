@@ -23,7 +23,7 @@ export function AccountActivity({ orders }: { orders: AccountOrder[] }) {
         at: order.createdAt,
         title: "Order created",
         body: `${order.number} · ${order.title}`,
-        href: `/orders/${order.id}?t=${order.token}`,
+        href: `/account/orders/${order.id}?t=${order.token}`,
         tone: "neutral",
       });
       if (order.proofSubmittedAt) {
@@ -32,7 +32,7 @@ export function AccountActivity({ orders }: { orders: AccountOrder[] }) {
           at: order.proofSubmittedAt,
           title: "Deposit proof submitted",
           body: `${order.number} · waiting on the desk`,
-          href: `/orders/${order.id}?t=${order.token}`,
+          href: `/account/orders/${order.id}?t=${order.token}`,
           tone: "warn",
         });
       }
@@ -42,7 +42,7 @@ export function AccountActivity({ orders }: { orders: AccountOrder[] }) {
           at: order.proofSubmittedAt ?? order.createdAt,
           title: "In review",
           body: `${order.number} · owner is matching your payment`,
-          href: `/orders/${order.id}?t=${order.token}`,
+          href: `/account/orders/${order.id}?t=${order.token}`,
           tone: "warn",
         });
       }
@@ -52,7 +52,7 @@ export function AccountActivity({ orders }: { orders: AccountOrder[] }) {
           at: order.deliveredAt ?? order.createdAt,
           title: "Code delivered",
           body: `${order.number} · open the order to copy`,
-          href: `/orders/${order.id}?t=${order.token}`,
+          href: `/account/orders/${order.id}?t=${order.token}`,
           tone: "ok",
         });
       }
@@ -62,7 +62,7 @@ export function AccountActivity({ orders }: { orders: AccountOrder[] }) {
           at: order.createdAt,
           title: order.status === "REFUNDED" ? "Order refunded" : "Order failed",
           body: `${order.number} · ${order.title}`,
-          href: `/orders/${order.id}?t=${order.token}`,
+          href: `/account/orders/${order.id}?t=${order.token}`,
           tone: "neutral",
         });
       }

@@ -67,7 +67,7 @@ export function AccountOverview({
         body: current
           ? t("account.loyaltyRate", { pct: current.bonusPercent })
           : t("account.startClimbingBody"),
-        href: "/explore",
+        href: "/account#loyalty",
         cta: t("account.seeLadder"),
         tint: "#52525b",
       },
@@ -85,8 +85,8 @@ export function AccountOverview({
       {
         title: t("account.feeTitle"),
         body: t("account.feeBody"),
-        href: "/#desk",
-        cta: t("account.openDeskCta"),
+        href: "/account/services",
+        cta: t("account.buyNotes"),
         tint: "#e11d2e",
       },
     ];
@@ -174,16 +174,16 @@ export function AccountOverview({
         </div>
 
         <div
-          className="flex flex-wrap gap-2.5 border-t px-4 py-4 sm:px-6 sm:py-5"
+          className="flex flex-wrap gap-2 border-t px-3 py-3.5 sm:gap-2.5 sm:px-6 sm:py-5"
           style={{ borderColor: "#e4e4e7" }}
         >
-          <Link href="/account/services" className="al-btn al-btn-primary">
+          <Link href="/account/services" className="al-btn al-btn-primary min-w-0 sm:min-w-0">
             {t("account.buyANote")}
           </Link>
-          <Link href="/account/orders" className="al-btn al-btn-ghost">
+          <Link href="/account/orders" className="al-btn al-btn-ghost min-w-0">
             {t("account.viewOrders")}
           </Link>
-          <Link href="/explore" className="al-btn al-btn-ghost">
+          <Link href="/account#loyalty" className="al-btn al-btn-ghost w-full sm:w-auto">
             {t("account.rewards")}
           </Link>
         </div>
@@ -198,12 +198,12 @@ export function AccountOverview({
           <h2 className="al-ink text-lg font-bold sm:text-xl">{t("account.offers")}</h2>
           <p className="al-muted mt-0.5 text-xs">{t("account.offersLead")}</p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {offers.map((offer) => (
             <Link
               key={offer.title}
               href={offer.href}
-              className="al-card block p-5 transition hover:shadow-md"
+              className="al-card block p-4 transition hover:shadow-md sm:p-5"
               style={{ borderTopWidth: 3, borderTopColor: offer.tint }}
             >
               <p className="al-ink text-sm font-bold">{offer.title}</p>
@@ -241,7 +241,7 @@ export function AccountOverview({
               return (
                 <Link
                   key={note.id}
-                  href={`/checkout?product=${note.slug}&qty=1`}
+                  href={`/account/checkout?product=${note.slug}&qty=1`}
                   className="rounded-2xl border p-5 transition hover:shadow-sm"
                   style={{ borderColor: "#e4e4e7", background: "#fafafa", color: "#09090b" }}
                 >
@@ -270,7 +270,7 @@ export function AccountOverview({
         )}
       </section>
 
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <section className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
         {[
           { href: "/account/services", title: t("account.buy"), body: t("account.pickNote") },
           { href: "/account/orders", title: t("account.orders"), body: t("account.trackStatus") },
@@ -281,9 +281,13 @@ export function AccountOverview({
           },
           { href: "/account/profile", title: t("account.profile"), body: t("account.namePhone") },
         ].map((item) => (
-          <Link key={item.href} href={item.href} className="al-card block px-4 py-4 hover:shadow-md">
+          <Link
+            key={item.href}
+            href={item.href}
+            className="al-card block px-3.5 py-3.5 hover:shadow-md sm:px-4 sm:py-4"
+          >
             <p className="al-ink text-sm font-bold">{item.title}</p>
-            <p className="al-muted mt-1 text-xs">{item.body}</p>
+            <p className="al-muted mt-1 text-xs leading-snug">{item.body}</p>
           </Link>
         ))}
       </section>
@@ -315,7 +319,7 @@ export function AccountOverview({
             {recent.map((order) => (
               <li key={order.id} style={{ borderTop: "1px solid #f4f4f5" }}>
                 <Link
-                  href={`/orders/${order.id}?t=${order.token}`}
+                  href={`/account/orders/${order.id}?t=${order.token}`}
                   className="flex items-center gap-3 px-5 py-4 transition hover:bg-[#fafafa] sm:px-6"
                 >
                   <span

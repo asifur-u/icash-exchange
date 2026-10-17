@@ -96,6 +96,8 @@ function safeNext(value: string | undefined) {
 }
 
 function safeResume(value: string | undefined) {
-  if (!value || !value.startsWith("/checkout") || value.startsWith("//")) return null;
-  return value;
+  if (!value || value.startsWith("//")) return null;
+  if (value.startsWith("/account/checkout")) return value;
+  if (value.startsWith("/checkout")) return `/account${value}`;
+  return null;
 }

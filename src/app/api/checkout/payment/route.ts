@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     );
     const origin = siteOrigin(req);
     return Response.json(
-      { orderUrl: `${origin}/orders/${result.orderId}?t=${result.token}` },
+      { orderUrl: `${origin}/account/orders/${result.orderId}?t=${result.token}` },
       { headers: noStore },
     );
   } catch (error) {
