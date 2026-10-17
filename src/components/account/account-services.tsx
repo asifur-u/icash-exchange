@@ -39,7 +39,7 @@ export function AccountServices({ products }: { products: ServiceProduct[] }) {
           return (
             <Link
               key={product.id}
-              href={available ? `/checkout?product=${product.slug}&qty=1` : "/account/services"}
+              href={available ? `/account/checkout?product=${product.slug}&qty=1` : "/account/services"}
               aria-disabled={!available}
               className={`group relative overflow-hidden rounded-[26px] border border-zinc-200 bg-white shadow-sm p-5 transition sm:p-6 ${
                 available ? "hover:border-zinc-300" : "pointer-events-none opacity-50"

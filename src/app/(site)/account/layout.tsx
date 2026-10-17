@@ -15,7 +15,7 @@ export default async function AccountLayout({ children }: { children: React.Reac
   if (!user) redirect("/auth?next=/account");
 
   return (
-    <section className="account-light relative min-h-[100dvh] overflow-hidden bg-[#f4f5f7] text-zinc-900">
+    <section className="account-light relative min-h-[100dvh] overflow-x-hidden bg-[#f4f5f7] text-zinc-900">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(55%_80%_at_10%_0%,rgba(255,45,45,0.08),transparent_60%),radial-gradient(40%_60%_at_90%_0%,rgba(14,165,233,0.06),transparent_55%)]"

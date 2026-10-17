@@ -27,10 +27,10 @@ export function AccountSupport() {
         <p className="mt-3 max-w-xl text-sm leading-relaxed text-zinc-500">{t("home.howLead")}</p>
         <div className="mt-6 flex flex-wrap gap-2.5">
           <Link
-            href="/faq"
+            href="/account/services"
             className="inline-flex h-11 items-center rounded-xl bg-[#ff2d2d] px-5 text-sm font-semibold text-white"
           >
-            {t("nav.faq")}
+            {t("account.buyANote")}
           </Link>
           <Link
             href="/account/orders"

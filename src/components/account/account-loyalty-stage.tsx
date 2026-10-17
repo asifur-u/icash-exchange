@@ -44,7 +44,7 @@ export function AccountLoyaltyStage({
           : { label: t("account.supportStd"), detail: t("account.supportStdBody") };
 
   return (
-    <section className="al-card overflow-hidden" style={{ color: "#09090b" }}>
+    <section id="loyalty" className="al-card scroll-mt-24 overflow-hidden" style={{ color: "#09090b" }}>
       <div className="border-b px-5 py-5 sm:px-7 sm:py-6" style={{ borderColor: "#e4e4e7" }}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -106,7 +106,7 @@ export function AccountLoyaltyStage({
                 <div key={stage.id} className="flex flex-1 items-center">
                   <div className="flex min-w-0 flex-col items-center gap-2">
                     <div
-                      className="flex h-11 w-11 items-center justify-center rounded-full text-[10px] font-bold sm:h-12 sm:w-12 sm:text-xs"
+                      className="flex h-9 w-9 items-center justify-center rounded-full text-[9px] font-bold sm:h-12 sm:w-12 sm:text-xs"
                       style={{
                         background: unlocked ? stage.accent : "#f4f4f5",
                         color: unlocked ? "#111" : "#a1a1aa",
@@ -114,10 +114,10 @@ export function AccountLoyaltyStage({
                         boxShadow: isCurrent ? `0 0 0 3px ${stage.accent}55` : "none",
                       }}
                     >
-                      {stage.name.slice(0, isCurrent ? 3 : 1)}
+                      {stage.name.slice(0, 1)}
                     </div>
                     <p
-                      className="truncate text-[10px] font-semibold sm:text-xs"
+                      className="max-w-[3.4rem] truncate text-[9px] font-semibold sm:max-w-none sm:text-xs"
                       style={{
                         color: isCurrent ? "#09090b" : unlocked ? "#52525b" : "#d4d4d8",
                       }}
@@ -202,8 +202,8 @@ export function AccountLoyaltyStage({
               <p className="al-muted mt-1 text-sm">{t("account.diamondGiftBody")}</p>
             </>
           )}
-          <Link href="/explore" className="al-accent mt-3 inline-flex text-sm font-semibold">
-            {t("account.fullLadder")}
+          <Link href="/account/services" className="al-accent mt-3 inline-flex text-sm font-semibold">
+            {t("account.buyNotes")}
           </Link>
         </div>
       </div>

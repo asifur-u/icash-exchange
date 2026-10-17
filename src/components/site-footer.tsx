@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { BrandLogo } from "@/components/brand-logo";
 import { Frame } from "@/components/frame";
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -8,6 +9,8 @@ import { useT } from "@/i18n/provider";
 
 export function SiteFooter() {
   const t = useT();
+  const pathname = usePathname();
+  if (pathname.startsWith("/account")) return null;
 
   return (
     <footer className="border-t border-white/10">

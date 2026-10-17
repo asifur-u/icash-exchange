@@ -20,7 +20,7 @@ export function Purchase({ products }: { products: PublicProduct[] }) {
 
   const href = useMemo(() => {
     if (!selected || selected.stock < 1) return "/catalog";
-    return `/checkout?product=${selected.slug}&qty=${Math.min(quantity, max)}`;
+    return `/account/checkout?product=${selected.slug}&qty=${Math.min(quantity, max)}`;
   }, [selected, quantity, max]);
 
   if (!selected) {

@@ -7,7 +7,10 @@ import { useT } from "@/i18n/provider";
 function readPendingBuy() {
   try {
     const pending = sessionStorage.getItem("icash_pending_buy");
-    return pending?.startsWith("/checkout") ? pending : null;
+    if (!pending) return null;
+    if (pending.startsWith("/account/checkout")) return pending;
+    if (pending.startsWith("/checkout")) return `/account${pending}`;
+    return null;
   } catch {
     return null;
   }

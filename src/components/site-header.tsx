@@ -23,6 +23,7 @@ export function SiteHeader({ initialLoggedIn = false }: { initialLoggedIn?: bool
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [loggedIn, setLoggedIn] = useState(initialLoggedIn);
+  const onAccount = pathname.startsWith("/account");
 
   const links = [
     { href: "/catalog", label: t("nav.catalog") },
@@ -60,6 +61,9 @@ export function SiteHeader({ initialLoggedIn = false }: { initialLoggedIn?: bool
   const accountHref = loggedIn ? "/account" : "/auth?next=/account";
   const accountLabel = loggedIn ? t("nav.dashboard") : t("nav.login");
   const ctaLabel = loggedIn ? t("nav.buyNote") : t("nav.getCode");
+
+  // Account portal has its own responsive chrome — hide marketing header there.
+  if (onAccount) return null;
 
   return (
     <header className="absolute inset-x-0 top-0 z-40 pt-[env(safe-area-inset-top)]">

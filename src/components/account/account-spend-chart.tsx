@@ -58,12 +58,12 @@ export function AccountSpendChart({ orders }: { orders: AccountOrder[] }) {
         </div>
       </div>
 
-      <div className="flex h-48 items-end gap-2 px-4 pb-3 pt-6 sm:h-56 sm:gap-3 sm:px-6">
+      <div className="flex h-44 items-end gap-1.5 px-3 pb-3 pt-5 sm:h-56 sm:gap-3 sm:px-6 sm:pt-6">
         {months.rows.map((row) => {
           const height = Math.max(row.total > 0 ? 12 : 4, (row.total / months.max) * 100);
           return (
-            <div key={row.key} className="flex h-full flex-1 flex-col items-center justify-end gap-2">
-              <p className="al-faint text-[10px] tabular-nums sm:text-xs">
+            <div key={row.key} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5 sm:gap-2">
+              <p className="al-faint max-w-full truncate text-[9px] tabular-nums sm:text-xs">
                 {row.total > 0 ? formatBdt(row.total).replace("BDT ", "") : "—"}
               </p>
               <div className="relative flex w-full flex-1 items-end">

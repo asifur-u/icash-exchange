@@ -48,9 +48,15 @@ export function AuthPortal({
 
   useEffect(() => {
     void loadCsrf();
-    if (resumePath?.startsWith("/checkout")) {
+    if (
+      resumePath?.startsWith("/checkout") ||
+      resumePath?.startsWith("/account/checkout")
+    ) {
       try {
-        sessionStorage.setItem("icash_pending_buy", resumePath);
+        const path = resumePath.startsWith("/checkout")
+          ? `/account${resumePath}`
+          : resumePath;
+        sessionStorage.setItem("icash_pending_buy", path);
       } catch {
         /* ignore */
       }

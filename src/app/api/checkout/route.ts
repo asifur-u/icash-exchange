@@ -30,7 +30,7 @@ export async function POST(req: Request) {
       {
         orderId: result.orderId,
         number: result.number,
-        paymentUrl: `${origin}/pay/${result.orderId}?t=${result.token}`,
+        paymentUrl: `${origin}/account/pay/${result.orderId}?t=${result.token}`,
       },
       { headers: noStore },
     );

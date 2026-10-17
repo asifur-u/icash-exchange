@@ -87,7 +87,7 @@ export function AccountOrders({ orders }: { orders: AccountOrder[] }) {
             {visible.map((order) => (
               <li key={order.id}>
                 <Link
-                  href={`/orders/${order.id}?t=${order.token}`}
+                  href={`/account/orders/${order.id}?t=${order.token}`}
                   className="flex flex-col gap-3 px-5 py-5 transition hover:bg-zinc-50 sm:flex-row sm:items-center sm:justify-between sm:px-6"
                 >
                   <div>
