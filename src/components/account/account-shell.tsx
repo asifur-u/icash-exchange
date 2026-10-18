@@ -193,11 +193,108 @@ export function AccountShell({ user, children }: { user: PublicUser; children: R
   }, [moreOpen]);
 
   return (
-    <div
-      className="mx-auto w-full max-w-[1240px] px-2.5 pb-[calc(5.75rem+env(safe-area-inset-bottom))] pt-[calc(4.25rem+env(safe-area-inset-top))] sm:px-5 sm:pb-24 sm:pt-[calc(4.75rem+env(safe-area-inset-top))] lg:px-8 lg:pb-10 lg:pt-8"
-      style={{ color: "#09090b" }}
-    >
-      {/* Mobile top bar — stay inside portal */}
+    <div className="min-h-[100dvh]" style={{ color: "#09090b" }}>
+      {/* Fixed full-height desktop sidebar */}
+      <aside
+        className="fixed inset-y-0 left-0 z-30 hidden w-[272px] flex-col border-r bg-white xl:w-[288px] lg:flex"
+        style={{ borderColor: "#e4e4e7" }}
+      >
+        <div className="border-b px-4 pb-4 pt-5" style={{ borderColor: "#f4f4f5" }}>
+          <Link
+            href="/account"
+            aria-label={t("account.dashboard")}
+            className="mb-4 inline-flex transition hover:opacity-90"
+          >
+            <BrandLogo size="sm" />
+          </Link>
+
+          <div
+            className="rounded-2xl px-3 py-3"
+            style={{
+              background: "linear-gradient(160deg, #fff5f5 0%, #fafafa 55%, #ffffff 100%)",
+              border: "1px solid #fee2e2",
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl text-sm font-bold"
+                style={{
+                  background: "linear-gradient(145deg, #e11d2e, #9f1239)",
+                  color: "#fff",
+                  boxShadow: "0 8px 18px rgba(225,29,46,0.28)",
+                }}
+              >
+                {user.avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  initial
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold text-zinc-900">{user.name}</p>
+                <p className="mt-0.5 truncate text-xs text-zinc-500">{user.email}</p>
+              </div>
+            </div>
+            <div className="mt-3 flex items-center justify-between gap-2">
+              <p className="text-[11px] font-semibold text-zinc-600">{t("account.deskMember")}</p>
+              <span
+                className="inline-flex h-6 items-center gap-1 rounded-full px-2.5 text-[10px] font-bold uppercase tracking-[0.12em]"
+                style={{ background: "#e11d2e", color: "#fff" }}
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden />
+                {t("account.live")}
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-3">
+            <LanguageSwitcher tone="light" className="w-full justify-center" />
+          </div>
+        </div>
+
+        <nav
+          className="al-nav min-h-0 flex-1 space-y-4 overflow-y-auto px-2.5 py-4"
+          aria-label={t("account.account")}
+        >
+          <div>
+            <p className="mb-1.5 px-2.5 text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400">
+              {t("account.main")}
+            </p>
+            <div className="space-y-0.5">
+              {primaryNav.map((item) => (
+                <SideLink key={item.href} item={item} pathname={pathname} />
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-1.5 px-2.5 text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400">
+              {t("account.account")}
+            </p>
+            <div className="space-y-0.5">
+              {secondaryNav.map((item) => (
+                <SideLink key={item.href} item={item} pathname={pathname} />
+              ))}
+            </div>
+          </div>
+        </nav>
+
+        <div
+          className="mt-auto space-y-2 border-t p-3"
+          style={{ borderColor: "#f4f4f5", paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+        >
+          <Link
+            href="/account/services"
+            className="al-btn al-btn-primary w-full shadow-[0_10px_24px_rgba(225,29,46,0.25)]"
+          >
+            {t("account.buyANote")}
+          </Link>
+          <LogoutButton className="!rounded-xl !border-[#e4e4e7] !text-[#52525b] hover:!bg-[#f4f4f5] hover:!text-[#09090b]" />
+        </div>
+      </aside>
+
+      {/* Mobile top bar */}
       <div
         className="fixed inset-x-0 top-0 z-40 border-b bg-white/95 backdrop-blur-md lg:hidden"
         style={{ borderColor: "#e4e4e7", paddingTop: "env(safe-area-inset-top)" }}
@@ -225,107 +322,9 @@ export function AccountShell({ user, children }: { user: PublicUser; children: R
         </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[272px_minmax(0,1fr)] lg:gap-7 xl:grid-cols-[280px_minmax(0,1fr)]">
-        {/* Desktop sidebar */}
-        <aside className="hidden lg:sticky lg:top-6 lg:block lg:self-start lg:max-h-[calc(100dvh-3rem)]">
-          <div
-            className="flex max-h-[calc(100dvh-3rem)] flex-col overflow-hidden rounded-[1.35rem] border bg-white shadow-[0_18px_50px_rgba(15,23,42,0.07)]"
-            style={{ borderColor: "#e4e4e7" }}
-          >
-            <div className="border-b px-4 pb-4 pt-5" style={{ borderColor: "#f4f4f5" }}>
-              <Link
-                href="/account"
-                aria-label={t("account.dashboard")}
-                className="mb-4 inline-flex transition hover:opacity-90"
-              >
-                <BrandLogo size="sm" />
-              </Link>
-
-              <div
-                className="rounded-2xl px-3 py-3"
-                style={{
-                  background: "linear-gradient(160deg, #fff5f5 0%, #fafafa 55%, #ffffff 100%)",
-                  border: "1px solid #fee2e2",
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl text-sm font-bold"
-                    style={{
-                      background: "linear-gradient(145deg, #e11d2e, #9f1239)",
-                      color: "#fff",
-                      boxShadow: "0 8px 18px rgba(225,29,46,0.28)",
-                    }}
-                  >
-                    {user.avatarUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" />
-                    ) : (
-                      initial
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold text-zinc-900">{user.name}</p>
-                    <p className="mt-0.5 truncate text-xs text-zinc-500">{user.email}</p>
-                  </div>
-                </div>
-                <div className="mt-3 flex items-center justify-between gap-2">
-                  <p className="text-[11px] font-semibold text-zinc-600">{t("account.deskMember")}</p>
-                  <span
-                    className="inline-flex h-6 items-center gap-1 rounded-full px-2.5 text-[10px] font-bold uppercase tracking-[0.12em]"
-                    style={{ background: "#e11d2e", color: "#fff" }}
-                  >
-                    <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden />
-                    {t("account.live")}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-3">
-                <LanguageSwitcher tone="light" className="w-full justify-center" />
-              </div>
-            </div>
-
-            <nav
-              className="al-nav min-h-0 flex-1 space-y-4 overflow-y-auto px-2.5 py-3"
-              aria-label={t("account.account")}
-            >
-              <div>
-                <p className="mb-1.5 px-2.5 text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400">
-                  {t("account.main")}
-                </p>
-                <div className="space-y-0.5">
-                  {primaryNav.map((item) => (
-                    <SideLink key={item.href} item={item} pathname={pathname} />
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <p className="mb-1.5 px-2.5 text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400">
-                  {t("account.account")}
-                </p>
-                <div className="space-y-0.5">
-                  {secondaryNav.map((item) => (
-                    <SideLink key={item.href} item={item} pathname={pathname} />
-                  ))}
-                </div>
-              </div>
-            </nav>
-
-            <div className="space-y-2 border-t p-3" style={{ borderColor: "#f4f4f5" }}>
-              <Link
-                href="/account/services"
-                className="al-btn al-btn-primary w-full shadow-[0_10px_24px_rgba(225,29,46,0.25)]"
-              >
-                {t("account.buyANote")}
-              </Link>
-              <LogoutButton className="!rounded-xl !border-[#e4e4e7] !text-[#52525b] hover:!bg-[#f4f4f5] hover:!text-[#09090b]" />
-            </div>
-          </div>
-        </aside>
-
-        <div className="min-w-0" style={{ color: "#09090b" }}>
+      {/* Main content */}
+      <div className="lg:pl-[272px] xl:pl-[288px]">
+        <div className="mx-auto w-full max-w-[1080px] px-2.5 pb-[calc(5.75rem+env(safe-area-inset-bottom))] pt-[calc(4.25rem+env(safe-area-inset-top))] sm:px-5 sm:pb-10 sm:pt-[calc(4.75rem+env(safe-area-inset-top))] lg:px-8 lg:pb-12 lg:pt-8">
           {children}
         </div>
       </div>
@@ -377,7 +376,6 @@ export function AccountShell({ user, children }: { user: PublicUser; children: R
         </div>
       </nav>
 
-      {/* Mobile more sheet */}
       {moreOpen ? (
         <div className="fixed inset-0 z-50 lg:hidden">
           <button
