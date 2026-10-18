@@ -32,6 +32,7 @@ export const bn: MessageTree = {
   },
   footer: {
     blurb: "ডিজিটাল ভাউচার ডেস্ক। নোট বেছে নিন, পেমেন্ট করুন, অর্ডার পেজে কোড পড়ুন।",
+    socialSoon: "{name} পেজ শিগগির আসছে",
   },
   hero: {
     everyDeposit: "প্রতিটি ডিপোজিটে",
