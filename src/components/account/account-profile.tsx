@@ -2,10 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useT } from "@/i18n/provider";
 import { notifyError, notifySuccess } from "@/lib/swal";
 import type { PublicUser } from "@/lib/users";
 
 export function AccountProfile({ user }: { user: PublicUser }) {
+  const t = useT();
   const router = useRouter();
   const [name, setName] = useState(user.name);
   const [phone, setPhone] = useState(user.phone);
@@ -94,25 +96,50 @@ export function AccountProfile({ user }: { user: PublicUser }) {
   const initial = (name || user.name).slice(0, 1).toUpperCase();
 
   return (
-    <div className="space-y-5">
-      <header className="rounded-[28px] border border-zinc-200 bg-white shadow-sm p-6 sm:p-8">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#ff2d2d]">Profile</p>
-        <h1 className="mt-2 display text-[clamp(2rem,6vw,3.2rem)] leading-[0.95]">
-          Update account.
-        </h1>
-        <p className="mt-3 max-w-xl text-sm leading-relaxed text-zinc-500">
-          Change your name, mobile, password, or photo anytime.
-        </p>
+    <div className="space-y-5 sm:space-y-6" style={{ color: "#09090b" }}>
+      <header className="al-card overflow-hidden">
+        <div className="relative overflow-hidden bg-[#0a0a0a] px-5 py-6 sm:px-7 sm:py-8">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 opacity-40"
+            style={{
+              background:
+                "radial-gradient(ellipse 60% 70% at 15% 0%, rgba(225,29,46,0.35), transparent 55%)",
+            }}
+          />
+          <div className="relative flex items-center gap-4">
+            <div
+              className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl text-xl font-bold text-white sm:h-20 sm:w-20"
+              style={{
+                background: "linear-gradient(145deg, #e11d2e, #9f1239)",
+                boxShadow: "0 12px 28px rgba(225,29,46,0.35)",
+              }}
+            >
+              {avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+              ) : (
+                initial
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#ff5a67]">
+                {t("account.profile")}
+              </p>
+              <h1 className="mt-1 truncate text-[clamp(1.6rem,4vw,2.4rem)] font-extrabold tracking-tight text-white">
+                {t("account.profileTitle")}
+              </h1>
+              <p className="mt-1 text-sm text-white/55">{t("account.profileLead")}</p>
+            </div>
+          </div>
+        </div>
       </header>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <form
-          onSubmit={saveProfile}
-          className="rounded-[26px] border border-zinc-200 bg-white shadow-sm p-5 sm:p-6"
-        >
-          <p className="text-sm font-semibold text-zinc-900">Account details</p>
+        <form onSubmit={saveProfile} className="al-card p-5 sm:p-6">
+          <p className="text-sm font-semibold text-zinc-900">{t("account.accountDetails")}</p>
           <label className="mt-5 block">
-            <span className="mb-1.5 block text-xs text-zinc-500">Full name</span>
+            <span className="mb-1.5 block text-xs text-zinc-500">{t("account.fullName")}</span>
             <input
               className="h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 outline-none focus:border-zinc-400"
               value={name}
@@ -121,7 +148,7 @@ export function AccountProfile({ user }: { user: PublicUser }) {
             />
           </label>
           <label className="mt-3 block">
-            <span className="mb-1.5 block text-xs text-zinc-500">Mobile</span>
+            <span className="mb-1.5 block text-xs text-zinc-500">{t("account.mobile")}</span>
             <input
               className="h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 outline-none focus:border-zinc-400"
               value={phone}
@@ -129,23 +156,22 @@ export function AccountProfile({ user }: { user: PublicUser }) {
               required
             />
           </label>
-          <p className="mt-3 text-xs text-zinc-400">Email is fixed: {user.email}</p>
+          <p className="mt-3 text-xs text-zinc-400">
+            {t("account.emailFixed", { email: user.email })}
+          </p>
           <button
             type="submit"
             disabled={busy === "profile"}
-            className="mt-5 inline-flex h-11 items-center rounded-xl bg-[#ff2d2d] px-5 text-sm font-semibold text-white disabled:opacity-60"
+            className="al-btn al-btn-primary mt-5 disabled:opacity-60"
           >
-            {busy === "profile" ? "Saving…" : "Save profile"}
+            {busy === "profile" ? t("account.saving") : t("account.saveProfile")}
           </button>
         </form>
 
-        <form
-          onSubmit={savePassword}
-          className="rounded-[26px] border border-zinc-200 bg-white shadow-sm p-5 sm:p-6"
-        >
-          <p className="text-sm font-semibold text-zinc-900">Change password</p>
+        <form onSubmit={savePassword} className="al-card p-5 sm:p-6">
+          <p className="text-sm font-semibold text-zinc-900">{t("account.changePassword")}</p>
           <label className="mt-5 block">
-            <span className="mb-1.5 block text-xs text-zinc-500">Current password</span>
+            <span className="mb-1.5 block text-xs text-zinc-500">{t("account.currentPassword")}</span>
             <input
               type="password"
               className="h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 outline-none focus:border-zinc-400"
@@ -155,7 +181,7 @@ export function AccountProfile({ user }: { user: PublicUser }) {
             />
           </label>
           <label className="mt-3 block">
-            <span className="mb-1.5 block text-xs text-zinc-500">New password</span>
+            <span className="mb-1.5 block text-xs text-zinc-500">{t("account.newPassword")}</span>
             <input
               type="password"
               className="h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 outline-none focus:border-zinc-400"
@@ -168,29 +194,32 @@ export function AccountProfile({ user }: { user: PublicUser }) {
           <button
             type="submit"
             disabled={busy === "password"}
-            className="mt-5 inline-flex h-11 items-center rounded-xl bg-[#ff2d2d] px-5 text-sm font-semibold text-white disabled:opacity-60"
+            className="al-btn al-btn-primary mt-5 disabled:opacity-60"
           >
-            {busy === "password" ? "Updating…" : "Update password"}
+            {busy === "password" ? t("account.updating") : t("account.updatePassword")}
           </button>
         </form>
 
-        <div className="rounded-[26px] border border-zinc-200 bg-white shadow-sm p-5 sm:p-6 lg:col-span-2">
-          <p className="text-sm font-semibold text-zinc-900">Avatar</p>
+        <div className="al-card p-5 sm:p-6 lg:col-span-2">
+          <p className="text-sm font-semibold text-zinc-900">{t("account.avatar")}</p>
           <div className="mt-5 flex flex-col gap-5 sm:flex-row sm:items-center">
-            <div className="relative h-20 w-20 overflow-hidden rounded-full border border-zinc-200 bg-zinc-100">
+            <div
+              className="relative h-20 w-20 overflow-hidden rounded-2xl border border-zinc-200"
+              style={{ background: "linear-gradient(145deg, #e11d2e, #9f1239)" }}
+            >
               {avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
               ) : (
-                <div className="flex h-full w-full items-center justify-center text-2xl font-semibold text-zinc-500">
+                <div className="flex h-full w-full items-center justify-center text-2xl font-semibold text-white">
                   {initial}
                 </div>
               )}
             </div>
             <div>
-              <p className="text-sm text-zinc-500">PNG, JPG or WebP under 2.5 MB.</p>
-              <label className="mt-3 inline-flex h-11 cursor-pointer items-center rounded-xl border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-800 transition hover:border-zinc-300 hover:bg-zinc-50">
-                {busy === "avatar" ? "Uploading…" : "Choose photo"}
+              <p className="text-sm text-zinc-500">{t("account.avatarHint")}</p>
+              <label className="al-btn al-btn-ghost mt-3 inline-flex cursor-pointer">
+                {busy === "avatar" ? t("account.uploading") : t("account.choosePhoto")}
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/webp"

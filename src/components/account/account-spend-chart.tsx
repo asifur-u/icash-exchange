@@ -37,8 +37,14 @@ export function AccountSpendChart({ orders }: { orders: AccountOrder[] }) {
       };
     });
     const max = Math.max(1, ...rows.map((r) => r.total));
-    return { rows, max, periodTotal: rows.reduce((s, r) => s + r.total, 0) };
+    const peak = rows.reduce(
+      (best, row) => (row.total > best.total ? row : best),
+      rows[0] ?? { key: "", label: "—", total: 0 },
+    );
+    return { rows, max, periodTotal: rows.reduce((s, r) => s + r.total, 0), peak };
   }, [orders, locale]);
+
+  const hasAny = months.periodTotal > 0;
 
   return (
     <section className="al-card overflow-hidden" style={{ color: "#09090b" }}>
@@ -47,40 +53,68 @@ export function AccountSpendChart({ orders }: { orders: AccountOrder[] }) {
         style={{ borderColor: "#e4e4e7" }}
       >
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: "#0284c7" }}>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#0284c7]">
             {t("account.spendChart")}
           </p>
           <h2 className="al-ink mt-1 text-xl font-extrabold sm:text-2xl">{t("account.last6")}</h2>
         </div>
-        <div className="text-right">
-          <p className="al-faint text-[10px] uppercase tracking-[0.12em]">{t("account.periodTotal")}</p>
-          <p className="al-ink text-lg font-bold tabular-nums">{formatBdt(months.periodTotal)}</p>
+        <div className="flex flex-wrap gap-4 text-right">
+          {hasAny ? (
+            <div>
+              <p className="al-faint text-[10px] uppercase tracking-[0.12em]">{t("account.peakMonth")}</p>
+              <p className="al-ink text-sm font-bold">
+                {months.peak.label} · {formatBdt(months.peak.total)}
+              </p>
+            </div>
+          ) : null}
+          <div>
+            <p className="al-faint text-[10px] uppercase tracking-[0.12em]">{t("account.periodTotal")}</p>
+            <p className="al-ink text-lg font-bold tabular-nums">{formatBdt(months.periodTotal)}</p>
+          </div>
         </div>
       </div>
 
-      <div className="flex h-44 items-end gap-1.5 px-3 pb-3 pt-5 sm:h-56 sm:gap-3 sm:px-6 sm:pt-6">
-        {months.rows.map((row) => {
-          const height = Math.max(row.total > 0 ? 12 : 4, (row.total / months.max) * 100);
-          return (
-            <div key={row.key} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5 sm:gap-2">
-              <p className="al-faint max-w-full truncate text-[9px] tabular-nums sm:text-xs">
-                {row.total > 0 ? formatBdt(row.total).replace("BDT ", "") : "—"}
-              </p>
-              <div className="relative flex w-full flex-1 items-end">
-                <div
-                  className="mx-auto w-full max-w-[48px] rounded-t-xl"
-                  style={{
-                    height: `${height}%`,
-                    background: "linear-gradient(180deg, #0ea5e9 0%, #e11d2e 120%)",
-                    opacity: row.total > 0 ? 1 : 0.25,
-                  }}
-                />
+      {!hasAny ? (
+        <div className="px-5 py-12 text-center sm:px-6">
+          <p className="al-muted text-sm">{t("account.noChartYet")}</p>
+        </div>
+      ) : (
+        <div className="flex h-48 items-end gap-1.5 px-3 pb-3 pt-5 sm:h-60 sm:gap-3 sm:px-6 sm:pt-6">
+          {months.rows.map((row) => {
+            const height = Math.max(row.total > 0 ? 14 : 5, (row.total / months.max) * 100);
+            const isPeak = row.key === months.peak.key && row.total > 0;
+            return (
+              <div
+                key={row.key}
+                className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5 sm:gap-2"
+              >
+                <p className="al-faint max-w-full truncate text-[9px] tabular-nums sm:text-xs">
+                  {row.total > 0 ? formatBdt(row.total).replace("BDT ", "") : "—"}
+                </p>
+                <div className="relative flex w-full flex-1 items-end">
+                  <div
+                    className="mx-auto w-full max-w-[52px] rounded-t-xl transition"
+                    style={{
+                      height: `${height}%`,
+                      background: isPeak
+                        ? "linear-gradient(180deg, #ff5a67 0%, #e11d2e 55%, #9f1239 100%)"
+                        : "linear-gradient(180deg, #38bdf8 0%, #0284c7 70%, #0c4a6e 120%)",
+                      opacity: row.total > 0 ? 1 : 0.22,
+                      boxShadow: isPeak ? "0 8px 20px rgba(225,29,46,0.28)" : "none",
+                    }}
+                  />
+                </div>
+                <p
+                  className="text-[11px] font-semibold"
+                  style={{ color: isPeak ? "#e11d2e" : "#71717a" }}
+                >
+                  {row.label}
+                </p>
               </div>
-              <p className="al-muted text-[11px] font-semibold">{row.label}</p>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }

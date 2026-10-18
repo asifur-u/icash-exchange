@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { formatWhen } from "@/lib/format";
 import type { AccountOrder } from "@/components/account/account-types";
+import { useT } from "@/i18n/provider";
+import { formatWhen } from "@/lib/format";
 
 type ActivityItem = {
   id: string;
@@ -15,13 +16,15 @@ type ActivityItem = {
 };
 
 export function AccountActivity({ orders }: { orders: AccountOrder[] }) {
+  const t = useT();
+
   const items = useMemo(() => {
     const rows: ActivityItem[] = [];
     for (const order of orders) {
       rows.push({
         id: `${order.id}-created`,
         at: order.createdAt,
-        title: "Order created",
+        title: t("account.actCreated"),
         body: `${order.number} · ${order.title}`,
         href: `/account/orders/${order.id}?t=${order.token}`,
         tone: "neutral",
@@ -30,8 +33,8 @@ export function AccountActivity({ orders }: { orders: AccountOrder[] }) {
         rows.push({
           id: `${order.id}-proof`,
           at: order.proofSubmittedAt,
-          title: "Deposit proof submitted",
-          body: `${order.number} · waiting on the desk`,
+          title: t("account.actProof"),
+          body: `${order.number} · ${t("account.actProofBody")}`,
           href: `/account/orders/${order.id}?t=${order.token}`,
           tone: "warn",
         });
@@ -40,8 +43,8 @@ export function AccountActivity({ orders }: { orders: AccountOrder[] }) {
         rows.push({
           id: `${order.id}-review`,
           at: order.proofSubmittedAt ?? order.createdAt,
-          title: "In review",
-          body: `${order.number} · owner is matching your payment`,
+          title: t("account.actReview"),
+          body: `${order.number} · ${t("account.actReviewBody")}`,
           href: `/account/orders/${order.id}?t=${order.token}`,
           tone: "warn",
         });
@@ -50,8 +53,8 @@ export function AccountActivity({ orders }: { orders: AccountOrder[] }) {
         rows.push({
           id: `${order.id}-delivered`,
           at: order.deliveredAt ?? order.createdAt,
-          title: "Code delivered",
-          body: `${order.number} · open the order to copy`,
+          title: t("account.actDelivered"),
+          body: `${order.number} · ${t("account.actDeliveredBody")}`,
           href: `/account/orders/${order.id}?t=${order.token}`,
           tone: "ok",
         });
@@ -60,7 +63,7 @@ export function AccountActivity({ orders }: { orders: AccountOrder[] }) {
         rows.push({
           id: `${order.id}-closed`,
           at: order.createdAt,
-          title: order.status === "REFUNDED" ? "Order refunded" : "Order failed",
+          title: order.status === "REFUNDED" ? t("account.actRefunded") : t("account.actFailed"),
           body: `${order.number} · ${order.title}`,
           href: `/account/orders/${order.id}?t=${order.token}`,
           tone: "neutral",
@@ -68,47 +71,46 @@ export function AccountActivity({ orders }: { orders: AccountOrder[] }) {
       }
     }
     return rows.sort((a, b) => +new Date(b.at) - +new Date(a.at));
-  }, [orders]);
+  }, [orders, t]);
 
   return (
-    <div className="space-y-5">
-      <header className="rounded-[28px] border border-zinc-200 bg-white shadow-sm p-6 sm:p-8">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#ff2d2d]">Activity</p>
-        <h1 className="mt-2 display text-[clamp(2rem,6vw,3.2rem)] leading-[0.95]">
-          Desk timeline.
+    <div className="space-y-5 sm:space-y-6" style={{ color: "#09090b" }}>
+      <header className="al-card p-5 sm:p-7">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#e11d2e]">
+          {t("account.activity")}
+        </p>
+        <h1 className="mt-2 text-[clamp(1.9rem,5vw,2.8rem)] font-extrabold tracking-tight text-zinc-900">
+          {t("account.activityTitle")}
         </h1>
-        <p className="mt-3 max-w-xl text-sm leading-relaxed text-zinc-500">
-          Created, proof submitted, reviewing, and delivered — in one feed.
+        <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-500 sm:text-base">
+          {t("account.activityLead")}
         </p>
       </header>
 
-      <section className="overflow-hidden rounded-[28px] border border-zinc-200 bg-white shadow-sm">
+      <section className="al-card overflow-hidden">
         {items.length === 0 ? (
-          <div className="px-6 py-12">
-            <p className="text-xl font-semibold">No activity yet.</p>
-            <p className="mt-2 text-sm text-zinc-500">Buy a note and your timeline starts here.</p>
-            <Link
-              href="/account/services"
-              className="mt-6 inline-flex h-11 items-center rounded-xl bg-[#ff2d2d] px-5 text-sm font-semibold text-white"
-            >
-              Open services
+          <div className="px-5 py-12 text-center sm:px-6">
+            <p className="text-lg font-bold text-zinc-900">{t("account.noActivityYet")}</p>
+            <p className="mt-2 text-sm text-zinc-500">{t("account.noActivityLead")}</p>
+            <Link href="/account/services" className="al-btn al-btn-primary mt-6 inline-flex">
+              {t("account.openServices")}
             </Link>
           </div>
         ) : (
-          <ul className="divide-y divide-zinc-100">
-            {items.map((item) => (
-              <li key={item.id}>
+          <ul>
+            {items.map((item, index) => (
+              <li key={item.id} style={{ borderTop: index === 0 ? undefined : "1px solid #f4f4f5" }}>
                 <Link
                   href={item.href}
-                  className="flex gap-4 px-5 py-4 transition hover:bg-zinc-50 sm:px-6"
+                  className="flex gap-4 px-5 py-4 transition hover:bg-[#fafafa] sm:px-6"
                 >
                   <span
-                    aria-hidden="true"
+                    aria-hidden
                     className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${
                       item.tone === "ok"
-                        ? "bg-[#9fe870]"
+                        ? "bg-emerald-500"
                         : item.tone === "warn"
-                          ? "bg-amber-300"
+                          ? "bg-amber-400"
                           : "bg-zinc-300"
                     }`}
                   />

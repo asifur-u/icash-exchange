@@ -1,81 +1,102 @@
 "use client";
 
 import Link from "next/link";
+import { AccountDeskConverter } from "@/components/account/account-desk-converter";
+import { useT } from "@/i18n/provider";
+import { deskPayTotal } from "@/lib/desk-fee";
 import { formatBdt } from "@/lib/format";
+import type { PublicProduct } from "@/lib/types";
 
-type ServiceProduct = {
-  id: string;
-  slug: string;
-  title: string;
-  blurb: string;
-  faceValue: number;
-  price: number;
-  stock: number;
-};
+const STEP_KEYS = [
+  { n: "01", title: "account.step1Title", body: "account.step1Body" },
+  { n: "02", title: "account.step2Title", body: "account.step2Body" },
+  { n: "03", title: "account.step3Title", body: "account.step3Body" },
+  { n: "04", title: "account.step4Title", body: "account.step4Body" },
+] as const;
 
-const steps = [
-  { n: "01", title: "Pick a note", body: "Choose the face value you need." },
-  { n: "02", title: "Send deposit", body: "Pay with bKash, Nagad, Rocket or bank." },
-  { n: "03", title: "Desk review", body: "Owner matches your TrxID + screenshot." },
-  { n: "04", title: "Read code", body: "Open the order and copy your voucher." },
-];
+export function AccountServices({ products }: { products: PublicProduct[] }) {
+  const t = useT();
 
-export function AccountServices({ products }: { products: ServiceProduct[] }) {
   return (
-    <div className="space-y-5">
-      <header className="rounded-[28px] border border-zinc-200 bg-white shadow-sm p-6 sm:p-8">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#ff2d2d]">Services</p>
-        <h1 className="mt-2 display text-[clamp(2rem,6vw,3.2rem)] leading-[0.95]">
-          Notes on the desk.
-        </h1>
-        <p className="mt-3 max-w-xl text-sm leading-relaxed text-zinc-500 sm:text-base">
-          Pick a value, reserve it, then send the deposit. Your order stays under Orders.
-        </p>
-      </header>
+    <div className="space-y-5 sm:space-y-6" style={{ color: "#09090b" }}>
+      {/* Notes — previous clean layout */}
+      <section className="al-card overflow-hidden">
+        <header className="border-b px-5 py-5 sm:px-7 sm:py-7" style={{ borderColor: "#e4e4e7" }}>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#e11d2e]">
+            {t("account.servicesEyebrow")}
+          </p>
+          <h1 className="mt-2 text-[clamp(1.9rem,5vw,2.8rem)] font-extrabold tracking-tight text-zinc-900">
+            {t("account.servicesTitle")}
+          </h1>
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-500 sm:text-base">
+            {t("account.servicesLead")}
+          </p>
+        </header>
 
-      <section className="grid gap-3 sm:grid-cols-2">
-        {products.map((product) => {
-          const available = product.stock > 0;
-          return (
-            <Link
-              key={product.id}
-              href={available ? `/account/checkout?product=${product.slug}&qty=1` : "/account/services"}
-              aria-disabled={!available}
-              className={`group relative overflow-hidden rounded-[26px] border border-zinc-200 bg-white shadow-sm p-5 transition sm:p-6 ${
-                available ? "hover:border-zinc-300" : "pointer-events-none opacity-50"
-              }`}
-            >
-              <div
-                aria-hidden="true"
-                className="absolute inset-y-0 left-0 w-1.5 bg-[#ff2d2d] opacity-80"
-              />
-              <p className="pl-2 text-[11px] uppercase tracking-[0.16em] text-zinc-400">
-                {available ? `${product.stock} ready` : "Sold out"}
-              </p>
-              <p className="mt-4 pl-2 display text-[clamp(2.2rem,6vw,3rem)] leading-none">
-                {formatBdt(product.faceValue)}
-              </p>
-              <p className="mt-2 pl-2 text-sm text-zinc-500">{product.blurb}</p>
-              <p className="mt-6 ml-2 inline-flex h-11 items-center rounded-xl bg-[#ff2d2d] px-5 text-sm font-semibold text-white transition group-hover:bg-[#e52424]">
-                {available ? "Buy this note" : "Unavailable"}
-              </p>
-            </Link>
-          );
-        })}
-      </section>
+        {products.length === 0 ? (
+          <div className="px-5 py-12 text-center sm:px-7">
+            <p className="text-sm text-zinc-500">{t("account.noStock")}</p>
+          </div>
+        ) : (
+          <div className="grid gap-3 p-4 sm:grid-cols-2 sm:gap-4 sm:p-5 lg:p-6">
+            {products.map((product) => {
+              const available = product.stock > 0;
+              const pay = deskPayTotal(product.price);
+              return (
+                <article
+                  key={product.id}
+                  className={`rounded-2xl border p-5 transition sm:p-6 ${
+                    available
+                      ? "border-zinc-200 bg-white hover:shadow-md"
+                      : "border-zinc-100 bg-zinc-50 opacity-55"
+                  }`}
+                >
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+                    {available ? t("account.ready", { n: product.stock }) : t("home.soldOut")}
+                  </p>
+                  <p className="mt-2 text-2xl font-extrabold tabular-nums tracking-tight text-zinc-900 sm:text-[1.75rem]">
+                    {formatBdt(product.faceValue)}
+                  </p>
+                  <p className="mt-1 text-xs font-medium text-zinc-400">
+                    {t("account.payIncl", { amount: formatBdt(pay) })}
+                  </p>
+                  <p className="mt-3 text-sm leading-relaxed text-zinc-500">{product.blurb}</p>
+                  {available ? (
+                    <Link
+                      href={`/account/checkout?product=${product.slug}&qty=1`}
+                      className="mt-5 inline-flex h-11 items-center justify-center rounded-xl bg-[#e11d2e] px-5 text-sm font-semibold text-white transition hover:bg-[#c41828]"
+                    >
+                      {t("account.buyThisNote")}
+                    </Link>
+                  ) : (
+                    <span className="mt-5 inline-flex h-11 items-center rounded-xl bg-zinc-200 px-5 text-sm font-semibold text-zinc-500">
+                      {t("desk.unavailable")}
+                    </span>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        )}
 
-      <section className="rounded-[28px] border border-zinc-200 bg-white shadow-sm p-5 sm:p-6">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-400">How it works</p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {steps.map((step) => (
-            <div key={step.n} className="rounded-2xl bg-zinc-50 px-4 py-4">
-              <p className="text-xs font-semibold text-[#ff2d2d]">{step.n}</p>
-              <p className="mt-2 text-sm font-semibold text-zinc-900">{step.title}</p>
-              <p className="mt-1 text-xs leading-relaxed text-zinc-500">{step.body}</p>
-            </div>
-          ))}
+        <div className="border-t px-5 py-5 sm:px-7 sm:py-6" style={{ borderColor: "#e4e4e7" }}>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+            {t("home.howEyebrow")}
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {STEP_KEYS.map((step) => (
+              <div key={step.n}>
+                <p className="text-xs font-semibold text-[#e11d2e]">{step.n}</p>
+                <p className="mt-1.5 text-sm font-semibold text-zinc-900">{t(step.title)}</p>
+                <p className="mt-1 text-xs leading-relaxed text-zinc-500">{t(step.body)}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
+
+      {/* Converter — separate section */}
+      <AccountDeskConverter products={products} />
     </div>
   );
 }
