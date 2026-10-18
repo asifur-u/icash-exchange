@@ -30,6 +30,7 @@ export const en = {
   },
   footer: {
     blurb: "Digital voucher desk. Choose a note, pay, and read the code on your order page.",
+    socialSoon: "{name} page coming soon",
   },
   hero: {
     everyDeposit: "Every deposit",
