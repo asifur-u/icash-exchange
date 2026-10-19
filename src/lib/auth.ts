@@ -59,7 +59,13 @@ export function verifyUserSession(token: string | undefined) {
   if (parts.length !== 4) return null;
   const [role, userId, exp, sig] = parts;
   if (!role || !userId || !exp || !sig) return null;
-  const expected = createHmac("sha256", getAuthSecret()).update(`${role}.${userId}.${exp}`).digest("base64url");
+  let expected: string;
+  try {
+    expected = createHmac("sha256", getAuthSecret()).update(`${role}.${userId}.${exp}`).digest("base64url");
+  } catch {
+    // Missing AUTH_SECRET in production — treat as logged out instead of crashing the page.
+    return null;
+  }
   if (role !== "user" || !same(sig, expected)) return null;
   if (Number(exp) <= Date.now()) return null;
   return userId;

@@ -149,7 +149,25 @@ export function releaseStale(db: Db, now = Date.now()) {
   }
 }
 
+function catalogFallbackProducts(): PublicProduct[] {
+  return CATALOG.map((item) => ({
+    id: `prd_${item.slug}`,
+    slug: item.slug,
+    title: item.title,
+    blurb: item.blurb,
+    faceValue: item.faceValue,
+    price: item.price,
+    stock: 0,
+  }));
+}
+
+function canUseEncryptedStore() {
+  if (process.env.NODE_ENV !== "production") return true;
+  return Boolean(process.env.CODE_ENCRYPTION_KEY);
+}
+
 export async function getPublicProducts() {
+  if (!canUseEncryptedStore()) return catalogFallbackProducts();
   return withStore((db) => {
     releaseStale(db);
     return db.products.filter((product) => product.active).map((product) => toPublic(db, product));
@@ -157,6 +175,9 @@ export async function getPublicProducts() {
 }
 
 export async function getPublicProduct(slug: string) {
+  if (!canUseEncryptedStore()) {
+    return catalogFallbackProducts().find((product) => product.slug === slug) ?? null;
+  }
   return withStore((db) => {
     releaseStale(db);
     const product = db.products.find((item) => item.slug === slug && item.active);
