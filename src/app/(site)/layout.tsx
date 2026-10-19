@@ -1,3 +1,4 @@
+import { DeploySetupBanner } from "@/components/deploy-setup-banner";
 import { MotionRoot } from "@/components/motion-root";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -10,6 +11,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
     <MotionRoot>
       <div className="grain" aria-hidden="true" />
       <div className="relative flex min-h-full flex-col">
+        <DeploySetupBanner />
         <SiteHeader initialLoggedIn={Boolean(user)} />
         <main id="main" className="flex-1">
           {children}

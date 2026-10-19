@@ -317,20 +317,23 @@ export async function getOrderForBuyer(orderId: string, token: string | undefine
 export async function getAdminSnapshot(): Promise<AdminSnapshot> {
   return withStore((db) => {
     releaseStale(db);
+    const products = db.products
+      .filter((product) => product.active)
+      .map((product) => ({
+        ...toPublic(db, product),
+        reserved: countCodes(db, product.id, "RESERVED"),
+        sold: countCodes(db, product.id, "SOLD"),
+        voided: countCodes(db, product.id, "VOID"),
+      }));
+
     return {
-      products: db.products
-        .filter((product) => product.active)
-        .map((product) => ({
-          ...toPublic(db, product),
-          reserved: countCodes(db, product.id, "RESERVED"),
-          sold: countCodes(db, product.id, "SOLD"),
-          voided: countCodes(db, product.id, "VOID"),
-        })),
+      products,
       orders: [...db.orders]
         .reverse()
-        .slice(0, 40)
+        .slice(0, 80)
         .map((order) => {
           const soldCodes = db.codes.filter((code) => code.orderId === order.id && code.status === "SOLD");
+          const product = db.products.find((p) => p.id === order.items[0]?.productId);
           return {
             id: order.id,
             number: order.number,
@@ -340,15 +343,26 @@ export async function getAdminSnapshot(): Promise<AdminSnapshot> {
             total: order.total,
             quantity: order.items[0]?.quantity ?? 0,
             title: productTitle(db, order),
+            faceValue: product?.faceValue,
             createdAt: order.createdAt,
+            paidAt: order.paidAt,
+            deliveredAt: order.deliveredAt,
             paymentMethod: order.paymentMethod,
+            paymentRef: order.paymentRef,
             transactionId: order.transactionId,
             hasProof: Boolean(order.proofFile),
             proofSubmittedAt: order.proofSubmittedAt,
             hasCodes: order.status === "DELIVERED" && soldCodes.length > 0,
           };
         }),
-      audit: [...db.audit].reverse().slice(0, 20),
+      audit: [...db.audit].reverse().slice(0, 120),
+      totals: {
+        orderCount: db.orders.length,
+        codeReady: db.codes.filter((c) => c.status === "AVAILABLE").length,
+        codeHeld: db.codes.filter((c) => c.status === "RESERVED").length,
+        codeSold: db.codes.filter((c) => c.status === "SOLD").length,
+        codeVoid: db.codes.filter((c) => c.status === "VOID").length,
+      },
     };
   });
 }

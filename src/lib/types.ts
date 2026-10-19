@@ -103,8 +103,12 @@ export type AdminSnapshot = {
     total: number;
     quantity: number;
     title: string;
+    faceValue?: number;
     createdAt: string;
+    paidAt?: string;
+    deliveredAt?: string;
     paymentMethod?: PaymentMethod;
+    paymentRef?: string;
     transactionId?: string;
     /** True when a screenshot exists — never expose the storage path/URL to the client. */
     hasProof: boolean;
@@ -113,6 +117,13 @@ export type AdminSnapshot = {
     hasCodes: boolean;
   }>;
   audit: Audit[];
+  totals: {
+    orderCount: number;
+    codeReady: number;
+    codeHeld: number;
+    codeSold: number;
+    codeVoid: number;
+  };
 };
 
 export type BuyerOrder = {

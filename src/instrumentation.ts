@@ -4,8 +4,17 @@ export async function register() {
   if (process.env.npm_lifecycle_event === "build") return;
 
   if (process.env.NODE_ENV === "production") {
-    const { assertProductionSecrets } = await import("@/lib/secrets");
-    assertProductionSecrets();
+    const { missingProductionSecrets, productionSecretsReady } = await import("@/lib/secrets");
+    const missing = missingProductionSecrets();
+    if (missing.length > 0 || !productionSecretsReady()) {
+      // Don't crash the whole runtime — pages show a setup banner instead.
+      console.error(
+        `[iCash] Production secrets missing or invalid: ${
+          missing.length ? missing.join(", ") : "CODE_ENCRYPTION_KEY invalid"
+        }. Set them in Vercel → Settings → Environment Variables, then redeploy.`,
+      );
+      return;
+    }
     return;
   }
 

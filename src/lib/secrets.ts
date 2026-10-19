@@ -108,12 +108,28 @@ export function ensureDevSecrets() {
   );
 }
 
-export function assertProductionSecrets() {
+export function missingProductionSecrets() {
+  if (process.env.NODE_ENV !== "production") return [] as string[];
   const required = ["CODE_ENCRYPTION_KEY", "AUTH_SECRET", "ADMIN_PASSWORD"];
   if (process.env.PAYMENT_MODE === "live") {
     required.push("PAYMENT_WEBHOOK_SECRET");
   }
-  const missing = required.filter((name) => !process.env[name]);
+  return required.filter((name) => !process.env[name]);
+}
+
+export function productionSecretsReady() {
+  const missing = missingProductionSecrets();
+  if (missing.length > 0) return false;
+  try {
+    decodeKey(process.env.CODE_ENCRYPTION_KEY ?? "");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function assertProductionSecrets() {
+  const missing = missingProductionSecrets();
   if (missing.length > 0) {
     throw new Error(`Missing production environment: ${missing.join(", ")}`);
   }
