@@ -1407,8 +1407,7 @@ export function AdminDashboard({
                         {order.email} · {formatWhen(order.createdAt)}
                       </p>
                     </div>
-                    {(order.status === "PAID" || order.status === "DELIVERED") &&
-                    order.status !== "REFUNDED" ? (
+                    {order.status === "PAID" || order.status === "DELIVERED" ? (
                       <ActionButton
                         disabled={pending}
                         onClick={() =>
