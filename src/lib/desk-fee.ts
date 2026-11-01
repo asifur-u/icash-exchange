@@ -11,6 +11,17 @@ export function deskPayTotal(voucherBdt: number) {
   return voucher + deskFeeAmount(voucher);
 }
 
+export function deskPayout(voucherBdt: number) {
+  const voucher = Math.max(0, Math.round(voucherBdt));
+  const fee = deskFeeAmount(voucher);
+  return {
+    voucher,
+    fee,
+    total: Math.max(0, voucher - fee),
+    feePercent: DESK_FEE_PERCENT,
+  };
+}
+
 export function deskBreakdown(voucherBdt: number) {
   const voucher = Math.max(0, Math.round(voucherBdt));
   const fee = deskFeeAmount(voucher);

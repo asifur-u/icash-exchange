@@ -81,7 +81,7 @@ function EventLetters({
 
 type CapPhase = "idle" | "toy" | "flip" | "letters" | "done";
 
-export function Hero() {
+export function Hero({ bare = false }: { bare?: boolean }) {
   const t = useT();
   const { locale } = useLocale();
   const EXTRA = t("hero.extra");
@@ -158,9 +158,7 @@ export function Hero() {
   const capOpen = phase !== "idle" && phase !== "toy";
   const showExtra = isBn || phase === "letters" || phase === "done";
 
-  return (
-    <section className="relative overflow-x-clip overflow-y-visible bg-black pb-14 pt-[calc(5.5rem+env(safe-area-inset-top))] sm:pb-24 sm:pt-36 md:pb-28 md:pt-40">
-      <Frame className="relative">
+  const poster = (
         <div className="min-w-0 max-w-2xl">
           {isBn ? (
             <h1 key="hero-bn" className="flex max-w-xl flex-col gap-2.5 sm:gap-3">
@@ -256,33 +254,41 @@ export function Hero() {
             {t("hero.support")}
           </motion.p>
 
-          <motion.div
-            className="mt-6 sm:mt-8"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.45 }}
-          >
-            <ButtonLink
-              href="#notes"
-              className="h-14 w-full gap-2.5 text-base font-semibold sm:h-16 sm:w-auto sm:min-w-[300px] sm:px-10 sm:text-lg"
+          {bare ? null : (
+            <motion.div
+              className="mt-6 sm:mt-8"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.45 }}
             >
-              {t("hero.cta")}
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 16 16"
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+              <ButtonLink
+                href="#buy"
+                className="h-14 w-full gap-2.5 text-base font-semibold sm:h-16 sm:w-auto sm:min-w-[300px] sm:px-10 sm:text-lg"
               >
-                <path d="M4.5 11.5l7-7M5.5 4.5h6v6" />
-              </svg>
-            </ButtonLink>
-          </motion.div>
+                {t("hero.cta")}
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 16 16"
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M4.5 11.5l7-7M5.5 4.5h6v6" />
+                </svg>
+              </ButtonLink>
+            </motion.div>
+          )}
         </div>
-      </Frame>
+  );
+
+  if (bare) return poster;
+
+  return (
+    <section className="relative overflow-x-clip overflow-y-visible bg-black pb-14 pt-[calc(5.5rem+env(safe-area-inset-top))] sm:pb-24 sm:pt-36 md:pb-28 md:pt-40">
+      <Frame className="relative">{poster}</Frame>
     </section>
   );
 }

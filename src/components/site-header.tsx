@@ -2,67 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 import { BrandLogo } from "@/components/brand-logo";
 import { Frame } from "@/components/frame";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { useT } from "@/i18n/provider";
 
-function isActive(pathname: string, href: string) {
-  if (href === "/catalog") return pathname.startsWith("/catalog");
-  if (href === "/order/note-1000") {
-    return pathname.startsWith("/order") || pathname.startsWith("/checkout") || pathname.startsWith("/pay");
-  }
-  if (href === "/explore") return pathname.startsWith("/explore");
-  if (href === "/faq") return pathname.startsWith("/faq");
-  return false;
-}
-
 export function SiteHeader({ initialLoggedIn = false }: { initialLoggedIn?: boolean }) {
   const t = useT();
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
-  const [loggedIn, setLoggedIn] = useState(initialLoggedIn);
   const onAccount = pathname.startsWith("/account");
+  const ctaLabel = initialLoggedIn ? t("nav.buyNote") : t("nav.getCode");
 
-  const links = [
-    { href: "/catalog", label: t("nav.catalog") },
-    { href: "/order/note-1000", label: t("nav.buy") },
-    { href: "/explore", label: t("nav.explore") },
-    { href: "/faq", label: t("nav.faq") },
-  ];
-
-  useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [open]);
-
-  useEffect(() => {
-    setLoggedIn(initialLoggedIn);
-  }, [initialLoggedIn]);
-
-  useEffect(() => {
-    let alive = true;
-    fetch("/api/auth/me")
-      .then((response) => response.json())
-      .then((data) => {
-        if (alive) setLoggedIn(Boolean(data.user));
-      })
-      .catch(() => {
-        if (alive) setLoggedIn(false);
-      });
-    return () => {
-      alive = false;
-    };
-  }, [pathname]);
-
-  const accountHref = loggedIn ? "/account" : "/auth?next=/account";
-  const accountLabel = loggedIn ? t("nav.dashboard") : t("nav.login");
-  const ctaLabel = loggedIn ? t("nav.buyNote") : t("nav.getCode");
-
-  // Account portal has its own responsive chrome — hide marketing header there.
   if (onAccount) return null;
 
   return (
@@ -73,120 +23,20 @@ export function SiteHeader({ initialLoggedIn = false }: { initialLoggedIn?: bool
       >
         {t("common.skip")}
       </a>
-      <Frame className="flex h-16 items-center justify-between gap-3 sm:h-20 md:h-24 md:gap-6">
-        <Link
-          href="/"
-          aria-label={t("common.brand")}
-          className="relative z-10 min-w-0 transition hover:opacity-90"
-        >
+      <Frame className="flex h-16 items-center justify-between gap-3 sm:h-20 md:h-24">
+        <Link href="/" aria-label={t("common.brand")} className="relative z-10 min-w-0 transition hover:opacity-90">
           <BrandLogo priority size="md" />
         </Link>
-
-        <nav className="hidden items-center gap-8 text-base text-white/70 lg:flex xl:gap-10">
-          {links.map((link) => {
-            const active = isActive(pathname, link.href);
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                aria-current={active ? "page" : undefined}
-                className={`transition hover:text-white ${active ? "font-semibold text-white" : ""}`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-          <Link
-            href={accountHref}
-            aria-current={
-              pathname.startsWith("/account") || pathname.startsWith("/auth") ? "page" : undefined
-            }
-            className={`transition hover:text-white ${
-              pathname.startsWith("/account") || pathname.startsWith("/auth")
-                ? "font-semibold text-white"
-                : ""
-            }`}
-          >
-            {accountLabel}
-          </Link>
+        <div className="flex items-center gap-2 sm:gap-3">
           <LanguageSwitcher />
-        </nav>
-
-        <div className="hidden items-center gap-3 md:flex">
-          <div className="lg:hidden">
-            <LanguageSwitcher />
-          </div>
           <Link
-            href={loggedIn ? "/order/note-1000" : "/auth?next=/account"}
-            className="inline-flex h-12 items-center rounded-full bg-white px-6 text-sm font-medium tracking-tight text-black transition hover:bg-white/85"
+            href="/#buy"
+            className="inline-flex h-11 items-center rounded-full bg-white px-4 text-sm font-semibold tracking-tight text-black transition hover:bg-white/85 sm:h-12 sm:px-6"
           >
             {ctaLabel}
           </Link>
         </div>
-
-        <div className="flex items-center gap-2 md:hidden">
-          <LanguageSwitcher />
-          <button
-            type="button"
-            aria-label={open ? t("nav.closeMenu") : t("nav.openMenu")}
-            aria-expanded={open}
-            onClick={() => setOpen((value) => !value)}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 text-white transition hover:bg-white/10"
-          >
-            <span className="sr-only">{t("nav.menu")}</span>
-            <span aria-hidden="true" className="relative block h-3.5 w-4">
-              <span
-                className={`absolute left-0 top-0 block h-0.5 w-full bg-white transition ${open ? "top-1.5 rotate-45" : ""}`}
-              />
-              <span
-                className={`absolute left-0 top-1.5 block h-0.5 w-full bg-white transition ${open ? "opacity-0" : ""}`}
-              />
-              <span
-                className={`absolute left-0 top-3 block h-0.5 w-full bg-white transition ${open ? "top-1.5 -rotate-45" : ""}`}
-              />
-            </span>
-          </button>
-        </div>
       </Frame>
-
-      {open ? (
-        <div className="fixed inset-0 z-30 bg-black/95 px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[calc(4.5rem+env(safe-area-inset-top))] md:hidden">
-          <nav className="mx-auto flex max-w-lg flex-col gap-2">
-            {links.map((link) => {
-              const active = isActive(pathname, link.href);
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  aria-current={active ? "page" : undefined}
-                  onClick={() => setOpen(false)}
-                  className={`rounded-2xl border px-5 py-4 text-lg transition ${
-                    active
-                      ? "border-white bg-white text-black"
-                      : "border-white/10 bg-white/[0.03] text-white/90 hover:border-white/25"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
-            <Link
-              href={accountHref}
-              onClick={() => setOpen(false)}
-              className="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 text-lg text-white/90"
-            >
-              {accountLabel}
-            </Link>
-            <Link
-              href={loggedIn ? "/order/note-1000" : "/auth?next=/account"}
-              onClick={() => setOpen(false)}
-              className="mt-4 inline-flex h-14 items-center justify-center rounded-full bg-white text-base font-medium text-black"
-            >
-              {ctaLabel}
-            </Link>
-          </nav>
-        </div>
-      ) : null}
     </header>
   );
 }
