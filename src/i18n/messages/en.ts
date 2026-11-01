@@ -33,11 +33,10 @@ export const en = {
     socialSoon: "{name} page coming soon",
   },
   hero: {
-    everyDeposit: "Every deposit",
-    extra: "5% EXTRA",
-    bonus: "Bonus",
-    support:
-      "Pick a note on the desk, send the deposit, and read your code when the desk confirms.",
+    everyDeposit: "Digital in",
+    extra: "TAKA OUT",
+    bonus: "Instant",
+    support: "Online money leaves as local taka. Nothing in the way. The fastest desk.",
     cta: "Buy iCash Voucher",
   },
   desk: {

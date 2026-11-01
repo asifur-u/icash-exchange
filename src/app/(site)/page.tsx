@@ -2,10 +2,8 @@ import type { Metadata } from "next";
 import { Hero } from "@/components/hero";
 import { HomeFaq } from "@/components/home-faq";
 import { HomeWhy } from "@/components/home-why";
-import { HowItWorks } from "@/components/how-it-works";
 import { Platforms } from "@/components/platforms";
 import { VoucherShowcase } from "@/components/voucher-showcase";
-import { getCurrentUser } from "@/lib/session";
 import { getPublicProducts } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
@@ -16,15 +14,14 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const [products, user] = await Promise.all([getPublicProducts(), getCurrentUser()]);
+  const products = await getPublicProducts();
 
   return (
     <>
-      <Hero products={products} loggedIn={Boolean(user)} />
+      <Hero />
       <VoucherShowcase products={products} />
       <Platforms />
       <HomeWhy />
-      <HowItWorks />
       <HomeFaq />
     </>
   );
