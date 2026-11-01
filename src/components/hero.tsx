@@ -3,10 +3,8 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Frame } from "@/components/frame";
-import { VoucherDesk } from "@/components/voucher-desk";
 import { ButtonLink } from "@/components/ui/button-link";
 import { useLocale, useT } from "@/i18n/provider";
-import type { PublicProduct } from "@/lib/types";
 
 function fitTopToMain(top: HTMLElement, target: number) {
   // Keep natural width — never stretch wider than EXTRA; only shrink if it overflows
@@ -83,7 +81,7 @@ function EventLetters({
 
 type CapPhase = "idle" | "toy" | "flip" | "letters" | "done";
 
-export function Hero({ products, loggedIn = false }: { products: PublicProduct[]; loggedIn?: boolean }) {
+export function Hero() {
   const t = useT();
   const { locale } = useLocale();
   const EXTRA = t("hero.extra");
@@ -162,7 +160,7 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
 
   return (
     <section className="relative overflow-x-clip overflow-y-visible bg-black pb-14 pt-[calc(5.5rem+env(safe-area-inset-top))] sm:pb-24 sm:pt-36 md:pb-28 md:pt-40">
-      <Frame className="relative grid items-center gap-12 sm:gap-14 lg:grid-cols-[1.05fr_1fr] lg:gap-16 xl:gap-24">
+      <Frame className="relative">
         <div className="min-w-0 max-w-2xl">
           {isBn ? (
             <h1 key="hero-bn" className="flex max-w-xl flex-col gap-2.5 sm:gap-3">
@@ -265,7 +263,7 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
             transition={{ duration: 0.5, delay: 0.45 }}
           >
             <ButtonLink
-              href="#desk"
+              href="#notes"
               className="h-14 w-full gap-2.5 text-base font-semibold sm:h-16 sm:w-auto sm:min-w-[300px] sm:px-10 sm:text-lg"
             >
               {t("hero.cta")}
@@ -284,15 +282,6 @@ export function Hero({ products, loggedIn = false }: { products: PublicProduct[]
             </ButtonLink>
           </motion.div>
         </div>
-
-        <motion.div
-          className="w-full min-w-0 justify-self-stretch lg:justify-self-end lg:max-w-[560px]"
-          initial={{ y: 28, opacity: 0.96 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.9, delay: 0.08 }}
-        >
-          <VoucherDesk products={products} loggedIn={loggedIn} />
-        </motion.div>
       </Frame>
     </section>
   );

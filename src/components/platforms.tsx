@@ -3,13 +3,9 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Frame } from "@/components/frame";
 import { useT } from "@/i18n/provider";
 import { platforms, type Platform } from "@/lib/platforms";
-
-gsap.registerPlugin(ScrollTrigger);
 
 const INTERVAL_MS = 3200;
 const RESUME_MS = 5000;
@@ -34,82 +30,11 @@ export function Platforms() {
   const [paused, setPaused] = useState(false);
   const [soft, setSoft] = useState(false);
   const resumeTimer = useRef<number | null>(null);
-  const stripRef = useRef<HTMLDivElement>(null);
-  const chipRefs = useRef<Array<HTMLButtonElement | null>>([]);
-  const bannerRef = useRef<HTMLDivElement>(null);
-  const sealRef = useRef<HTMLDivElement>(null);
   const count = platforms.length;
 
   useEffect(() => {
     setSoft(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }, []);
-
-  useEffect(() => {
-    if (soft || !bannerRef.current) return;
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: bannerRef.current,
-          start: "top 82%",
-          once: true,
-        },
-      });
-
-      tl.from(".partner-banner-glow", {
-        opacity: 0,
-        scale: 0.85,
-        duration: 1.1,
-        ease: "power3.out",
-      })
-        .from(
-          ".partner-banner-seal",
-          { scale: 0.4, opacity: 0, rotate: -18, duration: 0.7, ease: "back.out(1.7)" },
-          "-=0.7",
-        )
-        .from(
-          ".partner-banner-copy > *",
-          { y: 28, opacity: 0, stagger: 0.1, duration: 0.55, ease: "power2.out" },
-          "-=0.45",
-        )
-        .from(
-          ".partner-banner-link",
-          { y: 16, opacity: 0, duration: 0.45, ease: "power2.out" },
-          "-=0.2",
-        );
-
-      gsap.to(".partner-banner-orbit", {
-        rotate: 360,
-        duration: 18,
-        repeat: -1,
-        ease: "none",
-      });
-
-      gsap.to(".partner-banner-pulse", {
-        scale: 1.15,
-        opacity: 0.35,
-        duration: 1.8,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-      });
-    }, bannerRef);
-
-    return () => ctx.revert();
-  }, [soft]);
-
-  useEffect(() => {
-    if (soft || !sealRef.current) return;
-    const tween = gsap.to(sealRef.current, {
-      y: -6,
-      duration: 2.2,
-      repeat: -1,
-      yoyo: true,
-      ease: "sine.inOut",
-    });
-    return () => {
-      tween.kill();
-    };
-  }, [soft]);
 
   useEffect(() => {
     if (paused) return;
@@ -118,14 +43,6 @@ export function Platforms() {
     }, INTERVAL_MS);
     return () => window.clearInterval(id);
   }, [paused, count]);
-
-  useEffect(() => {
-    const chip = chipRefs.current[active];
-    const strip = stripRef.current;
-    if (!chip || !strip) return;
-    const target = chip.offsetLeft - strip.clientWidth / 2 + chip.offsetWidth / 2;
-    strip.scrollTo({ left: Math.max(0, target), behavior: soft ? "auto" : "smooth" });
-  }, [active, soft]);
 
   useEffect(() => {
     return () => {
@@ -155,80 +72,7 @@ export function Platforms() {
   return (
     <section id="partners" className="relative overflow-hidden bg-black py-16 sm:py-24 md:py-32">
       <Frame>
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="eyebrow">{t("home.partnersEyebrow")}</p>
-          <h2 className="mt-4 display text-[clamp(2.2rem,9vw,4.6rem)]">
-            {t("home.partnersTitle")} <span className="accent-red">icash.one</span>
-          </h2>
-          <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-white/50 sm:text-lg">
-            {t("home.partnersLead")}
-          </p>
-        </div>
-
-        <div
-          ref={bannerRef}
-          className="relative mx-auto mt-10 max-w-4xl overflow-hidden rounded-[28px] border border-white/15 bg-[#0c0c0c] sm:mt-14 sm:rounded-[34px]"
-        >
-          <div
-            aria-hidden="true"
-            className="partner-banner-glow pointer-events-none absolute -left-20 top-1/2 h-64 w-64 -translate-y-1/2 rounded-full bg-[#ff2d2d]/25 blur-3xl"
-          />
-          <div
-            aria-hidden="true"
-            className="partner-banner-glow pointer-events-none absolute -right-16 top-0 h-56 w-56 rounded-full bg-white/10 blur-3xl"
-          />
-          <div
-            aria-hidden="true"
-            className="partner-banner-orbit pointer-events-none absolute left-1/2 top-1/2 h-[140%] w-[140%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-white/10"
-          />
-
-          <div className="relative grid items-center gap-6 px-5 py-7 sm:grid-cols-[auto_1fr_auto] sm:gap-8 sm:px-8 sm:py-9">
-            <div ref={sealRef} className="partner-banner-seal relative mx-auto sm:mx-0">
-              <span
-                aria-hidden="true"
-                className="partner-banner-pulse absolute inset-[-8px] rounded-[28px] border border-[#da000f]/45"
-              />
-              <div className="relative flex h-[5.5rem] w-[11.5rem] flex-col items-center justify-center rounded-[24px] border border-white/20 bg-gradient-to-br from-[#1a1a1a] to-black px-4 py-3 shadow-[0_0_40px_rgba(218,0,15,0.28)] sm:h-[6.25rem] sm:w-[13rem]">
-                {/* Native img keeps official SVG crisp (Next/Image softens it). */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/brand/icash-one-wordmark.svg"
-                  alt="icash.one"
-                  width={150}
-                  height={29}
-                  className="h-7 w-[9.4rem] object-contain object-center sm:h-8 sm:w-[10.5rem]"
-                  draggable={false}
-                />
-                <p className="mt-2 text-[8px] font-bold uppercase tracking-[0.18em] text-[#da000f] sm:text-[9px]">
-                  {t("home.officialPartner")}
-                </p>
-              </div>
-            </div>
-
-            <div className="partner-banner-copy text-center sm:text-left">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/40">
-                {t("home.authorizationSeal")}
-              </p>
-              <h3 className="mt-2 text-[clamp(1.35rem,4vw,1.9rem)] font-semibold tracking-tight text-white">
-                {t("home.partnerHeading")}
-              </h3>
-              <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/50">
-                {t("home.partnerBody")}
-              </p>
-            </div>
-
-            <a
-              href="https://www.icash.one"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="partner-banner-link inline-flex h-12 items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-black transition hover:bg-white/90"
-            >
-              {t("home.visitIcash")}
-            </a>
-          </div>
-        </div>
-
-        <div className="relative mx-auto mt-12 max-w-5xl sm:mt-16">
+        <div className="relative mx-auto max-w-5xl">
           <p className="mb-6 text-center text-xs font-semibold uppercase tracking-[0.2em] text-white/35">
             {t("home.networkCollaborators")}
           </p>
@@ -327,49 +171,6 @@ export function Platforms() {
           </div>
         </div>
       </Frame>
-
-      <div className="relative mx-auto mt-12 max-w-5xl px-5 sm:mt-16">
-        <div
-          ref={stripRef}
-          className="flex flex-wrap justify-center gap-3"
-        >
-          {platforms.map((platform, index) => {
-            const selected = index === active;
-            return (
-              <button
-                key={platform.id}
-                type="button"
-                ref={(node) => {
-                  chipRefs.current[index] = node;
-                }}
-                onClick={() => pick(index)}
-                aria-pressed={selected}
-                className={`flex flex-col items-center gap-2.5 rounded-[22px] border px-4 py-4 transition ${
-                  platform.logo.includes("wordmark")
-                    ? "w-[168px] sm:w-[180px]"
-                    : "w-[148px] sm:w-[156px]"
-                } ${
-                  selected
-                    ? "border-white bg-white text-black"
-                    : "border-white/12 bg-black text-white hover:border-white/30"
-                }`}
-              >
-                <LogoTile src={platform.logo} alt="" size="sm" selected={selected} />
-                <span className="text-center">
-                  <span className="block text-sm font-semibold tracking-tight">{platform.label}</span>
-                  <span
-                    className={`mt-1 block text-[10px] uppercase tracking-[0.18em] ${
-                      selected ? "text-black/45" : "text-white/40"
-                    }`}
-                  >
-                    {roleLabel[platform.role]}
-                  </span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
 
       <Frame className="mt-16 sm:mt-20">
         <div className="mx-auto max-w-2xl text-center">
