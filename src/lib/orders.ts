@@ -24,15 +24,22 @@ function productTitle(db: Db, order: Order) {
 }
 
 export async function createCheckout(input: {
-  productSlug: string;
+  productSlug?: string;
+  amount?: number;
   quantity: number;
   email: string;
+  name?: string;
   phone?: string;
   userId?: string;
 }) {
   return withStore((db) => {
     releaseStale(db);
-    const product = requireProduct(db, input.productSlug);
+    const typed = input.amount && input.amount > 0 ? Math.round(input.amount) : 0;
+    const matched = typed
+      ? db.products.find((item) => item.active && item.faceValue === typed)
+      : undefined;
+    const product = matched ?? (input.productSlug ? requireProduct(db, input.productSlug) : undefined);
+    if (!product && !typed) throw new DeskError("BAD_INPUT", "Enter an amount");
     const email = input.email.toLowerCase();
     const pending = db.orders.filter((order) => {
       if (order.status !== "PENDING" && order.status !== "REVIEWING") return false;
@@ -43,10 +50,14 @@ export async function createCheckout(input: {
       throw new DeskError("TOO_MANY_PENDING", "Max 3 open requests at a time. Finish one, or wait 15 minutes.");
     }
 
-    const voucher = lineTotal(product.price, input.quantity);
+    const voucher = typed || lineTotal(product?.price ?? 0, input.quantity);
     const total = deskPayTotal(voucher);
     const orderId = `ord_${randomBytes(8).toString("hex")}`;
-    const codeIds = reserveIn(db, orderId, product.id, input.quantity);
+    const available = product
+      ? db.codes.filter((code) => code.productId === product.id && code.status === "AVAILABLE").length
+      : 0;
+    const canReserve = Boolean(product && product.faceValue === voucher && available >= input.quantity);
+    const codeIds = canReserve && product ? reserveIn(db, orderId, product.id, input.quantity) : [];
     const number = `IX-${String(db.nextNumber).padStart(4, "0")}`;
     db.nextNumber += 1;
 
@@ -59,14 +70,15 @@ export async function createCheckout(input: {
       items: [
         {
           id: `item_${randomBytes(4).toString("hex")}`,
-          productId: product.id,
-          quantity: input.quantity,
-          unitPrice: product.price,
+          productId: product?.id ?? "custom",
+          quantity: codeIds.length > 0 ? input.quantity : 0,
+          unitPrice: voucher,
         },
       ],
       codeIds,
       createdAt: new Date().toISOString(),
     };
+    if (input.name) order.name = input.name.trim();
     if (input.phone) order.phone = input.phone;
     if (input.userId) order.userId = input.userId;
     db.orders.push(order);
@@ -132,9 +144,8 @@ export async function approvePayment(orderId: string) {
     order.paymentRef = ref;
     addAudit(db, "admin", "order.approve", order.id);
   });
-  // Unlock codes for the desk. Owner copies and sends manually (use Resend if email needed).
-  const unlocked = await deliverOrder(orderId, { notify: false });
-  return { orderId, emailed: false, sms: false, codes: unlocked.codes };
+  const unlocked = await deliverOrder(orderId, { notify: true });
+  return { orderId, emailed: unlocked.email, sms: unlocked.sms, codes: unlocked.codes };
 }
 
 async function markPaid(orderId: string, paymentRef: string) {
@@ -177,6 +188,18 @@ export async function deliverOrder(orderId: string, options?: { notify?: boolean
 
     const expected = order.items.reduce((sum, item) => sum + item.quantity, 0);
     const codes = db.codes.filter((code) => code.orderId === order.id && code.status === "RESERVED");
+    if (expected === 0 && codes.length === 0) {
+      addAudit(db, "desk", "order.custom_amount", order.id);
+      return {
+        email: order.email,
+        phone: order.phone,
+        number: order.number,
+        title: productTitle(db, order),
+        total: order.total,
+        codes: [] as string[],
+        already: false as const,
+      };
+    }
     if (codes.length !== expected) {
       throw new DeskError("NO_CODES", "Reserved codes do not match this order");
     }
@@ -202,7 +225,7 @@ export async function deliverOrder(orderId: string, options?: { notify?: boolean
     };
   });
 
-  if (!notify || payload.already) {
+  if (!notify || payload.already || payload.codes.length === 0) {
     return { email: false, sms: false, codes: payload.codes };
   }
 
@@ -338,6 +361,7 @@ export async function getAdminSnapshot(): Promise<AdminSnapshot> {
             id: order.id,
             number: order.number,
             email: order.email,
+            name: order.name,
             phone: order.phone,
             status: order.status,
             total: order.total,

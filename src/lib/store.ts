@@ -29,6 +29,7 @@ function createSeed(): Db {
     products: [],
     codes: [],
     orders: [],
+    sells: [],
     audit: [],
     webhooks: [],
     nextNumber: 1042,
@@ -68,6 +69,7 @@ async function readDb(): Promise<Db> {
     if (!parsed || parsed.version !== 1 || !Array.isArray(parsed.products) || !Array.isArray(parsed.codes)) {
       throw new Error("The local desk file is damaged. Rename .data/store.json and restart.");
     }
+    if (!Array.isArray(parsed.sells)) parsed.sells = [];
     return parsed;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;

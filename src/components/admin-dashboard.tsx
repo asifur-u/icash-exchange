@@ -74,10 +74,27 @@ export type AdminDeskConfig = {
   }>;
 };
 
+export type DeskSale = {
+  id: string;
+  number: string;
+  name: string;
+  email: string;
+  phone: string;
+  faceValue: number;
+  payout: number;
+  method: string;
+  payoutNumber: string;
+  code: string;
+  status: string;
+  createdAt: string;
+};
+
 export function AdminDashboard({
   snapshot,
+  sells = [],
   desk,
 }: {
+  sells?: DeskSale[];
   snapshot: AdminSnapshot;
   desk: AdminDeskConfig;
 }) {
@@ -562,6 +579,44 @@ export function AdminDashboard({
             ))}
           </div>
 
+          {sells.some((sale) => sale.status === "OPEN") ? (
+            <div className="rounded-2xl border border-white/10 bg-[#0c0c0c] p-5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#e11d2e]">Sell</p>
+              <h2 className="mt-1 text-lg font-bold text-white">Voucher sales waiting</h2>
+              <ul className="mt-4 space-y-3">
+                {sells
+                  .filter((sale) => sale.status === "OPEN")
+                  .map((sale) => (
+                    <li key={sale.id} className="rounded-2xl border border-white/10 px-4 py-3">
+                      <p className="text-sm font-semibold text-white">
+                        {sale.number} · {sale.name} · {formatBdt(sale.payout)}
+                      </p>
+                      <p className="mt-1 text-xs text-white/45">
+                        {sale.email} · {sale.phone} · {sale.method.toUpperCase()} {sale.payoutNumber}
+                      </p>
+                      <p className="mt-2 font-mono text-sm text-white">{sale.code}</p>
+                      <button
+                        type="button"
+                        className="mt-3 h-9 rounded-full bg-white px-4 text-xs font-semibold text-black"
+                        onClick={() =>
+                          void post(`/api/admin/sells/${sale.id}/settle`, { status: "PAID" })
+                            .then(() => {
+                              notifySuccess("Sale marked paid");
+                              router.refresh();
+                            })
+                            .catch((error: unknown) =>
+                              notifyError(error instanceof Error ? error.message : "Could not update the sale"),
+                            )
+                        }
+                      >
+                        Mark paid
+                      </button>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          ) : null}
+
           {/* Today board */}
           <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0c0c0c]">
             <div className="flex flex-wrap items-end justify-between gap-3 border-b border-white/10 px-5 py-4">
@@ -710,6 +765,7 @@ export function AdminDashboard({
                             ) : null}
                           </p>
                           <p className="truncate text-xs text-white/45">
+                            {order.name ? `${order.name} · ` : ""}
                             {order.email} · {(order.paymentMethod ?? "pay").toUpperCase()} ·{" "}
                             {order.transactionId ?? "no TrxID"}
                           </p>

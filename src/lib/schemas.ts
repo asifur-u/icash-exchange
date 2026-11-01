@@ -1,5 +1,28 @@
 import { z } from "zod";
 
+const person = {
+  name: z.string().trim().min(2, "Enter your name").max(80),
+  email: z.string().trim().email("Enter a valid email").max(160),
+  phone: z.string().trim().regex(/^01\d{9}$/, "Use an 11-digit mobile number starting with 01"),
+  amount: z.number().int().min(1).max(1_000_000),
+  method: z.enum(["bkash", "nagad", "rocket", "bank"]),
+};
+
+export const deskRequestSchema = z.discriminatedUnion("intent", [
+  z.object({
+    intent: z.literal("buy"),
+    ...person,
+    transactionId: z.string().trim().min(4).max(80),
+    proofDataUrl: z.string().trim().min(40).max(3_800_000),
+  }),
+  z.object({
+    intent: z.literal("sell"),
+    ...person,
+    payoutNumber: z.string().trim().min(6, "Enter the number that receives the taka").max(30),
+    voucherCode: z.string().trim().min(4, "Enter the voucher code").max(80),
+  }),
+]);
+
 export const checkoutSchema = z.object({
   productSlug: z.string().trim().min(1).max(80),
   quantity: z.number().int().min(1).max(5),

@@ -41,6 +41,7 @@ export type Order = {
   id: string;
   number: string;
   email: string;
+  name?: string;
   phone?: string;
   userId?: string;
   status: OrderStatus;
@@ -65,12 +66,32 @@ export type Audit = {
   createdAt: string;
 };
 
+export type SellStatus = "OPEN" | "PAID" | "REJECTED";
+
+export type SellRequest = {
+  id: string;
+  number: string;
+  name: string;
+  email: string;
+  phone: string;
+  faceValue: number;
+  payout: number;
+  method: PaymentMethod;
+  payoutNumber: string;
+  voucherCipher: string;
+  voucherHash: string;
+  status: SellStatus;
+  createdAt: string;
+  settledAt?: string;
+};
+
 export type Db = {
   version: 1;
   categories: Category[];
   products: Product[];
   codes: VoucherCode[];
   orders: Order[];
+  sells: SellRequest[];
   audit: Audit[];
   webhooks: string[];
   nextNumber: number;
@@ -98,6 +119,7 @@ export type AdminSnapshot = {
     id: string;
     number: string;
     email: string;
+    name?: string;
     phone?: string;
     status: OrderStatus;
     total: number;
