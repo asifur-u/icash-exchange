@@ -12,7 +12,7 @@ function setupHint(message: string | undefined) {
     return {
       title: "Production secrets missing",
       body: "Vercel → Project → Settings → Environment Variables এ এই তিনটা দাও, তারপর Redeploy করো:",
-      vars: ["ADMIN_PASSWORD", "AUTH_SECRET", "CODE_ENCRYPTION_KEY"],
+      vars: ["DATABASE_URL", "AUTH_SECRET", "CODE_ENCRYPTION_KEY"],
     };
   }
   return null;

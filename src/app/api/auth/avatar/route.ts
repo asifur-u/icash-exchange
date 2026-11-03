@@ -1,7 +1,7 @@
 import { DeskError, toErrorResponse } from "@/lib/errors";
 import { assertSameOrigin, noStore, readJson } from "@/lib/http";
 import { deleteFromImageKit } from "@/lib/imagekit";
-import { clientIp, limit, withConcurrency } from "@/lib/limit";
+import { clientIp, rateLimit, withConcurrency } from "@/lib/limit";
 import { saveAvatarImage } from "@/lib/proofs";
 import { userAvatarSchema } from "@/lib/schemas";
 import { getCurrentUser } from "@/lib/session";
@@ -10,7 +10,7 @@ import { getUserRecordById, updateUserAvatar } from "@/lib/users";
 export async function POST(request: Request) {
   try {
     assertSameOrigin(request);
-    if (!limit(`avatar:${clientIp(request)}`, 3, 60_000)) {
+    if (!(await rateLimit(`avatar:${clientIp(request)}`, 3, 60_000))) {
       throw new DeskError("RATE_LIMITED", "Max 3 avatar uploads per minute.");
     }
     const user = await getCurrentUser();

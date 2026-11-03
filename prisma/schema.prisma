@@ -1,14 +1,16 @@
-// Prisma ORM 6.19 — MongoDB connector.
-// Apply with: npx prisma db push
-// Atlas provides a replica set URL.
+// Prisma ORM 6.19 — PostgreSQL (Neon in production).
+// DATABASE_URL          pooled connection (runtime)
+// DATABASE_URL_UNPOOLED direct connection (migrations)
+// Apply with: npx prisma migrate deploy
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mongodb"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 enum Role {
@@ -18,6 +20,7 @@ enum Role {
 
 enum OrderStatus {
   PENDING
+  REVIEWING
   PAID
   DELIVERED
   FAILED
@@ -31,8 +34,27 @@ enum CodeStatus {
   VOID
 }
 
+enum SellStatus {
+  OPEN
+  PAID
+  REJECTED
+}
+
+enum IssuanceStatus {
+  ISSUING
+  ISSUED
+  FAILED
+}
+
+enum PaymentMethod {
+  bkash
+  nagad
+  rocket
+  bank
+}
+
 model User {
-  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  id             String   @id @default(cuid())
   name           String
   email          String   @unique
   phone          String
@@ -41,81 +63,137 @@ model User {
   avatarUrl      String?
   imageKitFileId String?
   orders         Order[]
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime @updatedAt @db.Timestamptz(3)
 
   @@index([phone])
 }
 
-model Category {
-  id       String    @id @default(auto()) @map("_id") @db.ObjectId
-  name     String    @unique
-  slug     String    @unique
-  products Product[]
-}
-
 model Product {
-  id         String        @id @default(auto()) @map("_id") @db.ObjectId
-  title      String
-  slug       String        @unique
-  blurb      String
-  faceValue  Int
-  price      Int
-  active     Boolean       @default(true)
-  categoryId String        @db.ObjectId
-  category   Category      @relation(fields: [categoryId], references: [id])
-  codes      VoucherCode[]
-  items      OrderItem[]
-
-  @@index([categoryId, active])
+  id        String        @id
+  title     String
+  slug      String        @unique
+  blurb     String
+  faceValue Int
+  price     Int
+  active    Boolean       @default(true)
+  codes     VoucherCode[]
+  orders    Order[]
+  createdAt DateTime      @default(now()) @db.Timestamptz(3)
 }
 
 model VoucherCode {
-  id         String     @id @default(auto()) @map("_id") @db.ObjectId
-  productId  String     @db.ObjectId
+  id         String     @id
+  productId  String
   product    Product    @relation(fields: [productId], references: [id])
   cipher     String
   hash       String     @unique
   status     CodeStatus @default(AVAILABLE)
-  orderId    String?    @db.ObjectId
-  reservedAt DateTime?
-  soldAt     DateTime?
+  orderId    String?
+  order      Order?     @relation(fields: [orderId], references: [id])
+  reservedAt DateTime?  @db.Timestamptz(3)
+  soldAt     DateTime?  @db.Timestamptz(3)
+  createdAt  DateTime   @default(now()) @db.Timestamptz(3)
 
   @@index([productId, status])
+  @@index([orderId])
 }
 
 model Order {
-  id          String      @id @default(auto()) @map("_id") @db.ObjectId
-  number      String      @unique
-  userId      String?     @db.ObjectId
-  user        User?       @relation(fields: [userId], references: [id])
-  email       String
-  phone       String?
-  status      OrderStatus @default(PENDING)
-  total       Int
-  paymentRef  String?     @unique
-  items       OrderItem[]
-  createdAt   DateTime    @default(now())
-  paidAt      DateTime?
-  deliveredAt DateTime?
+  id               String         @id
+  number           String         @unique
+  email            String
+  name             String?
+  phone            String?
+  userId           String?
+  user             User?          @relation(fields: [userId], references: [id])
+  status           OrderStatus    @default(PENDING)
+  productId        String?
+  product          Product?       @relation(fields: [productId], references: [id])
+  /// Voucher face value the buyer asked for, before the desk fee.
+  voucher          Int
+  /// Number of stock codes held for this order (0 when iCash issues it).
+  quantity         Int            @default(0)
+  total            Int
+  paymentRef       String?        @unique
+  paymentMethod    PaymentMethod?
+  transactionId    String?
+  proofFile        String?
+  proofSubmittedAt DateTime?      @db.Timestamptz(3)
+  createdAt        DateTime       @default(now()) @db.Timestamptz(3)
+  paidAt           DateTime?      @db.Timestamptz(3)
+  deliveredAt      DateTime?      @db.Timestamptz(3)
+  codes            VoucherCode[]
+  issuance         Issuance?
 
+  @@index([status, createdAt])
+  @@index([email, status])
   @@index([userId, createdAt])
 }
 
-model OrderItem {
-  id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  orderId   String  @db.ObjectId
-  order     Order   @relation(fields: [orderId], references: [id])
-  productId String  @db.ObjectId
-  product   Product @relation(fields: [productId], references: [id])
-  quantity  Int
-  unitPrice Int
+/// One voucher generated through the iCash One Resellers API.
+model Issuance {
+  orderId      String         @id
+  order        Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  /// Sent as reseller_reference_order_id; reused on retries so iCash never issues twice.
+  ref          String         @unique
+  status       IssuanceStatus
+  delivery     String
+  environment  String
+  attempts     Int            @default(0)
+  startedAt    DateTime       @db.Timestamptz(3)
+  issuedAt     DateTime?      @db.Timestamptz(3)
+  uuid         String?
+  currency     String?
+  amount       Int?
+  cost         Decimal?       @db.Decimal(18, 6)
+  exchangeRate Decimal?       @db.Decimal(18, 8)
+  codeCiphers  String[]
+  masked       String[]
+  error        String?
+  errorMessage String?
+
+  @@index([status])
+  @@index([issuedAt])
+}
+
+model Sell {
+  id            String        @id
+  number        String        @unique
+  name          String
+  email         String
+  phone         String
+  faceValue     Int
+  payout        Int
+  method        PaymentMethod
+  payoutNumber  String
+  voucherCipher String
+  voucherHash   String
+  status        SellStatus    @default(OPEN)
+  createdAt     DateTime      @default(now()) @db.Timestamptz(3)
+  settledAt     DateTime?     @db.Timestamptz(3)
+
+  @@index([status, createdAt])
+  @@index([voucherHash])
 }
 
 model AuditLog {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id        String   @id @default(cuid())
   actor     String
   action    String
   targetId  String?
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([createdAt])
+}
+
+model WebhookEvent {
+  id        String   @id
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+}
+
+/// Shared running number for IX- (buy) and SX- (sell) references.
+model Counter {
+  id    String @id
+  value Int
 }

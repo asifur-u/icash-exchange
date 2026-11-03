@@ -95,7 +95,9 @@ function emailHtml(payload: DeliveryPayload) {
 </html>`;
 }
 
-async function sendViaSmtp(payload: DeliveryPayload) {
+type Mail = { to: string | string[]; subject: string; text: string; html: string; replyTo?: string };
+
+async function sendViaSmtp(mail: Mail) {
   const port = Number(process.env.SMTP_PORT ?? "465");
   const secure = process.env.SMTP_SECURE === "true" || port === 465;
   const transporter = nodemailer.createTransport({
@@ -108,16 +110,10 @@ async function sendViaSmtp(payload: DeliveryPayload) {
     },
   });
 
-  await transporter.sendMail({
-    from: process.env.DELIVERY_FROM,
-    to: payload.email,
-    subject: `Your iCash Exchange voucher · ${payload.number}`,
-    text: emailText(payload),
-    html: emailHtml(payload),
-  });
+  await transporter.sendMail({ from: process.env.DELIVERY_FROM, ...mail });
 }
 
-async function sendViaResend(payload: DeliveryPayload) {
+async function sendViaResend(mail: Mail) {
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -126,25 +122,35 @@ async function sendViaResend(payload: DeliveryPayload) {
     },
     body: JSON.stringify({
       from: process.env.DELIVERY_FROM,
-      to: payload.email,
-      subject: `Your iCash Exchange voucher · ${payload.number}`,
-      text: emailText(payload),
-      html: emailHtml(payload),
+      to: mail.to,
+      subject: mail.subject,
+      text: mail.text,
+      html: mail.html,
+      ...(mail.replyTo ? { reply_to: mail.replyTo } : {}),
     }),
   });
   if (!response.ok) throw new DeskError("EMAIL_FAILED", "Email was not accepted");
 }
 
-async function sendEmail(payload: DeliveryPayload) {
+export async function sendMail(mail: Mail) {
   if (smtpReady()) {
-    await sendViaSmtp(payload);
+    await sendViaSmtp(mail);
     return;
   }
   if (resendReady()) {
-    await sendViaResend(payload);
+    await sendViaResend(mail);
     return;
   }
   throw new DeskError("EMAIL_FAILED", "No email provider is configured");
+}
+
+async function sendEmail(payload: DeliveryPayload) {
+  await sendMail({
+    to: payload.email,
+    subject: `Your iCash Exchange voucher · ${payload.number}`,
+    text: emailText(payload),
+    html: emailHtml(payload),
+  });
 }
 
 async function sendSms(payload: DeliveryPayload) {

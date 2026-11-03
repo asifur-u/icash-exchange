@@ -1,6 +1,6 @@
 # iCash Exchange
 
-A digital voucher desk you can run immediately. MongoDB, Redis, and a payment account are not required for the demonstration.
+A digital voucher desk you can run immediately. Redis and a payment account are not required for the demonstration.
 
 ## Run it
 
@@ -25,11 +25,11 @@ Sample notes are not real value. Do not put a brand name or logo on the site unt
 
 1. Register the domain for iCash Exchange.
 2. Get supplier agreements, then replace the sample catalog.
-3. Create a MongoDB Atlas replica set and set `DATABASE_URL`. This repo pins Prisma ORM 6.19, the current stable release with a MongoDB connector. Prisma 7 has no MongoDB connector. Prisma 8’s MongoDB support is still a release candidate with a different schema format. Apply the schema with `npx prisma db push` and review it before production.
+3. Create a Neon Postgres database and set `DATABASE_URL` (pooled) plus `DATABASE_URL_UNPOOLED` (direct). Apply schema with `npm run db:deploy`.
 4. Put a 32-byte base64 `CODE_ENCRYPTION_KEY` in the environment before the first real code is saved. Generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`.
 5. Connect a payment gateway you hold a merchant account with. Set `PAYMENT_MODE=live`. Only a verified webhook marks an order paid.
 6. Add Resend (`RESEND_API_KEY`, `DELIVERY_FROM`) and, if you want texts, an HTTPS `SMS_API_URL`.
 7. On Vercel, use Upstash Redis plus QStash or Inngest for delivery jobs. On a VPS, run the web app and a BullMQ worker as two processes.
-8. Finish the refund policy, terms, and privacy note with a lawyer before launch. Turn on Atlas backups before the first real sale.
+8. Finish the refund policy, terms, and privacy note with a lawyer before launch. Turn on Neon backups before the first real sale.
 
 Copy `.env.example` to `.env.local` when you are ready for those services. Until then, leave it alone and use `npm run dev`.

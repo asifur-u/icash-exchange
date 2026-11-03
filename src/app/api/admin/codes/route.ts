@@ -1,7 +1,7 @@
 import { DeskError, toErrorResponse } from "@/lib/errors";
 import { requireAdmin } from "@/lib/guard";
 import { assertSameOrigin, noStore, readJson } from "@/lib/http";
-import { clientIp, limit, withConcurrency } from "@/lib/limit";
+import { clientIp, rateLimit, withConcurrency } from "@/lib/limit";
 import { uploadSchema } from "@/lib/schemas";
 import { uploadCodes } from "@/lib/vouchers";
 
@@ -9,7 +9,7 @@ export async function POST(req: Request) {
   try {
     assertSameOrigin(req);
     await requireAdmin();
-    if (!limit(`admin-codes:${clientIp(req)}`, 3, 60_000)) {
+    if (!(await rateLimit(`admin-codes:${clientIp(req)}`, 3, 60_000))) {
       throw new DeskError("RATE_LIMITED", "Max 3 upload requests per minute.");
     }
     const body = uploadSchema.parse(await readJson(req));

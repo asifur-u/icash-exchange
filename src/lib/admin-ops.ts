@@ -16,6 +16,10 @@ const ACTION_LABELS: Record<string, string> = {
   "order.resend_skipped": "Resend skipped",
   "order.expired": "Unpaid hold expired",
   "codes.upload": "Codes uploaded to stock",
+  "admin.bootstrap": "First owner created",
+  "admin.create": "Owner added",
+  "admin.promote": "Account promoted to owner",
+  "admin.demote": "Owner access removed",
 };
 
 export function humanAction(action: string) {

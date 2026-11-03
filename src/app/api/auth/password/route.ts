@@ -1,6 +1,6 @@
 import { DeskError, toErrorResponse } from "@/lib/errors";
 import { assertSameOrigin, noStore, readJson } from "@/lib/http";
-import { clientIp, limit, withConcurrency } from "@/lib/limit";
+import { clientIp, rateLimit, withConcurrency } from "@/lib/limit";
 import { userPasswordSchema } from "@/lib/schemas";
 import { getCurrentUser } from "@/lib/session";
 import { changeUserPassword } from "@/lib/users";
@@ -8,7 +8,7 @@ import { changeUserPassword } from "@/lib/users";
 export async function POST(request: Request) {
   try {
     assertSameOrigin(request);
-    if (!limit(`password:${clientIp(request)}`, 3, 10 * 60_000)) {
+    if (!(await rateLimit(`password:${clientIp(request)}`, 3, 10 * 60_000))) {
       throw new DeskError("RATE_LIMITED", "Max 3 password changes. Wait a few minutes.");
     }
     const user = await getCurrentUser();

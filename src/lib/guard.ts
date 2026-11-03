@@ -1,12 +1,19 @@
 import { cookies } from "next/headers";
+import { getAdminById, type DeskAdmin } from "@/lib/admins";
 import { verifyAdminSession } from "@/lib/auth";
 import { DeskError } from "@/lib/errors";
 
-export async function requireAdmin() {
+export async function getAdminSession(): Promise<DeskAdmin | null> {
   const jar = await cookies();
-  if (!verifyAdminSession(jar.get("vaulta_admin")?.value)) {
-    throw new DeskError("UNAUTHORIZED", "Admin sign-in required");
-  }
+  const userId = verifyAdminSession(jar.get("vaulta_admin")?.value);
+  if (!userId) return null;
+  return getAdminById(userId);
+}
+
+export async function requireAdmin() {
+  const admin = await getAdminSession();
+  if (!admin) throw new DeskError("UNAUTHORIZED", "Admin sign-in required");
+  return admin;
 }
 
 export const adminCookie = {
