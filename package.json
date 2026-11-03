@@ -13,7 +13,6 @@
     "db:migrate": "npm run prisma -- migrate dev",
     "db:deploy": "npm run prisma -- migrate deploy",
     "db:studio": "npm run prisma -- studio",
-    "db:import-mongo-users": "node --env-file-if-exists=.env.local scripts/import-mongo-users.mjs",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -37,7 +36,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
-    "mongodb": "^6.22.0",
     "prisma": "^6.19.3",
     "tailwindcss": "^4",
     "typescript": "^5",
