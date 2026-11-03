@@ -76,3 +76,29 @@ Screenshots stay in the `app_data` volume (`VAULTA_DATA_DIR=/data`). ImageKit is
 ## First owner
 
 Open `https://your-domain.com/admin`. If no owner exists yet, that page creates one. If you already imported users, sign in with the owner email.
+
+## CI/CD (GitHub Actions)
+
+Push to `main` runs tests, then SSHs into this VPS and rebuilds Docker.
+
+On the VPS, once, make a deploy key GitHub can use:
+
+```bash
+ssh-keygen -t ed25519 -C "github-deploy" -f ~/.ssh/gha_deploy -N ""
+cat ~/.ssh/gha_deploy.pub >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+cat ~/.ssh/gha_deploy
+```
+
+GitHub → repo → **Settings → Secrets and variables → Actions**. Add:
+
+| Secret | Value |
+|---|---|
+| `VPS_HOST` | VPS public IP |
+| `VPS_USER` | `root` or `ubuntu` |
+| `VPS_SSH_KEY` | full private key from `cat ~/.ssh/gha_deploy` |
+| `VPS_DIR` | folder of the clone, e.g. `/root/icash-exchange` |
+
+Optional: `VPS_PORT` if SSH is not 22.
+
+The VPS git remote must be able to `git pull` (`main`). For a private repo, add a GitHub deploy key on the server.
