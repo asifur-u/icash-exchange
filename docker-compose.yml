@@ -63,26 +63,36 @@ services:
       redis:
         condition: service_healthy
 
-  caddy:
-    image: caddy:2-alpine
+  nginx:
+    image: nginx:1.27-alpine
     restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
-      - "443:443/udp"
     environment:
-      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
-      ACME_EMAIL: ${ACME_EMAIL:-}
+      DOMAIN: ${DOMAIN:-icash.exchange}
     volumes:
-      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
+      - ./deploy/nginx/start.sh:/start.sh:ro
+      - ./deploy/nginx/http.conf:/templates/http.conf:ro
+      - ./deploy/nginx/https.conf:/templates/https.conf:ro
+      - certbot_www:/var/www/certbot
+      - certbot_certs:/etc/letsencrypt
+    entrypoint: ["/bin/sh", "/start.sh"]
     depends_on:
       - app
+
+  certbot:
+    image: certbot/certbot
+    restart: unless-stopped
+    volumes:
+      - certbot_www:/var/www/certbot
+      - certbot_certs:/etc/letsencrypt
+    entrypoint: /bin/sh
+    command: ["-c", "trap exit TERM; while :; do certbot renew --quiet; sleep 12h; done"]
 
 volumes:
   postgres_data:
   redis_data:
   app_data:
-  caddy_data:
-  caddy_config:
+  certbot_www:
+  certbot_certs:

@@ -7,8 +7,8 @@ One Linux VPS (Ubuntu 22.04+), Docker, and a domain. The public IP is fixed, so 
 Create an A record:
 
 ```
-icashexchange.com     →  YOUR_VPS_IP
-www.icashexchange.com →  YOUR_VPS_IP   (optional)
+icash.exchange     →  YOUR_VPS_IP
+www.icash.exchange →  YOUR_VPS_IP
 ```
 
 Open ports **80** and **443**.
@@ -40,7 +40,8 @@ That installs Docker if needed, generates `AUTH_SECRET`, `CODE_ENCRYPTION_KEY`, 
 - `db` — Postgres 16 (not published to the internet)
 - `redis` — Redis 7 with a password (rate limits)
 - `app` — Next.js
-- `caddy` — HTTPS
+- `nginx` — HTTP/HTTPS reverse proxy
+- `certbot` — Let's Encrypt certificates
 
 ## 3. Bring old Neon users over (optional)
 
@@ -72,6 +73,20 @@ docker compose down
 ```
 
 Screenshots stay in the `app_data` volume (`VAULTA_DATA_DIR=/data`). ImageKit is optional on a VPS.
+
+## HTTPS (nginx + Let's Encrypt)
+
+Point `icash.exchange` and `www.icash.exchange` at the VPS IP, then:
+
+```bash
+cd /opt/icash-exchange
+# in .env:
+#   DOMAIN=icash.exchange
+#   NEXT_PUBLIC_SITE_URL=https://icash.exchange
+#   ACME_EMAIL=you@email.com
+docker compose up -d --remove-orphans
+bash deploy/issue-cert.sh
+```
 
 ## First owner
 

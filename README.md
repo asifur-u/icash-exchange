@@ -29,7 +29,7 @@ Sample notes are not real value. Do not put a brand name or logo on the site unt
 4. Put a 32-byte base64 `CODE_ENCRYPTION_KEY` in the environment before the first real code is saved. Generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`.
 5. Connect a payment gateway you hold a merchant account with. Set `PAYMENT_MODE=live`. Only a verified webhook marks an order paid.
 6. Add Resend (`RESEND_API_KEY`, `DELIVERY_FROM`) and, if you want texts, an HTTPS `SMS_API_URL`.
-7. On a VPS the app, Caddy, self-hosted Postgres, and Redis run with Docker Compose. Whitelist the VPS IP at iCash.
+7. On a VPS the app, nginx, self-hosted Postgres, and Redis run with Docker Compose. Whitelist the VPS IP at iCash.
 8. Finish the refund policy, terms, and privacy note with a lawyer before launch. Turn on database backups before the first real sale.
 
 ## VPS
