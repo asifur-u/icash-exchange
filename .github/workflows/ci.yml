@@ -68,6 +68,6 @@ jobs:
             git fetch origin
             git checkout main
             git pull --ff-only origin main
-            docker compose up -d --build
+            docker compose up -d --build --remove-orphans
             docker compose ps
             curl -fsS --retry 8 --retry-delay 3 http://127.0.0.1/api/health

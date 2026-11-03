@@ -63,7 +63,7 @@ set_kv DATABASE_URL_UNPOOLED "postgresql://icash:${PG_PASS}@db:5432/icash"
 set_kv REDIS_URL "redis://:${RD_PASS}@redis:6379/0"
 
 if [ -n "$DOMAIN" ]; then
-  set_kv SITE_ADDRESS "$DOMAIN"
+  set_kv DOMAIN "$DOMAIN"
   set_kv NEXT_PUBLIC_SITE_URL "https://${DOMAIN}"
 fi
 if [ -n "$EMAIL" ]; then
@@ -77,8 +77,8 @@ if need ufw && ufw status | grep -q "Status: active"; then
   ufw allow 443/tcp
 fi
 
-echo "Building and starting Postgres + Redis + app…"
-docker compose up -d --build
+echo "Building and starting Postgres + Redis + app + nginx…"
+docker compose up -d --build --remove-orphans
 
 echo
 echo "Desk is up (self-hosted Postgres + Redis)."
@@ -92,3 +92,6 @@ if [ -n "$IP" ]; then
 fi
 echo
 echo "Postgres and Redis are not published to the internet — only the app can reach them."
+if [ -n "$DOMAIN" ]; then
+  echo "When DNS for ${DOMAIN} points here, run:  bash deploy/issue-cert.sh"
+fi
