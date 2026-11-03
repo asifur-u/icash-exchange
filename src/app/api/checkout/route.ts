@@ -1,6 +1,6 @@
 import { DeskError, toErrorResponse } from "@/lib/errors";
 import { assertSameOrigin, noStore, readJson, siteOrigin } from "@/lib/http";
-import { clientIp, limit, withConcurrency } from "@/lib/limit";
+import { clientIp, rateLimit, withConcurrency } from "@/lib/limit";
 import { createCheckout } from "@/lib/orders";
 import { checkoutSchema } from "@/lib/schemas";
 import { getCurrentUser } from "@/lib/session";
@@ -8,7 +8,7 @@ import { getCurrentUser } from "@/lib/session";
 export async function POST(req: Request) {
   try {
     assertSameOrigin(req);
-    if (!limit(`checkout:${clientIp(req)}`, 3, 60_000)) {
+    if (!(await rateLimit(`checkout:${clientIp(req)}`, 3, 60_000))) {
       throw new DeskError("RATE_LIMITED", "Max 3 checkout requests per minute.");
     }
     const user = await getCurrentUser();

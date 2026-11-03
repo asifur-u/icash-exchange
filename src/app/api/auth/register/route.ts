@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { assertCsrf } from "@/lib/csrf";
 import { DeskError, toErrorResponse } from "@/lib/errors";
 import { assertSameOrigin, noStore, readJson } from "@/lib/http";
-import { clientIp, limit } from "@/lib/limit";
+import { clientIp, rateLimit } from "@/lib/limit";
 import { userRegisterSchema } from "@/lib/schemas";
 import { setUserSessionCookie } from "@/lib/user-session";
 import { registerUser } from "@/lib/users";
@@ -21,13 +21,13 @@ export async function POST(req: Request) {
     const ip = clientIp(req);
     const emailKey = body.email.trim().toLowerCase();
 
-    if (!limit(`register-ip:${ip}`, 3, 30 * 60_000)) {
+    if (!(await rateLimit(`register-ip:${ip}`, 3, 30 * 60_000))) {
       throw new DeskError(
         "RATE_LIMITED",
         "Too many registrations from this network. Wait and try again.",
       );
     }
-    if (!limit(`register-email:${emailKey}`, 2, 60 * 60_000)) {
+    if (!(await rateLimit(`register-email:${emailKey}`, 2, 60 * 60_000))) {
       throw new DeskError(
         "RATE_LIMITED",
         "Too many attempts for this email. Wait a while, or log in instead.",

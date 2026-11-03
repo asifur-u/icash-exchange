@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AdminShell, type AdminSection } from "@/components/admin/admin-shell";
+import { IcashDesk, type IcashDeskConfig } from "@/components/admin/icash-desk";
 import { useT } from "@/i18n/provider";
 import {
   buildTodayStats,
@@ -15,6 +16,7 @@ import {
 } from "@/lib/admin-ops";
 import { formatBdt, formatWhen } from "@/lib/format";
 import { notifyError, notifySuccess } from "@/lib/swal";
+import type { DeskAdmin } from "@/lib/admins";
 import type { AdminSnapshot } from "@/lib/types";
 
 type OrderFilter = "all" | "PENDING" | "REVIEWING" | "DELIVERED" | "FAILED";
@@ -27,17 +29,20 @@ type ActivityRow = {
   tone: "ok" | "warn" | "info" | "bad";
 };
 
-async function post(url: string, body?: unknown) {
+async function post(url: string, body?: unknown, method = "POST") {
   const response = await fetch(url, {
-    method: "POST",
+    method,
     headers: { "content-type": "application/json" },
-    body: body ? JSON.stringify(body) : "{}",
+    body: method === "GET" || method === "DELETE" ? undefined : body ? JSON.stringify(body) : "{}",
   });
   const data = (await response.json()) as {
     error?: { message?: string };
     message?: string;
     added?: number;
     codes?: string[];
+    masked?: string[];
+    via?: string;
+    email?: string;
   };
   if (!response.ok) throw new Error(data.error?.message ?? "The desk refused that action");
   return data;
@@ -72,6 +77,7 @@ export type AdminDeskConfig = {
     name: string;
     note?: string;
   }>;
+  icash: IcashDeskConfig;
 };
 
 export type DeskSale = {
@@ -93,18 +99,21 @@ export function AdminDashboard({
   snapshot,
   sells = [],
   desk,
+  me,
+  staff = [],
 }: {
   sells?: DeskSale[];
   snapshot: AdminSnapshot;
   desk: AdminDeskConfig;
+  me: DeskAdmin;
+  staff?: DeskAdmin[];
 }) {
   const t = useT();
   const router = useRouter();
   const [section, setSection] = useState<AdminSection>("overview");
-  const [slug, setSlug] = useState(snapshot.products[0]?.slug ?? "");
-  const [csv, setCsv] = useState("");
   const [pending, setPending] = useState(false);
   const [unlockedCodes, setUnlockedCodes] = useState<string[]>([]);
+  const [lastSend, setLastSend] = useState<{ email: string; masked: string[] } | null>(null);
   const [revealedByOrder, setRevealedByOrder] = useState<Record<string, string[]>>({});
   const [orderFilter, setOrderFilter] = useState<OrderFilter>("all");
   const [query, setQuery] = useState("");
@@ -200,10 +209,6 @@ export function AdminDashboard({
       mix,
       chart,
       chartMax,
-      ready: snapshot.totals.codeReady,
-      held: snapshot.totals.codeHeld,
-      sold: snapshot.totals.codeSold,
-      voided: snapshot.totals.codeVoid,
       orderCount: snapshot.totals.orderCount,
       inbox: reviewing.length,
     };
@@ -289,6 +294,22 @@ export function AdminDashboard({
   const alerts = useMemo(() => {
     const rows: Array<{ id: string; tone: "hot" | "warn" | "ok"; title: string; body: string }> = [];
     const now = Date.now();
+    if (snapshot.ledger.queue.failed > 0) {
+      rows.push({
+        id: "icash-failed",
+        tone: "hot",
+        title: t("admin.alertIssueFailedTitle", { n: snapshot.ledger.queue.failed }),
+        body: t("admin.alertIssueFailedBody"),
+      });
+    }
+    if (!desk.icash.connected) {
+      rows.push({
+        id: "icash-off",
+        tone: "warn",
+        title: t("admin.alertIcashOffTitle"),
+        body: t("admin.alertIcashOffBody"),
+      });
+    }
     const reviewingOrders = snapshot.orders.filter((o) => o.status === "REVIEWING");
     const aging = reviewingOrders.filter(
       (o) => (waitMinutes(o.proofSubmittedAt ?? o.createdAt, now) ?? 0) >= 30,
@@ -317,22 +338,6 @@ export function AdminDashboard({
         body: t("admin.alertPendingBody"),
       });
     }
-    for (const product of snapshot.products) {
-      if (product.stock <= 2) {
-        rows.push({
-          id: `stock-${product.id}`,
-          tone: product.stock === 0 ? "hot" : "warn",
-          title:
-            product.stock === 0
-              ? t("admin.alertSoldOut", { amount: formatBdt(product.faceValue) })
-              : t("admin.alertLowStock", {
-                  amount: formatBdt(product.faceValue),
-                  n: product.stock,
-                }),
-          body: t("admin.alertStockBody"),
-        });
-      }
-    }
     if (rows.length === 0) {
       rows.push({
         id: "clear",
@@ -342,7 +347,7 @@ export function AdminDashboard({
       });
     }
     return rows;
-  }, [snapshot, t]);
+  }, [snapshot, t, desk.icash.connected]);
 
   const customers = useMemo(() => {
     const map = new Map<
@@ -420,8 +425,9 @@ export function AdminDashboard({
       inbox: stats.inbox,
       refunds: snapshot.orders.filter((o) => o.status === "REFUNDED" || o.status === "FAILED").length,
       pending: stats.pendingPay,
+      icash: snapshot.ledger.queue.failed,
     }),
-    [stats.inbox, stats.pendingPay, snapshot.orders],
+    [stats.inbox, stats.pendingPay, snapshot.orders, snapshot.ledger.queue.failed],
   );
 
   async function run(action: () => Promise<string>) {
@@ -443,8 +449,8 @@ export function AdminDashboard({
   const titles: Record<AdminSection, { title: string; lead: string }> = {
     overview: { title: t("admin.titleOverview"), lead: t("admin.leadOverview") },
     inbox: { title: t("admin.titleInbox"), lead: t("admin.leadInbox") },
-    stock: { title: t("admin.titleStock"), lead: t("admin.leadStock") },
     orders: { title: t("admin.titleOrders"), lead: t("admin.leadOrders") },
+    icash: { title: t("admin.titleIcash"), lead: t("admin.leadIcash") },
     customers: { title: t("admin.titleCustomers"), lead: t("admin.leadCustomers") },
     payments: { title: t("admin.titlePayments"), lead: t("admin.leadPayments") },
     refunds: { title: t("admin.titleRefunds"), lead: t("admin.leadRefunds") },
@@ -456,7 +462,7 @@ export function AdminDashboard({
   return (
     <AdminShell section={section} onSection={setSection} badges={badges}>
       <header className="overflow-hidden rounded-2xl border border-white/10 bg-[#0c0c0c]">
-        <div className="relative overflow-hidden border-b border-white/10 px-5 py-5 sm:px-6 sm:py-6">
+        <div className="relative overflow-hidden border-b border-white/10 px-4 py-4 sm:px-6 sm:py-6">
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 opacity-50"
@@ -465,31 +471,31 @@ export function AdminDashboard({
                 "radial-gradient(ellipse 55% 90% at 0% 0%, rgba(225,29,46,0.22), transparent 55%)",
             }}
           />
-          <div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
+          <div className="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#e11d2e]">
                 {t("admin.commandCenter")}
               </p>
-              <h1 className="mt-1 text-[clamp(1.55rem,4vw,2.1rem)] font-extrabold tracking-tight">
+              <h1 className="mt-1 text-[clamp(1.35rem,5vw,2.1rem)] font-extrabold tracking-tight">
                 {titles[section].title}
               </h1>
               <p className="mt-1 max-w-2xl text-sm text-white/45">{titles[section].lead}</p>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
               <button
                 type="button"
                 onClick={() => {
                   router.refresh();
                   setLastRefresh(Date.now());
                 }}
-                className="inline-flex h-10 items-center rounded-xl border border-white/15 px-3.5 text-sm font-semibold text-white/75 hover:bg-white/5"
+                className="inline-flex h-10 items-center justify-center rounded-xl border border-white/15 px-3.5 text-sm font-semibold text-white/75 hover:bg-white/5"
               >
                 {t("admin.refresh")}
               </button>
               <button
                 type="button"
                 onClick={() => setAutoRefresh((v) => !v)}
-                className="inline-flex h-10 items-center rounded-xl border px-3.5 text-sm font-semibold"
+                className="inline-flex h-10 items-center justify-center rounded-xl border px-3.5 text-sm font-semibold"
                 style={
                   autoRefresh
                     ? { borderColor: "rgba(52,211,153,0.35)", background: "rgba(52,211,153,0.1)", color: "#6ee7b7" }
@@ -504,7 +510,7 @@ export function AdminDashboard({
                   downloadText(`icash-orders-${new Date().toISOString().slice(0, 10)}.csv`, exportOrdersCsv(snapshot));
                   void notifySuccess(t("admin.exported"), t("admin.csvDownloaded"));
                 }}
-                className="inline-flex h-10 items-center rounded-xl border border-white/15 px-3.5 text-sm font-semibold text-white/75 hover:bg-white/5"
+                className="inline-flex h-10 items-center justify-center rounded-xl border border-white/15 px-3.5 text-sm font-semibold text-white/75 hover:bg-white/5"
               >
                 {t("admin.exportCsv")}
               </button>
@@ -512,7 +518,7 @@ export function AdminDashboard({
                 <button
                   type="button"
                   onClick={() => setSection("inbox")}
-                  className="inline-flex h-10 items-center rounded-xl bg-[#e11d2e] px-4 text-sm font-semibold"
+                  className="inline-flex h-10 items-center justify-center rounded-xl bg-[#e11d2e] px-4 text-sm font-semibold"
                 >
                   {t("admin.inInbox", { n: stats.inbox })}
                 </button>
@@ -525,7 +531,7 @@ export function AdminDashboard({
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-px bg-white/[0.08] sm:grid-cols-3 lg:grid-cols-6">
           <Kpi label={t("admin.kpiInbox")} value={String(stats.inbox)} hot={stats.inbox > 0} />
           <Kpi label={t("admin.kpiOpenValue")} value={formatBdt(stats.openValue)} />
           <Kpi label={t("admin.kpiThisMonth")} value={formatBdt(stats.thisMonth)} />
@@ -533,12 +539,12 @@ export function AdminDashboard({
           <Kpi label={t("admin.kpiSuccess")} value={stats.orderCount ? `${stats.successRate}%` : "—"} />
           <Kpi label={t("admin.kpiAvgTicket")} value={formatBdt(stats.avgTicket)} />
         </div>
-        <div className="grid grid-cols-2 border-t border-white/8 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-px bg-white/[0.08] sm:grid-cols-3 lg:grid-cols-6">
           <Kpi label={t("admin.kpiAllOrders")} value={String(stats.orderCount)} compact />
           <Kpi label={t("admin.kpiPendingPay")} value={String(stats.pendingPay)} compact />
           <Kpi label={t("admin.kpiDelivered")} value={String(stats.delivered)} compact />
-          <Kpi label={t("admin.kpiReadyCodes")} value={String(stats.ready)} compact />
-          <Kpi label={t("admin.kpiHeldSold")} value={`${stats.held} / ${stats.sold}`} compact />
+          <Kpi label={t("icashDesk.kpiIssued")} value={String(snapshot.ledger.all.issued)} compact />
+          <Kpi label={t("icashDesk.kpiRevenue")} value={formatBdt(snapshot.ledger.all.revenue)} compact />
           <Kpi label={t("admin.kpiProofs")} value={String(stats.withProof)} compact />
         </div>
       </header>
@@ -578,6 +584,50 @@ export function AdminDashboard({
               </div>
             ))}
           </div>
+
+          {reviewing.length > 0 ? (
+            <div className="space-y-4">
+              <div className="flex items-end justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#e11d2e]">
+                    {t("admin.noticeNew")}
+                  </p>
+                  <h2 className="mt-0.5 text-lg font-bold">{t("admin.titleInbox")}</h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSection("inbox")}
+                  className="text-xs font-semibold text-[#ff7a84]"
+                >
+                  {t("admin.openArrow")}
+                </button>
+              </div>
+              {reviewing.slice(0, 3).map((order) => (
+                <NoticeCard
+                  key={order.id}
+                  order={order}
+                  pending={pending}
+                  icash={desk.icash.connected}
+                  onApprove={() =>
+                    run(async () => {
+                      const data = await post(`/api/admin/orders/${order.id}/approve`);
+                      if (data.codes?.length) setUnlockedCodes(data.codes);
+                      if (data.via === "icash" && data.email) {
+                        setLastSend({ email: data.email, masked: data.masked ?? [] });
+                      }
+                      return data.message ?? t("admin.noticeSent", { email: order.email });
+                    })
+                  }
+                  onReject={() =>
+                    run(async () => {
+                      await post(`/api/admin/orders/${order.id}/release`);
+                      return t("admin.reject");
+                    })
+                  }
+                />
+              ))}
+            </div>
+          ) : null}
 
           {sells.some((sale) => sale.status === "OPEN") ? (
             <div className="rounded-2xl border border-white/10 bg-[#0c0c0c] p-5">
@@ -619,7 +669,7 @@ export function AdminDashboard({
 
           {/* Today board */}
           <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0c0c0c]">
-            <div className="flex flex-wrap items-end justify-between gap-3 border-b border-white/10 px-5 py-4">
+            <div className="flex flex-wrap items-end justify-between gap-3 border-b border-white/10 px-4 py-4 sm:px-5">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#e11d2e]">
                   {t("admin.today")}
@@ -630,12 +680,12 @@ export function AdminDashboard({
                 <QuickChip onClick={() => setSection("inbox")} label={t("admin.chipInbox")} hot={stats.inbox > 0} />
                 <QuickChip onClick={() => setSection("payments")} label={t("admin.chipPayments")} />
                 <QuickChip onClick={() => setSection("customers")} label={t("admin.chipCustomers")} />
-                <QuickChip onClick={() => setSection("stock")} label={t("admin.chipUpload")} />
+                <QuickChip onClick={() => setSection("icash")} label={t("admin.navIcash")} />
                 <QuickChip onClick={() => setSection("reports")} label={t("admin.chipReports")} />
                 <QuickChip onClick={() => setSection("settings")} label={t("admin.chipSettings")} />
               </div>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+            <div className="grid grid-cols-2 gap-px bg-white/[0.08] sm:grid-cols-3 lg:grid-cols-6">
               <Kpi label={t("admin.ordersToday")} value={String(today.todayCount)} />
               <Kpi label={t("admin.yesterday")} value={String(today.yesterdayCount)} />
               <Kpi label={t("admin.revenueToday")} value={formatBdt(today.todayRevenue)} />
@@ -723,108 +773,34 @@ export function AdminDashboard({
                   ))}
                 </ul>
               )}
-              <div className="mt-4 grid grid-cols-2 gap-2 border-t border-white/8 pt-4 text-xs text-white/40">
-                <p>
-                  Void codes <span className="ml-1 font-bold text-white/70">{stats.voided}</span>
-                </p>
+              <div className="mt-4 border-t border-white/8 pt-4 text-xs text-white/40">
                 <p>
                   Failed/refund <span className="ml-1 font-bold text-white/70">{stats.failed}</span>
                 </p>
               </div>
             </Panel>
 
-            <Panel
-              title="Inbox queue"
-              eyebrow="Deposits"
-              action={
-                <button type="button" onClick={() => setSection("inbox")} className="text-xs font-semibold text-[#ff7a84]">
-                  Open →
+            {reviewing.length === 0 ? (
+              <Panel title={t("admin.inboxQueue")} eyebrow={t("admin.deposits")} className="lg:col-span-2">
+                <p className="text-sm text-white/40">{t("admin.inboxClearBody")}</p>
+              </Panel>
+            ) : (
+              <Panel title={t("admin.inboxQueue")} eyebrow={t("admin.deposits")} className="lg:col-span-2">
+                <p className="text-sm text-white/70">
+                  {t("admin.inInbox", { n: reviewing.length })}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSection("inbox")}
+                  className="mt-3 text-xs font-semibold text-[#ff7a84]"
+                >
+                  {t("admin.openArrow")}
                 </button>
-              }
-              className="lg:col-span-2"
-            >
-              {reviewing.length === 0 ? (
-                <p className="text-sm text-white/40">Clear — no proofs waiting. New uploads land here first.</p>
-              ) : (
-                <ul className="space-y-2">
-                  {reviewing.slice(0, 5).map((order) => {
-                    const wait = waitMinutes(order.proofSubmittedAt ?? order.createdAt);
-                    const repeats = repeatCount(snapshot, order.email);
-                    return (
-                      <li
-                        key={order.id}
-                        className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-300/15 bg-amber-300/[0.04] px-3 py-2.5"
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold">
-                            {order.number} · {formatBdt(order.total)}
-                            {repeats > 1 ? (
-                              <span className="ml-2 text-[10px] font-semibold text-sky-300">
-                                ×{repeats} buyer
-                              </span>
-                            ) : null}
-                          </p>
-                          <p className="truncate text-xs text-white/45">
-                            {order.name ? `${order.name} · ` : ""}
-                            {order.email} · {(order.paymentMethod ?? "pay").toUpperCase()} ·{" "}
-                            {order.transactionId ?? "no TrxID"}
-                          </p>
-                        </div>
-                        <div className="flex flex-col items-end gap-1">
-                          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase ${statusStyle("REVIEWING")}`}>
-                            Review
-                          </span>
-                          <span
-                            className="text-[10px] font-semibold"
-                            style={{ color: (wait ?? 0) >= 30 ? "#fca5a5" : "#fcd34d" }}
-                          >
-                            {waitLabel(wait)}
-                          </span>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </Panel>
+              </Panel>
+            )}
           </div>
 
-          <div className="grid gap-4 xl:grid-cols-[1fr_1.05fr]">
-            <Panel
-              title="Notes on hand"
-              eyebrow="Stock"
-              action={
-                <button type="button" onClick={() => setSection("stock")} className="text-xs font-semibold text-[#ff7a84]">
-                  Manage →
-                </button>
-              }
-            >
-              <ul className="space-y-3">
-                {snapshot.products.map((product) => {
-                  const total = Math.max(product.stock + product.reserved + product.sold, 1);
-                  const pct = Math.round((product.stock / total) * 100);
-                  return (
-                    <li key={product.id}>
-                      <div className="flex items-center justify-between gap-2">
-                        <div>
-                          <p className="font-bold tabular-nums">{formatBdt(product.faceValue)}</p>
-                          <p className="text-[11px] text-white/40">{product.title}</p>
-                        </div>
-                        <p className="text-xs font-semibold text-emerald-300">{product.stock} ready</p>
-                      </div>
-                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
-                        <div className="h-full rounded-full bg-emerald-400" style={{ width: `${pct}%` }} />
-                      </div>
-                      <p className="mt-1 font-mono text-[10px] text-white/35">
-                        {product.reserved} held · {product.sold} sold
-                        {product.voided ? ` · ${product.voided} void` : ""}
-                      </p>
-                    </li>
-                  );
-                })}
-              </ul>
-            </Panel>
-
+          <div className="grid gap-4">
             <Panel
               title="Recent orders"
               eyebrow="Live"
@@ -890,11 +866,21 @@ export function AdminDashboard({
 
       {section === "inbox" ? (
         <section className="mt-6 space-y-4">
+          {lastSend ? (
+            <div className="overflow-hidden rounded-2xl border border-emerald-400/25 bg-[#0d1510] px-5 py-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-300">
+                {t("admin.noticeSent", { email: lastSend.email })}
+              </p>
+              {lastSend.masked.length ? (
+                <p className="mt-2 font-mono text-sm text-white/80">{lastSend.masked.join(" · ")}</p>
+              ) : null}
+            </div>
+          ) : null}
           {unlockedCodes.length > 0 ? (
             <div className="overflow-hidden rounded-2xl border border-emerald-400/25 bg-[#0d1510]">
               <div className="border-b border-emerald-400/20 px-5 py-3">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-300">
-                  Just unlocked — copy & deliver
+                  {t("admin.justUnlocked")}
                 </p>
               </div>
               <div className="grid gap-2.5 p-4">
@@ -906,199 +892,33 @@ export function AdminDashboard({
           ) : null}
 
           {reviewing.length === 0 ? (
-            <Empty title="Inbox clear" body="No deposit proofs waiting. New proofs show up here first." />
+            <Empty title={t("admin.inboxClear")} body={t("admin.inboxClearBody")} />
           ) : (
             reviewing.map((order) => (
-              <article
+              <NoticeCard
                 key={order.id}
-                className="overflow-hidden rounded-2xl border border-amber-300/20 bg-[#0c0c0c]"
-              >
-                <div className="grid gap-0 lg:grid-cols-[minmax(240px,0.9fr)_1.1fr]">
-                  {order.hasProof ? (
-                    <a
-                      href={`/api/admin/orders/${order.id}/proof`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="relative block min-h-[200px] overflow-hidden bg-black lg:border-r lg:border-white/10"
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={`/api/admin/orders/${order.id}/proof`}
-                        alt={`Payment proof for ${order.number}`}
-                        className="mx-auto max-h-[360px] w-full object-contain"
-                      />
-                    </a>
-                  ) : (
-                    <div className="flex min-h-[180px] items-center justify-center border-b border-white/10 text-sm text-white/35 lg:border-b-0 lg:border-r">
-                      No screenshot
-                    </div>
-                  )}
-                  <div className="flex flex-col justify-between gap-5 p-5 sm:p-6">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-mono text-[11px] text-white/45">{order.number}</p>
-                        <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase ${statusStyle("REVIEWING")}`}>
-                          Review
-                        </span>
-                        {repeatCount(snapshot, order.email) > 1 ? (
-                          <span className="rounded-full border border-sky-300/30 bg-sky-300/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase text-sky-200">
-                            Repeat ×{repeatCount(snapshot, order.email)}
-                          </span>
-                        ) : (
-                          <span className="rounded-full border border-white/15 px-2.5 py-0.5 text-[10px] font-semibold uppercase text-white/45">
-                            New buyer
-                          </span>
-                        )}
-                        <span
-                          className="rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase"
-                          style={
-                            (waitMinutes(order.proofSubmittedAt ?? order.createdAt) ?? 0) >= 30
-                              ? { borderColor: "rgba(248,113,113,0.4)", background: "rgba(127,29,29,0.35)", color: "#fecaca" }
-                              : { borderColor: "rgba(251,191,36,0.35)", background: "rgba(120,53,15,0.3)", color: "#fde68a" }
-                          }
-                        >
-                          {waitLabel(waitMinutes(order.proofSubmittedAt ?? order.createdAt))}
-                        </span>
-                      </div>
-                      <p className="mt-2 text-3xl font-extrabold tabular-nums">{formatBdt(order.total)}</p>
-                      <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
-                        <Field label="Customer" value={order.email} />
-                        <Field label="Phone" value={order.phone || "—"} />
-                        <Field label="Note" value={`${order.title} × ${order.quantity}`} />
-                        <Field label="Face" value={order.faceValue != null ? formatBdt(order.faceValue) : "—"} />
-                        <Field label="Method" value={(order.paymentMethod ?? "—").toUpperCase()} />
-                        <Field label="TrxID" value={order.transactionId || "—"} mono />
-                        <Field label="Pay ref" value={order.paymentRef || "—"} mono />
-                        <Field label="Created" value={formatWhen(order.createdAt)} />
-                        <Field
-                          label="Proof at"
-                          value={order.proofSubmittedAt ? formatWhen(order.proofSubmittedAt) : "—"}
-                        />
-                        <Field
-                          label="SLA wait"
-                          value={waitLabel(waitMinutes(order.proofSubmittedAt ?? order.createdAt))}
-                        />
-                      </dl>
-                    </div>
-                    <div className="flex flex-wrap gap-2.5">
-                      <ActionButton
-                        primary
-                        disabled={pending}
-                        onClick={() =>
-                          run(async () => {
-                            const data = await post(`/api/admin/orders/${order.id}/approve`);
-                            if (data.codes?.length) setUnlockedCodes(data.codes);
-                            return data.message ?? "Approved. Code unlocked.";
-                          })
-                        }
-                      >
-                        {t("admin.approveShow")}
-                      </ActionButton>
-                      {order.hasProof ? (
-                        <a
-                          href={`/api/admin/orders/${order.id}/proof`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex h-11 items-center rounded-xl border border-white/15 px-4 text-sm font-semibold text-white/80 hover:bg-white/5"
-                        >
-                          {t("admin.openImage")}
-                        </a>
-                      ) : null}
-                      <ActionButton
-                        disabled={pending}
-                        onClick={() =>
-                          run(async () => {
-                            await post(`/api/admin/orders/${order.id}/release`);
-                            return "Hold released";
-                          })
-                        }
-                      >
-                        {t("admin.reject")}
-                      </ActionButton>
-                    </div>
-                  </div>
-                </div>
-              </article>
+                order={order}
+                pending={pending}
+                icash={desk.icash.connected}
+                onApprove={() =>
+                  run(async () => {
+                    const data = await post(`/api/admin/orders/${order.id}/approve`);
+                    if (data.codes?.length) setUnlockedCodes(data.codes);
+                    if (data.via === "icash" && data.email) {
+                      setLastSend({ email: data.email, masked: data.masked ?? [] });
+                    }
+                    return data.message ?? t("admin.noticeSent", { email: order.email });
+                  })
+                }
+                onReject={() =>
+                  run(async () => {
+                    await post(`/api/admin/orders/${order.id}/release`);
+                    return t("admin.reject");
+                  })
+                }
+              />
             ))
           )}
-        </section>
-      ) : null}
-
-      {section === "stock" ? (
-        <section className="mt-6 grid gap-4 xl:grid-cols-[1fr_0.95fr]">
-          <Panel title="Notes on hand" eyebrow="Inventory">
-            <ul className="divide-y divide-white/8">
-              {snapshot.products.map((product) => {
-                const total = Math.max(product.stock + product.reserved + product.sold, 1);
-                const readyPct = Math.round((product.stock / total) * 100);
-                return (
-                  <li key={product.id} className="py-4 first:pt-0">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-2xl font-extrabold tabular-nums">{formatBdt(product.faceValue)}</p>
-                        <p className="mt-0.5 text-xs text-white/40">{product.title}</p>
-                        <p className="mt-1 text-[11px] text-white/35">{product.blurb}</p>
-                      </div>
-                      <p className="rounded-full border border-emerald-400/25 bg-emerald-400/10 px-2.5 py-1 font-mono text-[11px] text-emerald-200">
-                        {product.stock} ready
-                      </p>
-                    </div>
-                    <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
-                      <div className="h-full rounded-full bg-emerald-400" style={{ width: `${readyPct}%` }} />
-                    </div>
-                    <p className="mt-2 font-mono text-[11px] text-white/40">
-                      {product.reserved} held · {product.sold} sold
-                      {product.voided ? ` · ${product.voided} void` : ""} · slug {product.slug}
-                    </p>
-                  </li>
-                );
-              })}
-            </ul>
-          </Panel>
-
-          <Panel title="Add codes" eyebrow="Upload">
-            <p className="text-sm text-white/45">One code per line. Encrypted at rest before save.</p>
-            <label className="mt-4 block text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40" htmlFor="product">
-              Note
-            </label>
-            <select
-              id="product"
-              value={slug}
-              onChange={(event) => setSlug(event.target.value)}
-              className="mt-2 h-11 w-full rounded-xl border border-white/12 bg-black px-3 text-sm outline-none focus:border-[#e11d2e]/50"
-            >
-              {snapshot.products.map((product) => (
-                <option key={product.id} value={product.slug}>
-                  {product.title} · {product.stock} ready
-                </option>
-              ))}
-            </select>
-            <label className="mt-4 block text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40" htmlFor="codes">
-              Codes
-            </label>
-            <textarea
-              id="codes"
-              value={csv}
-              onChange={(event) => setCsv(event.target.value)}
-              rows={8}
-              className="mt-2 w-full rounded-xl border border-white/12 bg-black/60 p-3 font-mono text-xs outline-none focus:border-[#e11d2e]/50"
-              placeholder={"ICASH-1000-ABCD\nICASH-1000-EFGH"}
-            />
-            <button
-              type="button"
-              disabled={pending || !slug || !csv.trim()}
-              className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#e11d2e] text-sm font-semibold disabled:opacity-40"
-              onClick={() =>
-                run(async () => {
-                  const data = await post("/api/admin/codes", { productSlug: slug, csv });
-                  setCsv("");
-                  return `${data.added ?? 0} codes added`;
-                })
-              }
-            >
-              Add to stock
-            </button>
-          </Panel>
         </section>
       ) : null}
 
@@ -1186,7 +1006,7 @@ export function AdminDashboard({
                           </div>
                         ) : null}
                       </div>
-                      <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex flex-wrap items-stretch gap-2 sm:items-center">
                         {order.hasProof ? (
                           <a
                             href={`/api/admin/orders/${order.id}/proof`}
@@ -1285,6 +1105,20 @@ export function AdminDashboard({
         </section>
       ) : null}
 
+      {section === "icash" ? (
+        <IcashDesk
+          snapshot={snapshot}
+          config={desk.icash}
+          busy={pending}
+          onRetry={(orderId) =>
+            void run(async () => {
+              const data = await post(`/api/admin/orders/${orderId}/issue`);
+              return data.message ?? t("admin.done");
+            })
+          }
+        />
+      ) : null}
+
       {section === "customers" ? (
         <section className="mt-6 space-y-4">
           <div className="rounded-2xl border border-white/10 bg-[#0c0c0c] p-4 sm:px-5">
@@ -1333,7 +1167,7 @@ export function AdminDashboard({
                           : ""}
                       </p>
                     </div>
-                    <div className="grid grid-cols-3 gap-4 text-right text-xs sm:min-w-[220px]">
+                    <div className="grid grid-cols-3 gap-3 text-left text-xs sm:min-w-[220px] sm:text-right">
                       <div>
                         <p className="text-white/35">Orders</p>
                         <p className="mt-0.5 font-bold tabular-nums text-white">{row.orders}</p>
@@ -1342,9 +1176,9 @@ export function AdminDashboard({
                         <p className="text-white/35">Delivered</p>
                         <p className="mt-0.5 font-bold tabular-nums text-white">{row.delivered}</p>
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-white/35">Spent</p>
-                        <p className="mt-0.5 font-bold tabular-nums text-white">{formatBdt(row.spent)}</p>
+                        <p className="mt-0.5 break-words font-bold tabular-nums text-white">{formatBdt(row.spent)}</p>
                       </div>
                     </div>
                   </li>
@@ -1437,7 +1271,7 @@ export function AdminDashboard({
                 snapshot.orders.filter((o) => o.status === "PAID" || o.status === "DELIVERED").length,
               )}
             />
-            <MiniStat label="Void codes" value={String(stats.voided)} />
+            <MiniStat label={t("icashDesk.kpiIssued")} value={String(snapshot.ledger.all.issued)} />
           </div>
           <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0c0c0c]">
             {refundRows.length === 0 ? (
@@ -1557,35 +1391,6 @@ export function AdminDashboard({
                 </ul>
               )}
             </Panel>
-            <Panel title="Stock health" eyebrow="Inventory">
-              <ul className="space-y-3">
-                {snapshot.products.map((product) => (
-                  <li key={product.id} className="flex items-center justify-between gap-3 text-sm">
-                    <span>
-                      <span className="font-bold tabular-nums">{formatBdt(product.faceValue)}</span>
-                      <span className="ml-2 text-white/40">{product.title}</span>
-                    </span>
-                    <span
-                      className="font-semibold"
-                      style={{ color: product.stock <= 2 ? "#fca5a5" : "#6ee7b7" }}
-                    >
-                      {product.stock} ready
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-4 grid grid-cols-3 gap-2 border-t border-white/8 pt-4 text-xs text-white/45">
-                <p>
-                  Held <span className="font-bold text-white/80">{stats.held}</span>
-                </p>
-                <p>
-                  Sold <span className="font-bold text-white/80">{stats.sold}</span>
-                </p>
-                <p>
-                  Void <span className="font-bold text-white/80">{stats.voided}</span>
-                </p>
-              </div>
-            </Panel>
           </div>
         </section>
       ) : null}
@@ -1636,13 +1441,6 @@ export function AdminDashboard({
                 </a>
                 <button
                   type="button"
-                  onClick={() => setSection("stock")}
-                  className="rounded-xl border border-white/12 px-4 py-3 text-left text-sm font-semibold text-white/80 transition hover:bg-white/5"
-                >
-                  Upload voucher codes →
-                </button>
-                <button
-                  type="button"
                   onClick={() => {
                     downloadText(
                       `icash-orders-${new Date().toISOString().slice(0, 10)}.csv`,
@@ -1657,6 +1455,8 @@ export function AdminDashboard({
               </div>
             </Panel>
           </div>
+
+          <OwnerTeam me={me} staff={staff} busy={pending} onRun={run} />
 
           <Panel title="Deposit accounts" eyebrow="Receiving numbers">
             <div className="grid gap-3 sm:grid-cols-2">
@@ -1689,6 +1489,127 @@ export function AdminDashboard({
   );
 }
 
+function OwnerTeam({
+  me,
+  staff,
+  busy,
+  onRun,
+}: {
+  me: DeskAdmin;
+  staff: DeskAdmin[];
+  busy: boolean;
+  onRun: (action: () => Promise<string>) => Promise<void>;
+}) {
+  const t = useT();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+
+  const canAdd = name.trim().length >= 2 && email.includes("@") && /^01\d{9}$/.test(phone) && password.length >= 8;
+
+  return (
+    <Panel title={t("admin.teamTitle")} eyebrow={t("admin.teamEyebrow")}>
+      <p className="text-sm text-white/45">{t("admin.teamLead")}</p>
+      <ul className="mt-4 space-y-3">
+        {staff.map((admin) => {
+          const mine = admin.id === me.id;
+          return (
+            <li
+              key={admin.id}
+              className="flex flex-col gap-3 rounded-xl border border-white/10 bg-black/35 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-white">
+                  {admin.name}
+                  {mine ? (
+                    <span className="ml-2 rounded-full bg-[#e11d2e]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#ff7a84]">
+                      {t("admin.you")}
+                    </span>
+                  ) : null}
+                </p>
+                <p className="mt-0.5 break-all text-xs text-white/45">
+                  {admin.email} · {admin.phone}
+                </p>
+              </div>
+              {mine || staff.length <= 1 ? null : (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() =>
+                    void onRun(async () => {
+                      await post(`/api/admin/staff/${admin.id}`, undefined, "DELETE");
+                      return t("admin.ownerRemoved");
+                    })
+                  }
+                  className="inline-flex h-9 shrink-0 items-center rounded-lg border border-white/15 px-3 text-xs font-semibold text-white/70 hover:bg-white/5 disabled:opacity-40"
+                >
+                  {t("admin.removeOwner")}
+                </button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+
+      <form
+        className="mt-5 grid gap-3 border-t border-white/10 pt-5 sm:grid-cols-2"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void onRun(async () => {
+            await post("/api/admin/staff", { name, email, phone, password });
+            setName("");
+            setEmail("");
+            setPhone("");
+            setPassword("");
+            return t("admin.ownerAdded");
+          });
+        }}
+      >
+        <input
+          required
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          placeholder={t("admin.ownerName")}
+          className="h-11 rounded-xl border border-white/12 bg-black/50 px-3 text-sm text-white outline-none focus:border-[#e11d2e]/60"
+        />
+        <input
+          required
+          type="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          placeholder={t("admin.ownerEmail")}
+          className="h-11 rounded-xl border border-white/12 bg-black/50 px-3 text-sm text-white outline-none focus:border-[#e11d2e]/60"
+        />
+        <input
+          required
+          type="tel"
+          value={phone}
+          onChange={(event) => setPhone(event.target.value)}
+          placeholder={t("admin.ownerPhone")}
+          className="h-11 rounded-xl border border-white/12 bg-black/50 px-3 text-sm text-white outline-none focus:border-[#e11d2e]/60"
+        />
+        <input
+          required
+          type="password"
+          autoComplete="new-password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          placeholder={t("admin.passwordHint")}
+          className="h-11 rounded-xl border border-white/12 bg-black/50 px-3 text-sm text-white outline-none focus:border-[#e11d2e]/60"
+        />
+        <button
+          type="submit"
+          disabled={busy || !canAdd}
+          className="inline-flex h-11 items-center justify-center rounded-xl bg-[#e11d2e] px-4 text-sm font-semibold text-white hover:bg-[#c41828] disabled:opacity-40 sm:col-span-2"
+        >
+          {t("admin.addOwner")}
+        </button>
+      </form>
+    </Panel>
+  );
+}
+
 function Kpi({
   label,
   value,
@@ -1701,15 +1622,11 @@ function Kpi({
   compact?: boolean;
 }) {
   return (
-    <div
-      className={`border-t border-white/8 px-4 sm:border-t-0 sm:border-l sm:border-white/8 sm:first:border-l-0 sm:px-5 ${
-        compact ? "py-3" : "py-3.5"
-      }`}
-    >
-      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">{label}</p>
+    <div className={`min-w-0 bg-[#0c0c0c] px-3 sm:px-5 ${compact ? "py-3" : "py-3.5"}`}>
+      <p className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">{label}</p>
       <p
-        className={`mt-1 font-extrabold tabular-nums tracking-tight ${
-          compact ? "text-base sm:text-lg" : "text-xl sm:text-2xl"
+        className={`mt-1 break-words font-extrabold tabular-nums tracking-tight ${
+          compact ? "text-sm sm:text-lg" : "text-lg sm:text-2xl"
         } ${hot ? "text-[#ff5a67]" : "text-white"}`}
       >
         {value}
@@ -1733,15 +1650,171 @@ function Panel({
 }) {
   return (
     <section className={`overflow-hidden rounded-2xl border border-white/10 bg-[#0c0c0c] ${className}`}>
-      <div className="flex items-end justify-between gap-3 border-b border-white/10 px-5 py-4">
-        <div>
+      <div className="flex items-end justify-between gap-3 border-b border-white/10 px-4 py-4 sm:px-5">
+        <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">{eyebrow}</p>
-          <h2 className="mt-0.5 text-lg font-bold tracking-tight">{title}</h2>
+          <h2 className="mt-0.5 truncate text-lg font-bold tracking-tight">{title}</h2>
         </div>
         {action}
       </div>
-      <div className="p-5">{children}</div>
+      <div className="p-4 sm:p-5">{children}</div>
     </section>
+  );
+}
+
+const PAY_LABEL: Record<string, string> = {
+  bkash: "bKash",
+  nagad: "Nagad",
+  rocket: "Rocket",
+  bank: "Bank",
+};
+
+function NoticeCard({
+  order,
+  pending,
+  icash,
+  onApprove,
+  onReject,
+}: {
+  order: AdminSnapshot["orders"][number];
+  pending: boolean;
+  icash: boolean;
+  onApprove: () => void;
+  onReject: () => void;
+}) {
+  const t = useT();
+  const wait = waitMinutes(order.proofSubmittedAt ?? order.createdAt);
+  const method = order.paymentMethod ? (PAY_LABEL[order.paymentMethod] ?? order.paymentMethod) : "—";
+  const ordered = formatBdt(order.voucher || order.faceValue || order.total);
+
+  return (
+    <article className="overflow-hidden rounded-2xl border border-amber-300/25 bg-[#0c0c0c] shadow-[0_20px_50px_rgba(0,0,0,0.35)]">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-300/15 bg-amber-300/[0.06] px-4 py-3 sm:px-5">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-300 opacity-60" />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-300" />
+          </span>
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-amber-100">{t("admin.noticeNew")}</p>
+          <p className="font-mono text-[11px] text-white/45">{order.number}</p>
+        </div>
+        <span
+          className="rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase"
+          style={
+            (wait ?? 0) >= 30
+              ? { borderColor: "rgba(248,113,113,0.4)", background: "rgba(127,29,29,0.35)", color: "#fecaca" }
+              : { borderColor: "rgba(251,191,36,0.35)", background: "rgba(120,53,15,0.3)", color: "#fde68a" }
+          }
+        >
+          {waitLabel(wait)}
+        </span>
+      </div>
+
+      <div className="grid gap-0 lg:grid-cols-[minmax(240px,0.95fr)_1.15fr]">
+        {order.hasProof ? (
+          <a
+            href={`/api/admin/orders/${order.id}/proof`}
+            target="_blank"
+            rel="noreferrer"
+            className="relative block min-h-[220px] overflow-hidden bg-black lg:border-r lg:border-white/10"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`/api/admin/orders/${order.id}/proof`}
+              alt={`${t("admin.noticeShot")} ${order.number}`}
+              className="mx-auto max-h-[420px] w-full object-contain"
+            />
+            <span className="absolute bottom-3 left-3 rounded-full bg-black/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/80">
+              {t("admin.noticeShot")}
+            </span>
+          </a>
+        ) : (
+          <div className="flex min-h-[180px] items-center justify-center border-b border-white/10 text-sm text-white/35 lg:border-b-0 lg:border-r">
+            {t("admin.noticeNoShot")}
+          </div>
+        )}
+
+        <div className="flex flex-col justify-between gap-5 p-4 sm:p-6">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">{t("admin.ownerEmail")}</p>
+            <p className="mt-1 break-all text-lg font-extrabold tracking-tight text-white sm:text-xl">{order.email}</p>
+            {order.name || order.phone ? (
+              <p className="mt-1 text-sm text-white/50">
+                {[order.name, order.phone].filter(Boolean).join(" · ")}
+              </p>
+            ) : null}
+
+            <dl className="mt-5 grid gap-4 sm:grid-cols-2">
+              <div>
+                <dt className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">
+                  {t("admin.noticeOrdered")}
+                </dt>
+                <dd className="mt-1 text-2xl font-extrabold tabular-nums text-white">{ordered}</dd>
+              </div>
+              <div>
+                <dt className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">
+                  {t("admin.noticePaid")}
+                </dt>
+                <dd className="mt-1 text-2xl font-extrabold tabular-nums text-white">{formatBdt(order.total)}</dd>
+              </div>
+              <div>
+                <dt className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">
+                  {t("admin.noticeMethod")}
+                </dt>
+                <dd className="mt-1 text-lg font-bold text-white">{method}</dd>
+              </div>
+              <div>
+                <dt className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">
+                  {t("admin.noticeTrx")}
+                </dt>
+                <dd className="mt-1 flex flex-wrap items-center gap-2">
+                  <span className="break-all font-mono text-sm font-semibold text-white">
+                    {order.transactionId || "—"}
+                  </span>
+                  {order.transactionId ? (
+                    <button
+                      type="button"
+                      className="rounded-full border border-white/15 px-2 py-0.5 text-[10px] font-semibold text-white/60 hover:bg-white/5"
+                      onClick={() =>
+                        void copyText(order.transactionId!)
+                          .then(() => notifySuccess(t("admin.copy"), order.transactionId!))
+                          .catch(() => notifyError(t("admin.copy"), t("admin.reachFailed")))
+                      }
+                    >
+                      {t("admin.noticeCopyTrx")}
+                    </button>
+                  ) : null}
+                </dd>
+              </div>
+            </dl>
+            <p className="mt-4 text-xs leading-relaxed text-white/40">
+              {icash
+                ? t("admin.noticeApproveHint", { email: order.email })
+                : t("admin.alertIcashOffBody")}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap">
+            <ActionButton primary disabled={pending} onClick={onApprove} className="col-span-2 sm:col-auto">
+              {t("admin.approveShow")}
+            </ActionButton>
+            {order.hasProof ? (
+              <a
+                href={`/api/admin/orders/${order.id}/proof`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-11 items-center justify-center rounded-xl border border-white/15 px-4 text-sm font-semibold text-white/80 hover:bg-white/5"
+              >
+                {t("admin.openImage")}
+              </a>
+            ) : null}
+            <ActionButton disabled={pending} onClick={onReject}>
+              {t("admin.reject")}
+            </ActionButton>
+          </div>
+        </div>
+      </div>
+    </article>
   );
 }
 
@@ -1761,22 +1834,24 @@ function ActionButton({
   onClick,
   disabled,
   primary = false,
+  className = "",
 }: {
   children: React.ReactNode;
   onClick: () => void;
   disabled?: boolean;
   primary?: boolean;
+  className?: string;
 }) {
   return (
     <button
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className={
+      className={`${
         primary
           ? "inline-flex h-11 items-center justify-center rounded-xl bg-[#e11d2e] px-4 text-sm font-semibold text-white hover:bg-[#c41828] disabled:opacity-40"
           : "inline-flex h-11 items-center justify-center rounded-xl border border-white/15 px-4 text-sm font-semibold text-white/80 hover:bg-white/5 disabled:opacity-40"
-      }
+      } ${className}`}
     >
       {children}
     </button>
@@ -1827,9 +1902,9 @@ function MiniStat({
   hot?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#0c0c0c] px-4 py-3.5">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">{label}</p>
-      <p className={`mt-1 text-xl font-extrabold tabular-nums ${hot ? "text-[#ff5a67]" : "text-white"}`}>
+    <div className="min-w-0 rounded-2xl border border-white/10 bg-[#0c0c0c] px-3 py-3.5 sm:px-4">
+      <p className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">{label}</p>
+      <p className={`mt-1 break-words text-lg font-extrabold tabular-nums sm:text-xl ${hot ? "text-[#ff5a67]" : "text-white"}`}>
         {value}
       </p>
     </div>

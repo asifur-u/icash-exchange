@@ -1,61 +1,30 @@
 export type OrderStatus = "PENDING" | "REVIEWING" | "PAID" | "DELIVERED" | "FAILED" | "REFUNDED";
 export type CodeStatus = "AVAILABLE" | "RESERVED" | "SOLD" | "VOID";
 export type PaymentMethod = "bkash" | "nagad" | "rocket" | "bank";
+export type SellStatus = "OPEN" | "PAID" | "REJECTED";
 
-export type Category = {
-  id: string;
-  name: string;
-  slug: string;
-};
+export type IssuanceStatus = "ISSUING" | "ISSUED" | "FAILED";
+export type IssuanceDelivery = "icash" | "desk";
 
-export type Product = {
-  id: string;
-  title: string;
-  slug: string;
-  blurb: string;
-  faceValue: number;
-  price: number;
-  active: boolean;
-  categoryId: string;
-};
-
-export type VoucherCode = {
-  id: string;
-  productId: string;
-  cipher: string;
-  hash: string;
-  status: CodeStatus;
-  orderId?: string;
-  reservedAt?: string;
-  soldAt?: string;
-};
-
-export type OrderItem = {
-  id: string;
-  productId: string;
-  quantity: number;
-  unitPrice: number;
-};
-
-export type Order = {
-  id: string;
-  number: string;
-  email: string;
-  name?: string;
-  phone?: string;
-  userId?: string;
-  status: OrderStatus;
-  total: number;
-  paymentRef?: string;
-  paymentMethod?: PaymentMethod;
-  transactionId?: string;
-  proofFile?: string;
-  proofSubmittedAt?: string;
-  items: OrderItem[];
-  codeIds: string[];
-  createdAt: string;
-  paidAt?: string;
-  deliveredAt?: string;
+/** An iCash voucher as the admin desk sees it — never includes full codes. */
+export type IssuanceView = {
+  status: IssuanceStatus;
+  delivery: IssuanceDelivery;
+  environment: "test" | "production";
+  attempts: number;
+  startedAt: string;
+  issuedAt?: string;
+  uuid?: string;
+  currency?: string;
+  /** Face value of the voucher, in the card currency. */
+  amount?: number;
+  /** What iCash charged the reseller balance (total_amount, reseller currency). */
+  cost?: number;
+  exchangeRate?: number;
+  /** Masked codes, e.g. ******ab12cd. */
+  masked?: string[];
+  error?: string;
+  errorMessage?: string;
 };
 
 export type Audit = {
@@ -64,37 +33,6 @@ export type Audit = {
   action: string;
   targetId?: string;
   createdAt: string;
-};
-
-export type SellStatus = "OPEN" | "PAID" | "REJECTED";
-
-export type SellRequest = {
-  id: string;
-  number: string;
-  name: string;
-  email: string;
-  phone: string;
-  faceValue: number;
-  payout: number;
-  method: PaymentMethod;
-  payoutNumber: string;
-  voucherCipher: string;
-  voucherHash: string;
-  status: SellStatus;
-  createdAt: string;
-  settledAt?: string;
-};
-
-export type Db = {
-  version: 1;
-  categories: Category[];
-  products: Product[];
-  codes: VoucherCode[];
-  orders: Order[];
-  sells: SellRequest[];
-  audit: Audit[];
-  webhooks: string[];
-  nextNumber: number;
 };
 
 export type PublicProduct = {
@@ -137,6 +75,9 @@ export type AdminSnapshot = {
     proofSubmittedAt?: string;
     /** True when delivered codes exist — fetch via reveal API, never embed plaintext. */
     hasCodes: boolean;
+    /** Voucher face value the buyer asked for (before the desk fee). */
+    voucher: number;
+    issuance?: IssuanceView;
   }>;
   audit: Audit[];
   totals: {
@@ -145,6 +86,39 @@ export type AdminSnapshot = {
     codeHeld: number;
     codeSold: number;
     codeVoid: number;
+  };
+  ledger: Ledger;
+};
+
+export type LedgerFigures = {
+  buyCount: number;
+  /** What buyers paid the desk (voucher + fee). */
+  buyGross: number;
+  buyFee: number;
+  issued: number;
+  issuedFace: number;
+  /** Charged to the iCash reseller balance, in the reseller currency. */
+  icashCost: number;
+  sellCount: number;
+  sellFace: number;
+  sellPayout: number;
+  /** Desk income: buy fees + sell margin. */
+  revenue: number;
+};
+
+export type LedgerDay = LedgerFigures & { date: string };
+
+export type Ledger = {
+  days: LedgerDay[];
+  today: LedgerFigures;
+  month: LedgerFigures;
+  all: LedgerFigures;
+  queue: {
+    awaitingApproval: number;
+    issuing: number;
+    failed: number;
+    openSells: number;
+    openSellFace: number;
   };
 };
 

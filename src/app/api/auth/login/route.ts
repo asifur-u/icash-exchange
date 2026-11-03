@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { assertCsrf } from "@/lib/csrf";
 import { DeskError, toErrorResponse } from "@/lib/errors";
 import { assertSameOrigin, noStore, readJson } from "@/lib/http";
-import { clientIp, limit } from "@/lib/limit";
+import { clientIp, rateLimit } from "@/lib/limit";
 import { userLoginSchema } from "@/lib/schemas";
 import { setUserSessionCookie } from "@/lib/user-session";
 import { authenticateUser } from "@/lib/users";
@@ -26,13 +26,13 @@ export async function POST(req: Request) {
     const emailKey = body.email.trim().toLowerCase();
     const ip = clientIp(req);
 
-    if (!limit(`user-login-ip:${ip}`, 5, 15 * 60_000)) {
+    if (!(await rateLimit(`user-login-ip:${ip}`, 5, 15 * 60_000))) {
       throw new DeskError(
         "RATE_LIMITED",
         "Too many login attempts from this network. Wait 15 minutes.",
       );
     }
-    if (!limit(`user-login-email:${emailKey}`, 3, 15 * 60_000)) {
+    if (!(await rateLimit(`user-login-email:${emailKey}`, 3, 15 * 60_000))) {
       throw new DeskError(
         "RATE_LIMITED",
         "Too many tries for this email. Wait 15 minutes, then try again.",

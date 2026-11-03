@@ -41,8 +41,9 @@ export const paymentProofSchema = z.object({
   proofDataUrl: z.string().trim().min(40).max(3_800_000),
 });
 
-export const loginSchema = z.object({
-  password: z.string().min(1, "Enter the owner password").max(200),
+export const adminLoginSchema = z.object({
+  email: z.string().trim().email("Enter a valid email").max(160),
+  password: z.string().min(1, "Enter your password").max(128),
 });
 
 const strongPassword = z
@@ -51,6 +52,13 @@ const strongPassword = z
   .max(128, "Password is too long")
   .regex(/[A-Za-z]/, "Include at least one letter")
   .regex(/[0-9]/, "Include at least one number");
+
+export const adminAccountSchema = z.object({
+  name: z.string().trim().min(2, "Enter the owner name").max(80),
+  email: z.string().trim().email("Enter a valid email").max(160),
+  phone: z.string().trim().regex(/^01\d{9}$/, "Use an 11-digit mobile number starting with 01"),
+  password: strongPassword,
+});
 
 export const userRegisterSchema = z.object({
   name: z.string().trim().min(2, "Enter your name").max(80),

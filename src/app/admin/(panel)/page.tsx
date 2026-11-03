@@ -1,6 +1,11 @@
 import { AdminDashboard } from "@/components/admin-dashboard";
+import { listAdmins } from "@/lib/admins";
 import { depositAccounts } from "@/lib/deposit";
+import { requireAdmin } from "@/lib/guard";
+import { deliveryProviders } from "@/lib/deliver";
 import { DESK_FEE_PERCENT } from "@/lib/desk-fee";
+import { icashPublicConfig } from "@/lib/icash";
+import { adminRecipients } from "@/lib/notify";
 import { getAdminSnapshot } from "@/lib/orders";
 import { listSells } from "@/lib/sells";
 import { paymentMode } from "@/lib/payments";
@@ -8,11 +13,18 @@ import { paymentMode } from "@/lib/payments";
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const [snapshot, sells] = await Promise.all([getAdminSnapshot(), listSells()]);
+  const [snapshot, sells, me, staff] = await Promise.all([
+    getAdminSnapshot(),
+    listSells(),
+    requireAdmin(),
+    listAdmins(),
+  ]);
   return (
     <AdminDashboard
       snapshot={snapshot}
       sells={sells}
+      me={me}
+      staff={staff}
       desk={{
         paymentMode: paymentMode(),
         feePercent: DESK_FEE_PERCENT,
@@ -25,6 +37,10 @@ export default async function AdminPage() {
           name: account.name,
           note: account.note,
         })),
+        icash: {
+          ...icashPublicConfig(),
+          email: { provider: deliveryProviders().email, admin: adminRecipients() },
+        },
       }}
     />
   );

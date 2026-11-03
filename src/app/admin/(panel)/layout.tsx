@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { verifyAdminSession } from "@/lib/auth";
+import { getAdminSession } from "@/lib/guard";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const jar = await cookies();
-  if (!verifyAdminSession(jar.get("vaulta_admin")?.value)) redirect("/admin/login");
+  const admin = await getAdminSession();
+  if (!admin) redirect("/admin/login");
   return children;
 }

@@ -1,6 +1,6 @@
-import { createHash, createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { DeskError } from "@/lib/errors";
-import { getAdminPassword, getAuthSecret } from "@/lib/secrets";
+import { getAuthSecret } from "@/lib/secrets";
 
 function same(a: string, b: string) {
   const left = Buffer.from(a);
@@ -20,29 +20,29 @@ export function assertOrderToken(orderId: string, token: string | undefined) {
   }
 }
 
-export function signAdminSession() {
+export function signAdminSession(userId: string) {
   const exp = Date.now() + 12 * 60 * 60 * 1000;
-  const payload = `admin.${exp}`;
+  const payload = `admin.${userId}.${exp}`;
   const sig = createHmac("sha256", getAuthSecret()).update(payload).digest("base64url");
   return `${payload}.${sig}`;
 }
 
+/** Returns the owner user id when the cookie is valid. Role is checked separately in the database. */
 export function verifyAdminSession(token: string | undefined) {
-  if (!token) return false;
+  if (!token) return null;
   const parts = token.split(".");
-  if (parts.length !== 3) return false;
-  const [role, exp, sig] = parts;
-  if (!role || !exp || !sig) return false;
-  const expected = createHmac("sha256", getAuthSecret()).update(`${role}.${exp}`).digest("base64url");
-  if (role !== "admin" || !same(sig, expected)) return false;
-  return Number(exp) > Date.now();
-}
-
-export function adminPasswordMatches(input: string) {
-  const expected = getAdminPassword();
-  const left = createHash("sha256").update(input).digest();
-  const right = createHash("sha256").update(expected).digest();
-  return timingSafeEqual(left, right);
+  if (parts.length !== 4) return null;
+  const [role, userId, exp, sig] = parts;
+  if (!role || !userId || !exp || !sig) return null;
+  let expected: string;
+  try {
+    expected = createHmac("sha256", getAuthSecret()).update(`${role}.${userId}.${exp}`).digest("base64url");
+  } catch {
+    return null;
+  }
+  if (role !== "admin" || !same(sig, expected)) return null;
+  if (Number(exp) <= Date.now()) return null;
+  return userId;
 }
 
 export function signUserSession(userId: string) {

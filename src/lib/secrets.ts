@@ -58,9 +58,6 @@ export function loadSecrets(): SecretFile {
   };
   mkdirSync(dataDir(), { recursive: true });
   writeFileSync(file, JSON.stringify(memory, null, 2));
-  if (!process.env.ADMIN_PASSWORD) {
-    writeFileSync(path.join(dataDir(), "admin-password.txt"), `${memory.adminPassword}\n`);
-  }
   return memory;
 }
 
@@ -83,34 +80,19 @@ export function getAuthSecret() {
   return loadSecrets().authSecret;
 }
 
-export function getAdminPassword() {
-  if (process.env.ADMIN_PASSWORD) return process.env.ADMIN_PASSWORD;
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("ADMIN_PASSWORD is required in production");
-  }
-  return loadSecrets().adminPassword;
-}
-
 export function ensureDevSecrets() {
   if (process.env.NODE_ENV === "production") return;
-  const usingGeneratedPassword = !process.env.ADMIN_PASSWORD;
-  const secrets = loadSecrets();
+  loadSecrets();
   if (globalForLog.__vaultaDeskLogged) return;
   globalForLog.__vaultaDeskLogged = true;
-  if (usingGeneratedPassword) {
-    console.info(
-      `\niCash Exchange\n  Open     http://localhost:3000\n  Owner    http://localhost:3000/admin\n  Password ${secrets.adminPassword}\n  Saved    .data/admin-password.txt\n`,
-    );
-    return;
-  }
   console.info(
-    "\niCash Exchange\n  Open   http://localhost:3000\n  Owner  http://localhost:3000/admin\n  Password comes from ADMIN_PASSWORD\n",
+    "\niCash Exchange\n  Open   http://localhost:3000\n  Owner  http://localhost:3000/admin\n  First visit creates the owner email. Later owners are added in Settings.\n",
   );
 }
 
 export function missingProductionSecrets() {
   if (process.env.NODE_ENV !== "production") return [] as string[];
-  const required = ["CODE_ENCRYPTION_KEY", "AUTH_SECRET", "ADMIN_PASSWORD"];
+  const required = ["CODE_ENCRYPTION_KEY", "AUTH_SECRET", "DATABASE_URL"];
   if (process.env.PAYMENT_MODE === "live") {
     required.push("PAYMENT_WEBHOOK_SECRET");
   }

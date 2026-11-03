@@ -1,11 +1,11 @@
 import { DeskError, toErrorResponse } from "@/lib/errors";
 import { noStore } from "@/lib/http";
-import { clientIp, limit } from "@/lib/limit";
+import { clientIp, rateLimit } from "@/lib/limit";
 import { getOrderForBuyer } from "@/lib/orders";
 
 export async function GET(req: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    if (!limit(`order:${clientIp(req)}`, 30, 60_000)) {
+    if (!(await rateLimit(`order:${clientIp(req)}`, 30, 60_000))) {
       throw new DeskError("RATE_LIMITED", "Too many attempts. Wait a minute.");
     }
     const { id } = await context.params;

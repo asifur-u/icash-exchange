@@ -1,13 +1,13 @@
 import { DeskError, toErrorResponse } from "@/lib/errors";
 import { assertSameOrigin, noStore, readJson, siteOrigin } from "@/lib/http";
-import { clientIp, limit } from "@/lib/limit";
+import { clientIp, rateLimit } from "@/lib/limit";
 import { confirmDemoPayment } from "@/lib/orders";
 import { confirmSchema } from "@/lib/schemas";
 
 export async function POST(req: Request) {
   try {
     assertSameOrigin(req);
-    if (!limit(`confirm:${clientIp(req)}`, 10, 60_000)) {
+    if (!(await rateLimit(`confirm:${clientIp(req)}`, 10, 60_000))) {
       throw new DeskError("RATE_LIMITED", "Too many attempts. Wait a minute.");
     }
     const body = confirmSchema.parse(await readJson(req));
