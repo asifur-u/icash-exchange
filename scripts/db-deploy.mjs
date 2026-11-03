@@ -1,6 +1,11 @@
 // Applies pending Prisma migrations during `npm run build` when a Postgres URL is present.
 import { spawnSync } from "node:child_process";
 
+if (process.env.SKIP_DB_DEPLOY === "1") {
+  console.log("db-deploy: skipped (image build).");
+  process.exit(0);
+}
+
 const url = process.env.DATABASE_URL ?? "";
 if (!/^postgres(ql)?:\/\//.test(url)) {
   console.log("db-deploy: DATABASE_URL is not Postgres, skipping migrations.");

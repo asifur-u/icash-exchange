@@ -26,7 +26,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   poweredByHeader: false,
+  serverExternalPackages: ["@prisma/client", "prisma", "redis"],
   images: {
     formats: ["image/avif", "image/webp"],
   },

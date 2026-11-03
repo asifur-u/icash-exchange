@@ -1,0 +1,78 @@
+# Run iCash Exchange on a VPS
+
+One Linux VPS (Ubuntu 22.04+), Docker, and a domain. The public IP is fixed, so iCash can whitelist it.
+
+## 1. Point DNS
+
+Create an A record:
+
+```
+icashexchange.com     →  YOUR_VPS_IP
+www.icashexchange.com →  YOUR_VPS_IP   (optional)
+```
+
+Open ports **80** and **443**.
+
+## 2. Install on the server
+
+```bash
+sudo apt-get update
+sudo apt-get install -y git ca-certificates curl
+git clone YOUR_REPO_URL icash-agent
+cd icash-agent
+```
+
+Copy secrets into `.env`. Easiest: copy `.env.example` then paste the real values from your machine (`DATABASE_URL`, iCash keys, SMTP, deposit numbers). Do not commit `.env`.
+
+```bash
+cp .env.example .env
+nano .env
+```
+
+Fill iCash keys, SMTP, and deposit numbers in `.env`. Leave database/redis blank — the setup script creates **Postgres + Redis on this VPS** and writes the URLs.
+
+```bash
+sudo bash deploy/vps-setup.sh your-domain.com you@email.com
+```
+
+That installs Docker if needed, generates `AUTH_SECRET`, `CODE_ENCRYPTION_KEY`, `POSTGRES_PASSWORD`, `REDIS_PASSWORD`, and starts:
+
+- `db` — Postgres 16 (not published to the internet)
+- `redis` — Redis 7 with a password (rate limits)
+- `app` — Next.js
+- `caddy` — HTTPS
+
+## 3. Bring old Neon users over (optional)
+
+If users still live on Neon and you want them on this VPS:
+
+```bash
+# on a machine that can reach Neon
+pg_dump --no-owner --no-acl "$NEON_UNPOOLED_URL" > desk.sql
+
+# on the VPS, after compose is up
+docker compose exec -T db psql -U icash -d icash < desk.sql
+```
+
+## 4. iCash IP whitelist
+
+```bash
+curl -4 https://api.ipify.org
+```
+
+Add that exact IP in the iCash reseller dashboard (no CIDR). Then set `ICASH_ENV=production` when you are ready.
+
+## 5. Day-to-day
+
+```bash
+docker compose logs -f app
+docker compose ps
+docker compose pull && docker compose up -d --build
+docker compose down
+```
+
+Screenshots stay in the `app_data` volume (`VAULTA_DATA_DIR=/data`). ImageKit is optional on a VPS.
+
+## First owner
+
+Open `https://your-domain.com/admin`. If no owner exists yet, that page creates one. If you already imported users, sign in with the owner email.

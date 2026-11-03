@@ -29,7 +29,15 @@ Sample notes are not real value. Do not put a brand name or logo on the site unt
 4. Put a 32-byte base64 `CODE_ENCRYPTION_KEY` in the environment before the first real code is saved. Generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`.
 5. Connect a payment gateway you hold a merchant account with. Set `PAYMENT_MODE=live`. Only a verified webhook marks an order paid.
 6. Add Resend (`RESEND_API_KEY`, `DELIVERY_FROM`) and, if you want texts, an HTTPS `SMS_API_URL`.
-7. On Vercel, use Upstash Redis plus QStash or Inngest for delivery jobs. On a VPS, run the web app and a BullMQ worker as two processes.
-8. Finish the refund policy, terms, and privacy note with a lawyer before launch. Turn on Neon backups before the first real sale.
+7. On a VPS the app, Caddy, self-hosted Postgres, and Redis run with Docker Compose. Whitelist the VPS IP at iCash.
+8. Finish the refund policy, terms, and privacy note with a lawyer before launch. Turn on database backups before the first real sale.
 
-Copy `.env.example` to `.env.local` when you are ready for those services. Until then, leave it alone and use `npm run dev`.
+## VPS
+
+Production is meant to run on a VPS with Docker, not serverless. Follow **[deploy/README.md](deploy/README.md)**. Short version:
+
+```bash
+sudo bash deploy/vps-setup.sh your-domain.com you@email.com
+```
+
+Copy `.env.example` to `.env.local` for local work. Until then, leave it alone and use `npm run dev`.

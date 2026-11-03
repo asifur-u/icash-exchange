@@ -1,5 +1,6 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { DeskError } from "@/lib/errors";
+import { cookieSecure } from "@/lib/http";
 import { getAuthSecret } from "@/lib/secrets";
 
 const COOKIE = "icash_csrf";
@@ -47,7 +48,7 @@ export function csrfCookieOptions(maxAgeSec = 2 * 60 * 60) {
   return {
     httpOnly: true,
     sameSite: "lax" as const,
-    secure: process.env.NODE_ENV === "production",
+    secure: cookieSecure(),
     path: "/",
     maxAge: maxAgeSec,
   };

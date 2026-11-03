@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { getAdminById, type DeskAdmin } from "@/lib/admins";
 import { verifyAdminSession } from "@/lib/auth";
 import { DeskError } from "@/lib/errors";
+import { cookieSecure } from "@/lib/http";
 
 export async function getAdminSession(): Promise<DeskAdmin | null> {
   const jar = await cookies();
@@ -19,7 +20,7 @@ export async function requireAdmin() {
 export const adminCookie = {
   httpOnly: true,
   sameSite: "lax" as const,
-  secure: process.env.NODE_ENV === "production",
+    secure: cookieSecure(),
   path: "/",
   maxAge: 60 * 60 * 12,
 };

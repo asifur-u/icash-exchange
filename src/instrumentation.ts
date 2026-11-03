@@ -11,7 +11,7 @@ export async function register() {
       console.error(
         `[iCash] Production secrets missing or invalid: ${
           missing.length ? missing.join(", ") : "CODE_ENCRYPTION_KEY invalid"
-        }. Set them in Vercel → Settings → Environment Variables, then redeploy.`,
+        }. Set them in the VPS .env file (or the host environment), then restart.`,
       );
       return;
     }
