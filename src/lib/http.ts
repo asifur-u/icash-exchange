@@ -39,3 +39,11 @@ export function siteOrigin(req: Request) {
 }
 
 export const noStore = { "Cache-Control": "no-store" };
+
+/** Secure cookies only on HTTPS. HTTP VPS IPs would otherwise fail login. */
+export function cookieSecure() {
+  const site = (process.env.NEXT_PUBLIC_SITE_URL ?? "").trim().toLowerCase();
+  if (site.startsWith("https://")) return true;
+  if (site.startsWith("http://")) return false;
+  return process.env.NODE_ENV === "production";
+}

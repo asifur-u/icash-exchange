@@ -116,7 +116,7 @@ beforeEach(async () => {
 
 afterEach(() => {
   for (const key of Object.keys(process.env)) {
-    if (key.startsWith("ICASH_") || key.startsWith("UPSTASH_")) delete process.env[key];
+    if (key.startsWith("ICASH_") || key.startsWith("UPSTASH_") || key === "REDIS_URL") delete process.env[key];
   }
   vi.unstubAllGlobals();
 });

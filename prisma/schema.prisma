@@ -1,6 +1,6 @@
-// Prisma ORM 6.19 — PostgreSQL (Neon in production).
-// DATABASE_URL          pooled connection (runtime)
-// DATABASE_URL_UNPOOLED direct connection (migrations)
+// Prisma ORM 6.19 — PostgreSQL (Neon or the VPS Postgres container).
+// DATABASE_URL          runtime (pooled on Neon, same URL on VPS)
+// DATABASE_URL_UNPOOLED migrations (direct on Neon, same URL on VPS)
 // Apply with: npx prisma migrate deploy
 
 generator client {

@@ -1,3 +1,5 @@
+import { redisIncrExpire, redisConfigured, upstashConfigured } from "@/lib/redis";
+
 const hits = new Map<string, number[]>();
 const inflight = new Map<string, number>();
 
@@ -22,14 +24,14 @@ function upstash() {
   return { url: url.replace(/\/$/, ""), token };
 }
 
-/**
- * Fixed-window rate limit shared by every server instance (Upstash Redis REST).
- * Falls back to the in-memory limiter when Upstash is not set or does not answer.
- */
-export async function rateLimit(key: string, max: number, windowMs: number): Promise<boolean> {
+function bucketName(key: string, windowMs: number) {
+  return `icx:rl:${process.env.NODE_ENV ?? "dev"}:${key}:${Math.floor(Date.now() / windowMs)}`;
+}
+
+async function upstashLimit(key: string, max: number, windowMs: number) {
   const redis = upstash();
-  if (!redis) return limit(key, max, windowMs);
-  const bucket = `icx:rl:${process.env.NODE_ENV ?? "dev"}:${key}:${Math.floor(Date.now() / windowMs)}`;
+  if (!redis) return null;
+  const bucket = bucketName(key, windowMs);
   try {
     const response = await fetch(`${redis.url}/pipeline`, {
       method: "POST",
@@ -46,8 +48,24 @@ export async function rateLimit(key: string, max: number, windowMs: number): Pro
     if (typeof first?.result !== "number") throw new Error("upstash_bad_reply");
     return first.result <= max;
   } catch {
-    return limit(key, max, windowMs);
+    return null;
   }
+}
+
+/**
+ * Fixed-window rate limit shared across processes.
+ * Prefers self-hosted Redis (`REDIS_URL`), then Upstash REST, then in-memory.
+ */
+export async function rateLimit(key: string, max: number, windowMs: number): Promise<boolean> {
+  if (redisConfigured()) {
+    const count = await redisIncrExpire(bucketName(key, windowMs), windowMs);
+    if (count != null) return count <= max;
+  }
+  if (upstashConfigured()) {
+    const shared = await upstashLimit(key, max, windowMs);
+    if (shared != null) return shared;
+  }
+  return limit(key, max, windowMs);
 }
 
 /**
