@@ -32,7 +32,7 @@ const SETUP_VARS = [
   "ICASH_API_KEY=…",
   "ICASH_API_SECRET=…",
   "ICASH_CURRENCY=BDT",
-  "ADMIN_NOTIFY_EMAIL=you@example.com",
+  "ADMIN_NOTIFY_EMAIL=you@example.com, other@example.com",
 ];
 
 /** `currency === ""` means unknown: show the number alone rather than guess a unit. */
@@ -420,13 +420,22 @@ export function IcashDesk({
                 </li>
               ))}
             </ul>
-            <p className="mt-4 border-t border-white/[0.06] pt-3 text-[11px] leading-relaxed text-white/45">
-              {!config.email.provider
-                ? t("icashDesk.emailNoProvider")
-                : config.email.admin.length
-                  ? t("icashDesk.emailTo", { to: config.email.admin.join(", ") })
-                  : t("icashDesk.emailNoAdmin")}
-            </p>
+            <div className="mt-4 border-t border-white/[0.06] pt-3 text-[11px] leading-relaxed text-white/45">
+              {!config.email.provider ? (
+                t("icashDesk.emailNoProvider")
+              ) : config.email.admin.length ? (
+                <>
+                  <p>{t("icashDesk.emailTo")}</p>
+                  <ul className="mt-2 space-y-1 font-mono text-[12px] text-white/70">
+                    {config.email.admin.map((email) => (
+                      <li key={email}>{email}</li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                t("icashDesk.emailNoAdmin")
+              )}
+            </div>
           </section>
         </div>
       </div>

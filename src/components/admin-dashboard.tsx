@@ -1432,6 +1432,24 @@ export function AdminDashboard({
               </p>
             </Panel>
 
+            <Panel title={t("admin.notifyTitle")} eyebrow={t("admin.notifyEyebrow")}>
+              {desk.icash.email.admin.length ? (
+                <ul className="space-y-2">
+                  {desk.icash.email.admin.map((email) => (
+                    <li
+                      key={email}
+                      className="rounded-xl border border-white/10 bg-black/35 px-4 py-3 font-mono text-sm text-white/85"
+                    >
+                      {email}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-white/45">{t("admin.notifyEmpty")}</p>
+              )}
+              <p className="mt-4 text-xs leading-relaxed text-white/40">{t("admin.notifyHint")}</p>
+            </Panel>
+
             <Panel title="Quick links" eyebrow="Desk">
               <div className="grid gap-2">
                 <a

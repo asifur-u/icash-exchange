@@ -29,7 +29,7 @@ cp .env.example .env
 nano .env
 ```
 
-Fill iCash keys, SMTP, and deposit numbers in `.env`. Leave database/redis blank — the setup script creates **Postgres + Redis on this VPS** and writes the URLs.
+Fill iCash keys, SMTP, deposit numbers, and `ADMIN_NOTIFY_EMAIL` in `.env`. Comma-separate multiple inboxes so every new order emails all of them. Leave database/redis blank — the setup script creates **Postgres + Redis on this VPS** and writes the URLs.
 
 ```bash
 sudo bash deploy/vps-setup.sh your-domain.com you@email.com
