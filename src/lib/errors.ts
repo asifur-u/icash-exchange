@@ -26,6 +26,12 @@ const STATUS: Record<string, number> = {
   RATE_LIMITED: 429,
 };
 
+export function isDbBusy(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  const code = typeof error === "object" && error && "code" in error ? String((error as { code?: unknown }).code) : "";
+  return code === "P2024" || /connection pool|Timed out fetching a new connection|Can't reach database server|P1001/i.test(message);
+}
+
 export class DeskError extends Error {
   constructor(
     public code: string,

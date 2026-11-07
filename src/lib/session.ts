@@ -3,8 +3,13 @@ import { verifyUserSession } from "@/lib/auth";
 import { getUserById } from "@/lib/users";
 
 export async function getCurrentUser() {
-  const jar = await cookies();
-  const userId = verifyUserSession(jar.get("icash_user")?.value);
-  if (!userId) return null;
-  return getUserById(userId);
+  try {
+    const jar = await cookies();
+    const userId = verifyUserSession(jar.get("icash_user")?.value);
+    if (!userId) return null;
+    return await getUserById(userId);
+  } catch (error) {
+    console.error("[iCash] session lookup failed", error instanceof Error ? error.message : error);
+    return null;
+  }
 }

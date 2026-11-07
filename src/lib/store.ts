@@ -77,26 +77,48 @@ export async function addAudit(tx: Tx, actor: string, action: string, targetId?:
   await tx.auditLog.create({ data: { actor, action, targetId } });
 }
 
+let lastStaleRelease = 0;
+let staleInflight: Promise<void> | null = null;
+const STALE_EVERY_MS = 60_000;
+
 /** Expires PENDING orders whose stock hold is older than 15 minutes and frees their codes. */
-export async function releaseStale(now = Date.now()) {
-  const prisma = getPrisma();
-  const cutoff = new Date(now - HOLD_MS);
-  const stale = await prisma.order.findMany({
-    where: { status: "PENDING", codes: { some: { status: "RESERVED", reservedAt: { lt: cutoff } } } },
-    select: { id: true },
-    take: 100,
-  });
-  for (const { id } of stale) {
-    await prisma.$transaction(async (tx) => {
-      const moved = await tx.order.updateMany({ where: { id, status: "PENDING" }, data: { status: "FAILED" } });
-      if (moved.count === 0) return;
-      await tx.voucherCode.updateMany({
-        where: { orderId: id, status: "RESERVED" },
-        data: { status: "AVAILABLE", orderId: null, reservedAt: null },
+export async function releaseStale(now = Date.now(), force = false) {
+  if (!force && now - lastStaleRelease < STALE_EVERY_MS) return;
+  if (staleInflight) return staleInflight;
+
+  staleInflight = (async () => {
+    try {
+      const prisma = getPrisma();
+      const cutoff = new Date(now - HOLD_MS);
+      const stale = await prisma.order.findMany({
+        where: { status: "PENDING", codes: { some: { status: "RESERVED", reservedAt: { lt: cutoff } } } },
+        select: { id: true },
+        take: 40,
       });
-      await addAudit(tx, "desk", "order.expired", id);
-    });
-  }
+      if (stale.length === 0) {
+        lastStaleRelease = Date.now();
+        return;
+      }
+      const ids = stale.map((row) => row.id);
+      await prisma.$transaction(async (tx) => {
+        const moved = await tx.order.updateMany({ where: { id: { in: ids }, status: "PENDING" }, data: { status: "FAILED" } });
+        if (moved.count === 0) return;
+        await tx.voucherCode.updateMany({
+          where: { orderId: { in: ids }, status: "RESERVED" },
+          data: { status: "AVAILABLE", orderId: null, reservedAt: null },
+        });
+        await addAudit(tx, "desk", "order.expired");
+      });
+      lastStaleRelease = Date.now();
+    } catch (error) {
+      lastStaleRelease = Date.now();
+      console.error("[iCash] releaseStale skipped", error instanceof Error ? error.message : error);
+    } finally {
+      staleInflight = null;
+    }
+  })();
+
+  return staleInflight;
 }
 
 async function stockByProduct() {
@@ -154,9 +176,14 @@ function canUseDesk() {
 
 export async function getPublicProducts() {
   if (!canUseDesk()) return catalogFallbackProducts();
-  await releaseStale();
-  const rows = await productsWithStock();
-  return rows.map(({ product, counts }) => toPublic(product, counts.AVAILABLE ?? 0));
+  try {
+    await releaseStale();
+    const rows = await productsWithStock();
+    return rows.map(({ product, counts }) => toPublic(product, counts.AVAILABLE ?? 0));
+  } catch (error) {
+    console.error("[iCash] catalog unavailable", error instanceof Error ? error.message : error);
+    return catalogFallbackProducts();
+  }
 }
 
 export async function getPublicProduct(slug: string) {

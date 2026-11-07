@@ -53,8 +53,8 @@ async function requireOrder(tx: Tx, orderId: string) {
   return order;
 }
 
-function productTitle(order: { product: { title: string } | null }) {
-  return order.product?.title ?? "Note";
+function productTitle(order: { product: { title: string } | null; name?: string | null }) {
+  return order.product?.title ?? order.name ?? "Note";
 }
 
 function iso(value: Date | null | undefined) {
@@ -102,6 +102,8 @@ export async function createCheckout(input: {
   name?: string;
   phone?: string;
   userId?: string;
+  /** Token packs: buyer sends the listed taka, no extra desk fee. */
+  lockTotal?: boolean;
 }) {
   await ensureCatalog();
   await releaseStale();
@@ -124,7 +126,7 @@ export async function createCheckout(input: {
     }
 
     const voucher = typed || lineTotal(product?.price ?? 0, input.quantity);
-    const total = deskPayTotal(voucher);
+    const total = input.lockTotal ? voucher : deskPayTotal(voucher);
     const orderId = newId("ord");
     const number = await nextNumber(tx, "IX");
     await tx.order.create({
@@ -157,11 +159,12 @@ export async function submitPaymentProof(input: {
   token: string;
   method: PaymentMethod;
   transactionId: string;
-  proofDataUrl: string;
+  proofDataUrl?: string;
+  payerNumber?: string;
 }) {
   assertOrderToken(input.orderId, input.token);
   const txn = input.transactionId.trim().toUpperCase();
-  const proofFile = await savePaymentProof(input.orderId, input.proofDataUrl);
+  const proofFile = input.proofDataUrl ? await savePaymentProof(input.orderId, input.proofDataUrl) : null;
   await releaseStale();
 
   try {
@@ -182,9 +185,10 @@ export async function submitPaymentProof(input: {
           status: "REVIEWING",
           paymentMethod: input.method,
           transactionId: txn,
-          proofFile,
+          ...(proofFile ? { proofFile } : {}),
           proofSubmittedAt: new Date(),
           paymentRef: `${input.method}_${txn}`,
+          ...(input.payerNumber ? { phone: input.payerNumber } : {}),
         },
       });
       await addAudit(tx, order.email, "order.proof", order.id);

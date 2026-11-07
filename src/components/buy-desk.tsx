@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Frame } from "@/components/frame";
 import { useT } from "@/i18n/provider";
 import { deskBreakdown, deskPayout } from "@/lib/desk-fee";
@@ -17,10 +17,12 @@ const field =
 export function BuyDesk({
   deposits,
   embedded = false,
+  preset = null,
 }: {
   products: PublicProduct[];
   deposits: DepositAccount[];
   embedded?: boolean;
+  preset?: { price: number; tokens: number; at: number } | null;
 }) {
   const t = useT();
   const [intent, setIntent] = useState<Intent>("buy");
@@ -37,6 +39,16 @@ export function BuyDesk({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [number, setNumber] = useState("");
+  const [packTokens, setPackTokens] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!preset) return;
+    setIntent("buy");
+    setAmount(String(preset.price));
+    setPackTokens(preset.tokens);
+    setError("");
+    setStep((current) => (current === 5 ? 2 : current));
+  }, [preset]);
 
   const typed = Number(amount.replace(/[^\d]/g, "")) || 0;
   const quote = useMemo(() => {
@@ -61,6 +73,7 @@ export function BuyDesk({
     setPayoutNumber("");
     setError("");
     setNumber("");
+    setPackTokens(null);
   }
 
   async function onFile(file: File | undefined) {
@@ -205,9 +218,15 @@ export function BuyDesk({
                     inputMode="numeric"
                     placeholder="1000"
                     value={amount}
-                    onChange={(event) => setAmount(event.target.value.replace(/[^\d]/g, ""))}
+                    onChange={(event) => {
+                      setPackTokens(null);
+                      setAmount(event.target.value.replace(/[^\d]/g, ""));
+                    }}
                   />
                 </Field>
+                {packTokens ? (
+                  <p className="text-sm font-medium text-white/55">{t("buyForm.packHint", { tokens: packTokens })}</p>
+                ) : null}
                 {quote ? (
                   <div className="rounded-2xl border border-white/10 bg-black px-5 py-5">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/35">
