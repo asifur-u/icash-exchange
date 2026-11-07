@@ -21,6 +21,15 @@ export const deskRequestSchema = z.discriminatedUnion("intent", [
     payoutNumber: z.string().trim().min(6, "Enter the number that receives the taka").max(30),
     voucherCode: z.string().trim().min(4, "Enter the voucher code").max(80),
   }),
+  z.object({
+    intent: z.literal("token"),
+    email: z.string().trim().email("Enter a valid email").max(160),
+    tokens: z.number().int(),
+    method: z.enum(["bkash", "nagad"]),
+    transactionId: z.string().trim().min(4).max(80),
+    payerNumber: z.string().trim().regex(/^01\d{9}$/, "Use an 11-digit mobile number starting with 01"),
+    proofDataUrl: z.string().trim().min(40).max(3_800_000).optional(),
+  }),
 ]);
 
 export const checkoutSchema = z.object({

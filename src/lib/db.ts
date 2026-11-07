@@ -8,13 +8,25 @@ declare global {
 
 export type Tx = Prisma.TransactionClient;
 
+function withPoolParams(raw: string) {
+  const extra: string[] = [];
+  if (!/[?&]connection_limit=/.test(raw)) {
+    extra.push(process.env.NODE_ENV === "development" ? "connection_limit=5" : "connection_limit=10");
+  }
+  if (!/[?&]pool_timeout=/.test(raw)) extra.push("pool_timeout=20");
+  if (!/[?&]connect_timeout=/.test(raw)) extra.push("connect_timeout=10");
+  if (extra.length === 0) return raw;
+  return `${raw}${raw.includes("?") ? "&" : "?"}${extra.join("&")}`;
+}
+
 export function getPrisma() {
   if (!databaseConfigured()) {
     throw new DeskError("DB_OFF", "The desk database is not configured. Set DATABASE_URL to a Postgres URL.");
   }
   if (!globalThis.__icashPrisma) {
     globalThis.__icashPrisma = new PrismaClient({
-      log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+      log: ["error"],
+      datasourceUrl: withPoolParams(process.env.DATABASE_URL!.trim()),
     });
   }
   return globalThis.__icashPrisma;

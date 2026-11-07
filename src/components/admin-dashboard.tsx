@@ -17,6 +17,7 @@ import {
 import { formatBdt, formatWhen } from "@/lib/format";
 import { notifyError, notifySuccess } from "@/lib/swal";
 import type { DeskAdmin } from "@/lib/admins";
+import { tokenPackByPrice } from "@/lib/token-packs";
 import type { AdminSnapshot } from "@/lib/types";
 
 type OrderFilter = "all" | "PENDING" | "REVIEWING" | "DELIVERED" | "FAILED";
@@ -1669,6 +1670,13 @@ const PAY_LABEL: Record<string, string> = {
   bank: "Bank",
 };
 
+const PAY_LOGO: Record<string, string> = {
+  bkash: "/payments/bkash.png",
+  nagad: "/payments/nagad.png",
+  rocket: "/payments/rocket.png",
+  bank: "/payments/bank.png",
+};
+
 function NoticeCard({
   order,
   pending,
@@ -1685,7 +1693,9 @@ function NoticeCard({
   const t = useT();
   const wait = waitMinutes(order.proofSubmittedAt ?? order.createdAt);
   const method = order.paymentMethod ? (PAY_LABEL[order.paymentMethod] ?? order.paymentMethod) : "—";
+  const pack = tokenPackByPrice(order.voucher);
   const ordered = formatBdt(order.voucher || order.faceValue || order.total);
+  const methodLogo = order.paymentMethod ? PAY_LOGO[order.paymentMethod] : undefined;
 
   return (
     <article className="overflow-hidden rounded-2xl border border-amber-300/25 bg-[#0c0c0c] shadow-[0_20px_50px_rgba(0,0,0,0.35)]">
@@ -1728,6 +1738,13 @@ function NoticeCard({
               {t("admin.noticeShot")}
             </span>
           </a>
+        ) : methodLogo ? (
+          <div className="flex min-h-[220px] flex-col items-center justify-center gap-4 border-b border-white/10 bg-black px-6 lg:border-b-0 lg:border-r">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={methodLogo} alt="" className="h-24 w-24 rounded-[22px] object-cover" />
+            <p className="text-sm font-bold text-white">{method}</p>
+            {order.phone ? <p className="font-mono text-lg font-extrabold tracking-wide text-white">{order.phone}</p> : null}
+          </div>
         ) : (
           <div className="flex min-h-[180px] items-center justify-center border-b border-white/10 text-sm text-white/35 lg:border-b-0 lg:border-r">
             {t("admin.noticeNoShot")}
@@ -1745,6 +1762,16 @@ function NoticeCard({
             ) : null}
 
             <dl className="mt-5 grid gap-4 sm:grid-cols-2">
+              {pack ? (
+                <div className="sm:col-span-2">
+                  <dt className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">
+                    {t("admin.noticePack")}
+                  </dt>
+                  <dd className="mt-1 text-2xl font-extrabold tracking-tight text-white">
+                    {pack.tokens} {t("tokenPacks.tokenName")}
+                  </dd>
+                </div>
+              ) : null}
               <div>
                 <dt className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">
                   {t("admin.noticeOrdered")}
@@ -1786,10 +1813,18 @@ function NoticeCard({
                   ) : null}
                 </dd>
               </div>
+              {order.phone ? (
+                <div>
+                  <dt className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">
+                    {t("admin.noticeFrom")}
+                  </dt>
+                  <dd className="mt-1 font-mono text-lg font-extrabold tracking-wide text-white">{order.phone}</dd>
+                </div>
+              ) : null}
             </dl>
             <p className="mt-4 text-xs leading-relaxed text-white/40">
               {icash
-                ? t("admin.noticeApproveHint", { email: order.email })
+                ? t(pack ? "admin.noticeApproveHintToken" : "admin.noticeApproveHint", { email: order.email })
                 : t("admin.alertIcashOffBody")}
             </p>
           </div>

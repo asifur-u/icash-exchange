@@ -105,6 +105,20 @@ describe("the desk", () => {
     await expect(uploadCodes(product!.slug, fresh)).rejects.toMatchObject({ code: "DUPLICATE_CODE" });
   });
 
+  it("locks a token pack to the listed taka with no desk fee", async () => {
+    const checkout = await createCheckout({
+      amount: 750,
+      quantity: 1,
+      email: "pack@example.com",
+      name: "45 tokens",
+      lockTotal: true,
+    });
+    const order = await getPrisma().order.findUniqueOrThrow({ where: { id: checkout.orderId } });
+    expect(order.voucher).toBe(750);
+    expect(order.total).toBe(750);
+    expect(order.name).toBe("45 tokens");
+  });
+
   it("refuses a transaction ID that already backs another order", async () => {
     const first = await createCheckout({ amount: 750, quantity: 1, email: "one@example.com" });
     const second = await createCheckout({ amount: 750, quantity: 1, email: "two@example.com" });

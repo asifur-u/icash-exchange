@@ -6,6 +6,7 @@ import { notifyAdminBuy, notifyAdminSell, notifyBuyerReceived } from "@/lib/noti
 import { createCheckout, submitPaymentProof } from "@/lib/orders";
 import { deskRequestSchema } from "@/lib/schemas";
 import { createSell } from "@/lib/sells";
+import { tokenPackByTokens } from "@/lib/token-packs";
 
 export async function POST(req: Request) {
   try {
@@ -22,6 +23,42 @@ export async function POST(req: Request) {
       throw new DeskError("RATE_LIMITED", "Too many requests for this email. Wait an hour.");
     }
     const result = await withConcurrency(`desk-run:${ip}`, 2, async () => {
+      if (body.intent === "token") {
+        const pack = tokenPackByTokens(body.tokens);
+        if (!pack) throw new DeskError("BAD_INPUT", "That token pack is not on the desk.");
+        const order = await createCheckout({
+          amount: pack.price,
+          quantity: 1,
+          email: body.email,
+          name: `${pack.tokens} tokens`,
+          phone: body.payerNumber,
+          lockTotal: true,
+        });
+        await submitPaymentProof({
+          orderId: order.orderId,
+          token: order.token,
+          method: body.method,
+          transactionId: body.transactionId,
+          payerNumber: body.payerNumber,
+          proofDataUrl: body.proofDataUrl,
+        });
+        const alert = {
+          number: order.number,
+          name: `${pack.tokens} tokens`,
+          email: body.email,
+          phone: body.payerNumber,
+          voucher: pack.price,
+          total: pack.price,
+          method: body.method,
+          transactionId: body.transactionId.trim().toUpperCase(),
+        };
+        later(async () => {
+          await notifyAdminBuy(alert);
+          await notifyBuyerReceived(alert);
+        });
+        return { number: order.number };
+      }
+
       if (body.intent === "sell") {
         const sell = await createSell({
           name: body.name,
