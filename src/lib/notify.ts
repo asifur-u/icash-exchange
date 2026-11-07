@@ -16,12 +16,27 @@ function siteUrl() {
   return (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/$/, "");
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Split comma, semicolon, or whitespace-separated inboxes into unique addresses. */
+export function parseEmailList(raw: string | undefined | null) {
+  if (!raw) return [];
+  return [
+    ...new Set(
+      raw
+        .split(/[\s,;]+/)
+        .map((item) => item.trim().replace(/^mailto:/i, "").toLowerCase())
+        .filter((item) => EMAIL_RE.test(item)),
+    ),
+  ];
+}
+
 export function adminRecipients() {
-  const list = (process.env.ADMIN_NOTIFY_EMAIL ?? process.env.SMTP_USER ?? "")
-    .split(",")
-    .map((item) => item.trim())
-    .filter((item) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(item));
-  return [...new Set(list)];
+  const configured = parseEmailList(
+    [process.env.ADMIN_NOTIFY_EMAIL, process.env.ADMIN_NOTIFY_EMAILS].filter(Boolean).join(","),
+  );
+  if (configured.length) return configured;
+  return parseEmailList(process.env.SMTP_USER);
 }
 
 type Row = [label: string, value: string | number | undefined];
@@ -83,11 +98,14 @@ async function quietly(kind: string, run: () => Promise<void>) {
 }
 
 async function toAdmin(kind: string, subject: string, body: Parameters<typeof layout>[0], replyTo?: string) {
-  const to = adminRecipients();
-  if (to.length === 0) return false;
+  const recipients = adminRecipients();
+  if (recipients.length === 0) return false;
   const admin = siteUrl() ? `${siteUrl()}/admin` : "";
   const mail = layout({ ...body, cta: admin ? { href: admin, label: "Open the admin desk" } : undefined });
-  return quietly(kind, () => sendMail({ to, subject, ...mail, replyTo }));
+  const sent = await Promise.all(
+    recipients.map((to) => quietly(kind, () => sendMail({ to, subject, ...mail, replyTo }))),
+  );
+  return sent.some(Boolean);
 }
 
 export type BuyAlert = {
