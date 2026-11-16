@@ -18,6 +18,7 @@ import { later } from "@/lib/later";
 import { lineTotal } from "@/lib/money";
 import { notifyAdminIssueFailed, notifyAdminLowBalance, notifyBuyerIssued } from "@/lib/notify";
 import { paymentMode } from "@/lib/payments";
+import { ensureDepositNumberColumn, freezeLegacyDepositNumbers, walletNumberFor } from "@/lib/deposit-store";
 import { savePaymentProof } from "@/lib/proofs";
 import {
   addAudit,
@@ -165,6 +166,8 @@ export async function submitPaymentProof(input: {
   assertOrderToken(input.orderId, input.token);
   const txn = input.transactionId.trim().toUpperCase();
   const proofFile = input.proofDataUrl ? await savePaymentProof(input.orderId, input.proofDataUrl) : null;
+  const payTo = await walletNumberFor(input.method);
+  await ensureDepositNumberColumn();
   await releaseStale();
 
   try {
@@ -191,6 +194,9 @@ export async function submitPaymentProof(input: {
           ...(input.payerNumber ? { phone: input.payerNumber } : {}),
         },
       });
+      if (payTo) {
+        await tx.$executeRaw`UPDATE "Order" SET "depositNumber" = ${payTo} WHERE "id" = ${order.id}`;
+      }
       await addAudit(tx, order.email, "order.proof", order.id);
     });
   } catch (error) {
@@ -605,6 +611,8 @@ function issuanceView(issuance: OrderDetail["issuance"]): IssuanceView | undefin
 export async function getAdminSnapshot(): Promise<AdminSnapshot> {
   await ensureCatalog();
   await releaseStale();
+  await ensureDepositNumberColumn();
+  await freezeLegacyDepositNumbers();
   const prisma = getPrisma();
   const [products, orders, audit, codeCounts, orderCount, ledger] = await Promise.all([
     productsWithStock(),
@@ -619,6 +627,16 @@ export async function getAdminSnapshot(): Promise<AdminSnapshot> {
     buildLedger(),
   ]);
   const totalFor = (status: string) => codeCounts.find((row) => row.status === status)?._count._all ?? 0;
+  const payToById = new Map<string, string>();
+  if (orders.length > 0) {
+    const stamped = await prisma.$queryRaw<Array<{ id: string; depositNumber: string | null }>>`
+      SELECT id, "depositNumber" FROM "Order"
+      WHERE id IN (${Prisma.join(orders.map((order) => Prisma.sql`${order.id}`))})
+    `;
+    for (const row of stamped) {
+      if (row.depositNumber) payToById.set(row.id, row.depositNumber);
+    }
+  }
 
   return {
     products: products.map(({ product, counts }) => ({
@@ -643,6 +661,7 @@ export async function getAdminSnapshot(): Promise<AdminSnapshot> {
       deliveredAt: iso(order.deliveredAt),
       paymentMethod: order.paymentMethod ?? undefined,
       paymentRef: order.paymentRef ?? undefined,
+      depositNumber: payToById.get(order.id) ?? (order as { depositNumber?: string | null }).depositNumber ?? undefined,
       transactionId: order.transactionId ?? undefined,
       hasProof: Boolean(order.proofFile),
       proofSubmittedAt: iso(order.proofSubmittedAt),

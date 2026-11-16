@@ -20,9 +20,10 @@ function demoCode(faceValue: number) {
 
 let catalogReady: Promise<void> | null = null;
 
-/** Creates the catalog notes once (plus demo stock outside production). Safe to call concurrently. */
+/** Creates the sample notes in tests/dev only. Production stays empty after a wipe. */
 export function ensureCatalog() {
   catalogReady ??= (async () => {
+    if (process.env.NODE_ENV === "production") return;
     const prisma = getPrisma();
     for (const item of CATALOG) {
       const id = `prd_${item.slug}`;

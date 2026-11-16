@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { PayPanel } from "@/components/pay-panel";
+import { resolveDepositAccounts } from "@/lib/deposit-store";
 import { DeskError } from "@/lib/errors";
 import { getOrderForBuyer } from "@/lib/orders";
 
@@ -23,7 +24,7 @@ export default async function AccountPayPage({
   const { t } = await searchParams;
 
   try {
-    const order = await getOrderForBuyer(id, t);
+    const [order, deposits] = await Promise.all([getOrderForBuyer(id, t), resolveDepositAccounts()]);
     if ((order.status === "DELIVERED" || order.status === "REVIEWING" || order.status === "PAID") && t) {
       redirect(`/account/orders/${id}?t=${encodeURIComponent(t)}`);
     }
@@ -61,6 +62,7 @@ export default async function AccountPayPage({
           phone={order.phone}
           total={order.total}
           title={order.title}
+          deposits={deposits}
           tone="portal"
         />
       </div>

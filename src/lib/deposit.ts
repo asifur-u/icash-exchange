@@ -17,6 +17,11 @@ export type DepositAccount = {
   note?: string;
 };
 
+export type DepositOverride = { number?: string; name?: string };
+export type DepositOverrides = Partial<Record<PaymentMethodId, DepositOverride>>;
+
+export const DEPOSITS_KEY = "deposits";
+
 export function depositAccounts(): DepositAccount[] {
   return [
     {
@@ -60,4 +65,15 @@ export function depositAccounts(): DepositAccount[] {
 
 export function depositAccount(id: PaymentMethodId) {
   return depositAccounts().find((item) => item.id === id);
+}
+
+export function mergeDepositAccounts(overrides: DepositOverrides | null | undefined): DepositAccount[] {
+  return depositAccounts().map((account) => {
+    const extra = overrides?.[account.id];
+    return {
+      ...account,
+      number: extra?.number?.trim() || account.number,
+      name: extra?.name?.trim() || account.name,
+    };
+  });
 }

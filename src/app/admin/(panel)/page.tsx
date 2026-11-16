@@ -1,6 +1,6 @@
 import { AdminDashboard } from "@/components/admin-dashboard";
 import { listAdmins } from "@/lib/admins";
-import { depositAccounts } from "@/lib/deposit";
+import { resolveDepositAccounts } from "@/lib/deposit-store";
 import { requireAdmin } from "@/lib/guard";
 import { deliveryProviders } from "@/lib/deliver";
 import { DESK_FEE_PERCENT } from "@/lib/desk-fee";
@@ -13,11 +13,12 @@ import { paymentMode } from "@/lib/payments";
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const [snapshot, sells, me, staff] = await Promise.all([
+  const [snapshot, sells, me, staff, deposits] = await Promise.all([
     getAdminSnapshot(),
     listSells(),
     requireAdmin(),
     listAdmins(),
+    resolveDepositAccounts(),
   ]);
   return (
     <AdminDashboard
@@ -29,7 +30,7 @@ export default async function AdminPage() {
         paymentMode: paymentMode(),
         feePercent: DESK_FEE_PERCENT,
         siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "",
-        deposits: depositAccounts().map((account) => ({
+        deposits: deposits.map((account) => ({
           id: account.id,
           label: account.label,
           hint: account.hint,

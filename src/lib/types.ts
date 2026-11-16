@@ -69,6 +69,8 @@ export type AdminSnapshot = {
     deliveredAt?: string;
     paymentMethod?: PaymentMethod;
     paymentRef?: string;
+    /** Receiving wallet at the moment this order was paid. */
+    depositNumber?: string;
     transactionId?: string;
     /** True when a screenshot exists — never expose the storage path/URL to the client. */
     hasProof: boolean;

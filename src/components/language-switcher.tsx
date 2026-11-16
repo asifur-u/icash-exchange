@@ -16,7 +16,7 @@ export function LanguageSwitcher({
 
   const options: { id: Locale; label: string }[] = [
     { id: "en", label: "EN" },
-    { id: "bn", label: "বাং" },
+    { id: "bn", label: "বাংলা" },
   ];
 
   return (
@@ -41,11 +41,11 @@ export function LanguageSwitcher({
             onClick={() => setLocale(opt.id)}
             aria-pressed={active}
             className={cn(
-              "min-w-[2.4rem] rounded-full px-2.5 py-1.5 transition",
+              "min-w-[2.6rem] rounded-full px-2.5 py-1.5 transition",
               active
                 ? tone === "dark"
-                  ? "bg-white text-black shadow-sm"
-                  : "bg-[#18181b] text-white shadow-sm"
+                  ? "bg-white text-black"
+                  : "bg-[#18181b] text-white"
                 : tone === "dark"
                   ? "text-white/65 hover:text-white"
                   : "text-zinc-500 hover:text-zinc-900",

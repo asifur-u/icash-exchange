@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { depositAccounts, type PaymentMethodId } from "@/lib/deposit";
+import { depositAccounts, type DepositAccount, type PaymentMethodId } from "@/lib/deposit";
 import { formatBdt } from "@/lib/format";
 import { notifyError, notifySuccess } from "@/lib/swal";
 
@@ -15,6 +15,7 @@ export function PayPanel({
   phone,
   total,
   title,
+  deposits,
   tone = "marketing",
 }: {
   orderId: string;
@@ -24,9 +25,10 @@ export function PayPanel({
   phone?: string;
   total: number;
   title: string;
+  deposits?: DepositAccount[];
   tone?: "marketing" | "portal";
 }) {
-  const accounts = useMemo(() => depositAccounts(), []);
+  const accounts = useMemo(() => deposits ?? depositAccounts(), [deposits]);
   const [method, setMethod] = useState<PaymentMethodId>("bkash");
   const [transactionId, setTransactionId] = useState("");
   const [proofDataUrl, setProofDataUrl] = useState<string | null>(null);

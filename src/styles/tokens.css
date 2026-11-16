@@ -9,4 +9,20 @@
   --accent-soft: rgba(255, 255, 255, 0.08);
   --gold: #ffffff;
   --gold-deep: #d4d4d4;
+
+  /* Owner desk — flat black */
+  --ad-canvas: #000000;
+  --ad-panel: #000000;
+  --ad-card: #0a0a0a;
+  --ad-elevated: #111111;
+  --ad-line: rgba(255, 255, 255, 0.1);
+  --ad-ink: #ffffff;
+  --ad-muted: #a1a1a1;
+  --ad-faint: #737373;
+  --ad-gold: #c9b896;
+  --ad-gold-soft: #e8d5b5;
+  --ad-accent: #e11d2e;
+  --ad-accent-hover: #c41828;
+  --ad-rose: #e8a0a6;
+  --ad-mint: #6ee7b7;
 }
