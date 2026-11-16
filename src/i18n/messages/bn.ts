@@ -629,7 +629,6 @@ export const bn: MessageTree = {
     notesOnHand: "হাতে থাকা নোট",
     stock: "স্টক",
     manageArrow: "ম্যানেজ →",
-    recentOrders: "সাম্প্রতিক অর্ডার",
     liveLabel: "লাইভ",
     allOrdersArrow: "সব অর্ডার →",
     latestActivity: "লেটেস্ট অ্যাকটিভিটি",
