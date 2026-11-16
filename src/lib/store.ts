@@ -43,7 +43,6 @@ export function ensureCatalog() {
       } catch {
         continue;
       }
-      if (process.env.NODE_ENV === "production") continue;
       await prisma.voucherCode.createMany({
         data: Array.from({ length: 8 }, () => {
           const plain = demoCode(item.faceValue);

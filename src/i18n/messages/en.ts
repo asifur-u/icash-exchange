@@ -628,7 +628,6 @@ export const en = {
     notesOnHand: "Notes on hand",
     stock: "Stock",
     manageArrow: "Manage →",
-    recentOrders: "Recent orders",
     liveLabel: "Live",
     allOrdersArrow: "All orders →",
     latestActivity: "Latest activity",
