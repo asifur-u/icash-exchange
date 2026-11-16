@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { DeskPaths } from "@/components/desk-paths";
 import { Frame } from "@/components/frame";
 import { HomeDesk } from "@/components/home-desk";
-import { depositAccounts } from "@/lib/deposit";
+import { resolveDepositAccounts } from "@/lib/deposit-store";
 import { getPublicProducts } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
@@ -13,13 +13,13 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const products = await getPublicProducts();
+  const [products, deposits] = await Promise.all([getPublicProducts(), resolveDepositAccounts()]);
 
   return (
     <>
       <section className="relative overflow-x-clip bg-black pb-16 pt-[calc(5.5rem+env(safe-area-inset-top))] sm:pb-20 sm:pt-28 md:pt-32">
         <Frame>
-          <HomeDesk products={products} deposits={depositAccounts()} />
+          <HomeDesk products={products} deposits={deposits} />
         </Frame>
       </section>
       <DeskPaths />

@@ -99,7 +99,27 @@ html[data-locale="bn"] .bn-hero-bonus {
 html[lang="bn"] .uppercase,
 html[data-locale="bn"] .uppercase {
   text-transform: none;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
+}
+
+html[lang="bn"] [class*="tracking-"],
+html[data-locale="bn"] [class*="tracking-"] {
+  letter-spacing: 0.01em !important;
+}
+
+html[lang="bn"] .font-extrabold,
+html[lang="bn"] .font-black,
+html[lang="bn"] .font-bold,
+html[data-locale="bn"] .font-extrabold,
+html[data-locale="bn"] .font-black,
+html[data-locale="bn"] .font-bold {
+  font-weight: 700 !important;
+}
+
+html[lang="bn"] .ad-kicker,
+html[data-locale="bn"] .ad-kicker {
+  letter-spacing: 0.04em;
+  text-transform: none;
 }
 
 @layer components {
@@ -366,6 +386,107 @@ summary::-webkit-details-marker {
   opacity: 0.1;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* Owner desk — flat full black, hairline cards, no shadows */
+html.admin-root,
+html.admin-root body {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+html.admin-root .grain {
+  display: none;
+}
+
+.admin-desk {
+  color: var(--ad-ink);
+  background: #000;
+}
+
+.admin-panel {
+  background: #000;
+  border-color: var(--ad-line);
+}
+
+.admin-card {
+  overflow: hidden;
+  border-radius: 1.15rem;
+  border: 1px solid var(--ad-line);
+  background: var(--ad-card);
+  box-shadow: none;
+}
+
+.ad-cell {
+  background: var(--ad-card);
+}
+
+.ad-kicker {
+  color: var(--ad-gold);
+}
+
+.ad-warn {
+  color: var(--ad-rose);
+}
+
+.ad-mint {
+  color: var(--ad-mint);
+}
+
+.ad-link {
+  color: var(--ad-gold-soft);
+}
+
+.ad-link:hover {
+  color: #fff;
+}
+
+.ad-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  background: var(--ad-accent);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: none;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.ad-btn:hover:not(:disabled) {
+  background: var(--ad-accent-hover);
+}
+
+.ad-btn:disabled {
+  opacity: 0.4;
+}
+
+.ad-btn.shadow-none {
+  box-shadow: none;
+}
+
+.ad-input {
+  border: 1px solid var(--ad-line);
+  background: #000;
+  color: var(--ad-ink);
+  outline: none;
+  box-shadow: none;
+  transition: border-color 0.15s ease;
+}
+
+.ad-input:focus {
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: none;
+}
+
+.ad-chip-live {
+  background: rgba(16, 185, 129, 0.14);
+  color: var(--ad-mint);
+}
+
+.ad-nav-active {
+  background: #111;
+  box-shadow: inset 3px 0 0 var(--ad-gold);
 }
 
 /* Account dashboard — readable light portal (never inherit body white text) */
@@ -1067,11 +1188,12 @@ html.account-light-root .grain {
   }
 }
 
-/* SweetAlert2 — match black desk UI */
+/* SweetAlert2 — match owner desk */
 .icash-swal {
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: #0a0a0a !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
   border-radius: 1.25rem !important;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.65) !important;
+  box-shadow: none !important;
 }
 
 .icash-swal-title {
@@ -1088,4 +1210,30 @@ html.account-light-root .grain {
   font-weight: 600 !important;
   border-radius: 999px !important;
   padding: 0.65rem 1.4rem !important;
+}
+
+.icash-swal-cancel {
+  border-radius: 999px !important;
+  padding: 0.65rem 1.4rem !important;
+  font-weight: 600 !important;
+}
+
+.icash-swal-method {
+  margin: 12px 0 0 !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.04em;
+}
+
+.icash-swal-trx {
+  margin: 10px 0 0 !important;
+  padding: 12px 14px !important;
+  border-radius: 14px !important;
+  background: rgba(225, 29, 46, 0.14) !important;
+  border: 1px solid rgba(225, 29, 46, 0.4) !important;
+  color: #fff !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.06em;
+  word-break: break-all;
 }

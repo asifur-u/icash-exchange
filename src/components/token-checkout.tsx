@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Frame } from "@/components/frame";
 import { useT } from "@/i18n/provider";
-import { depositAccount, type PaymentMethodId } from "@/lib/deposit";
+import type { DepositAccount } from "@/lib/deposit";
 import { formatBdt } from "@/lib/format";
 import type { TokenPack } from "@/lib/token-packs";
 
@@ -44,7 +44,7 @@ async function copyText(value: string) {
   }
 }
 
-export function TokenCheckout({ pack }: { pack: TokenPack }) {
+export function TokenCheckout({ pack, deposits }: { pack: TokenPack; deposits: DepositAccount[] }) {
   const t = useT();
   const reduce = useReducedMotion();
   const [step, setStep] = useState<Step>(1);
@@ -57,7 +57,7 @@ export function TokenCheckout({ pack }: { pack: TokenPack }) {
   const [number, setNumber] = useState("");
   const [copied, setCopied] = useState<"amount" | "wallet" | null>(null);
 
-  const account = method ? depositAccount(method as PaymentMethodId) : null;
+  const account = method ? deposits.find((item) => item.id === method) ?? null : null;
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const payerOk = /^01\d{9}$/.test(payer.trim());
   const steps = [t("tokenCheckout.stepEmail"), t("tokenCheckout.stepPay"), t("tokenCheckout.stepProof")];

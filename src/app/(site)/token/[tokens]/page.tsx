@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { TokenCheckout } from "@/components/token-checkout";
+import { resolveDepositAccounts } from "@/lib/deposit-store";
 import { tokenPackByTokens } from "@/lib/token-packs";
 
 export const dynamic = "force-dynamic";
@@ -20,5 +21,6 @@ export default async function TokenPage({ params }: { params: Promise<{ tokens: 
   const { tokens } = await params;
   const pack = tokenPackByTokens(Number(tokens));
   if (!pack) notFound();
-  return <TokenCheckout pack={pack} />;
+  const deposits = await resolveDepositAccounts();
+  return <TokenCheckout pack={pack} deposits={deposits} />;
 }

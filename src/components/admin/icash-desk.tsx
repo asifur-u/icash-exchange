@@ -117,15 +117,10 @@ export function IcashDesk({
   ].filter(Boolean) as string[];
 
   return (
-    <div className="mt-6 space-y-5">
+    <div className="space-y-5">
       {/* Connection + balance */}
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-        <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0c0c0c] p-5">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full blur-3xl"
-            style={{ background: config.connected ? "rgba(52,211,153,0.12)" : "rgba(225,29,46,0.16)" }}
-          />
+        <section className="admin-card relative p-5">
           <div className="relative flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
@@ -137,7 +132,7 @@ export function IcashDesk({
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
                   ) : null}
                   <span
-                    className={`relative inline-flex h-2.5 w-2.5 rounded-full ${config.connected ? "bg-emerald-400" : "bg-[#e11d2e]"}`}
+                    className={`relative inline-flex h-2.5 w-2.5 rounded-full ${config.connected ? "bg-[var(--ad-mint)]" : "bg-[var(--ad-accent)]"}`}
                   />
                 </span>
                 {config.connected ? t("icashDesk.connected") : t("icashDesk.notConnected")}
@@ -186,7 +181,7 @@ export function IcashDesk({
           )}
         </section>
 
-        <section className="flex flex-col justify-between rounded-2xl border border-white/10 bg-[#0c0c0c] p-5">
+        <section className="admin-card flex flex-col justify-between p-5">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">{t("icashDesk.balance")}</p>
             <div className="mt-2 min-h-[3.25rem]">
@@ -200,7 +195,7 @@ export function IcashDesk({
                   {money(balance.balance, balance.currency)}
                 </motion.p>
               ) : balance.state === "error" ? (
-                <p className="text-sm font-semibold text-[#ff7a84]">{balance.message}</p>
+                <p className="ad-warn text-sm font-semibold">{balance.message}</p>
               ) : (
                 <p className="text-sm text-white/45">
                   {balance.state === "loading" ? t("icashDesk.checking") : t("icashDesk.balanceIdle")}
@@ -225,7 +220,7 @@ export function IcashDesk({
       </div>
 
       {/* Money board */}
-      <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#0c0c0c]">
+      <section className="admin-card">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-5 py-4">
           <div className="flex rounded-full bg-white/[0.05] p-1" role="tablist">
             {(["today", "month", "all"] as Range[]).map((id) => (
@@ -240,11 +235,11 @@ export function IcashDesk({
                 {range === id ? (
                   <motion.span
                     layoutId="icash-range"
-                    className="absolute inset-0 rounded-full bg-[#e11d2e]"
+                    className="absolute inset-0 rounded-full bg-[var(--ad-gold)]"
                     transition={{ type: "spring", stiffness: 480, damping: 36 }}
                   />
                 ) : null}
-                <span className={`relative ${range === id ? "text-white" : "text-white/60"}`}>
+                <span className={`relative ${range === id ? "text-[#14110c]" : "text-white/60"}`}>
                   {id === "today" ? t("icashDesk.rangeToday") : id === "month" ? t("icashDesk.rangeMonth") : t("icashDesk.rangeAll")}
                 </span>
               </button>
@@ -254,12 +249,8 @@ export function IcashDesk({
         </div>
 
         <div className="grid gap-px bg-white/[0.06] sm:grid-cols-[minmax(0,1.1fr)_minmax(0,2fr)]">
-          <div className="relative overflow-hidden bg-[#0c0c0c] p-5">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -left-16 -top-16 h-48 w-48 rounded-full bg-[#e11d2e]/20 blur-3xl"
-            />
-            <p className="relative text-[11px] font-semibold uppercase tracking-[0.14em] text-[#ff7a84]">
+          <div className="ad-cell relative overflow-hidden p-5">
+            <p className="ad-kicker relative text-[11px] font-semibold uppercase tracking-[0.14em]">
               {t("icashDesk.kpiRevenue")}
             </p>
             <motion.p
@@ -290,7 +281,7 @@ export function IcashDesk({
 
       {/* Daily chart + queue */}
       <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#0c0c0c]">
+        <section className="admin-card">
           <div className="flex flex-wrap items-end justify-between gap-3 border-b border-white/10 px-5 py-4">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">{t("icashDesk.dailyEyebrow")}</p>
@@ -298,7 +289,7 @@ export function IcashDesk({
             </div>
             <div className="flex gap-3 text-[11px] text-white/50">
               <span className="inline-flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-sm bg-[#e11d2e]" /> {t("icashDesk.legendFees")}
+                <span className="h-2 w-2 rounded-sm bg-[var(--ad-gold)]" /> {t("icashDesk.legendFees")}
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-sm bg-white/50" /> {t("icashDesk.legendMargin")}
@@ -322,12 +313,12 @@ export function IcashDesk({
                       >
                         {day.revenue ? (
                           <>
-                            <span className="block w-full bg-[#e11d2e]" style={{ height: `${feeShare}%` }} />
+                            <span className="block w-full bg-[var(--ad-gold)]" style={{ height: `${feeShare}%` }} />
                             <span className="block w-full bg-white/50" style={{ height: `${100 - feeShare}%` }} />
                           </>
                         ) : null}
                       </motion.div>
-                      <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden w-max -translate-x-1/2 rounded-lg border border-white/10 bg-black px-2.5 py-1.5 text-[11px] text-white/80 shadow-xl group-hover:block">
+                      <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden w-max -translate-x-1/2 rounded-lg border border-white/10 bg-black px-2.5 py-1.5 text-[11px] text-white/80 group-hover:block">
                         <p className="font-semibold text-white">{shortDay(day.date)}</p>
                         <p>{formatBdt(day.revenue)}</p>
                         <p className="text-white/45">
@@ -351,7 +342,7 @@ export function IcashDesk({
           {chart.active ? (
             <div className="max-h-72 overflow-auto border-t border-white/10">
               <table className="w-full min-w-[560px] text-left text-xs">
-                <thead className="sticky top-0 bg-[#0c0c0c] text-[10px] uppercase tracking-[0.12em] text-white/35">
+                <thead className="ad-cell sticky top-0 text-[10px] uppercase tracking-[0.12em] text-[var(--ad-faint)]">
                   <tr>
                     <th className="px-5 py-2.5 font-semibold">{t("icashDesk.tableDay")}</th>
                     <th className="px-3 py-2.5 font-semibold">{t("icashDesk.tableBuys")}</th>
@@ -382,8 +373,8 @@ export function IcashDesk({
         </section>
 
         <div className="space-y-4">
-          <section className="rounded-2xl border border-white/10 bg-[#0c0c0c] p-5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#e11d2e]">{t("icashDesk.queueTitle")}</p>
+          <section className="admin-card p-5">
+            <p className="ad-kicker text-[11px] font-semibold uppercase tracking-[0.14em]">{t("icashDesk.queueTitle")}</p>
             {queueRows.length ? (
               <ul className="mt-3 space-y-2">
                 {queueRows.map((row) => (
@@ -398,7 +389,7 @@ export function IcashDesk({
             )}
           </section>
 
-          <section className="rounded-2xl border border-white/10 bg-[#0c0c0c] p-5">
+          <section className="admin-card p-5">
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">{t("icashDesk.emailsTitle")}</p>
             <ul className="mt-3 space-y-2 text-[13px] text-white/75">
               {(
@@ -441,7 +432,7 @@ export function IcashDesk({
       </div>
 
       {/* Issuance log */}
-      <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#0c0c0c]">
+      <section className="admin-card">
         <div className="border-b border-white/10 px-5 py-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">{t("icashDesk.issuesEyebrow")}</p>
           <h2 className="mt-0.5 text-lg font-bold tracking-tight">{t("icashDesk.issuesTitle")}</h2>
@@ -486,7 +477,7 @@ export function IcashDesk({
                       {issuance.masked?.length ? ` · ${issuance.masked.join(", ")}` : ""}
                     </p>
                     {issuance.status === "FAILED" && issuance.errorMessage ? (
-                      <p className="mt-1 text-xs text-[#ff7a84]">
+                      <p className="ad-warn mt-1 text-xs">
                         {issuance.errorMessage} <span className="font-mono text-white/35">({issuance.error})</span>
                       </p>
                     ) : null}
@@ -501,7 +492,7 @@ export function IcashDesk({
                         type="button"
                         disabled={busy || !config.connected}
                         onClick={() => onRetry(order.id)}
-                        className="inline-flex h-9 items-center rounded-lg bg-[#e11d2e] px-3.5 text-xs font-semibold text-white hover:bg-[#c41828] disabled:opacity-40"
+                        className="ad-btn h-9 rounded-lg px-3.5 text-xs"
                       >
                         {t("icashDesk.retry")}
                       </button>
@@ -528,7 +519,7 @@ function Fact({ label, value, mono = false }: { label: string; value: string; mo
 
 function Cell({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="min-w-0 bg-[#0c0c0c] px-3 py-4 sm:px-4">
+    <div className="ad-cell min-w-0 px-3 py-4 sm:px-4">
       <p className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">{label}</p>
       <p className="mt-1 break-words text-base font-extrabold tabular-nums tracking-tight text-white sm:text-lg">
         {value}

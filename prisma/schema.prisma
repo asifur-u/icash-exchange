@@ -117,6 +117,8 @@ model Order {
   total            Int
   paymentRef       String?        @unique
   paymentMethod    PaymentMethod?
+  /// Wallet number shown to the buyer at pay time. Frozen so later admin edits do not rewrite old receipts.
+  depositNumber    String?
   transactionId    String?
   proofFile        String?
   proofSubmittedAt DateTime?      @db.Timestamptz(3)
@@ -196,4 +198,11 @@ model WebhookEvent {
 model Counter {
   id    String @id
   value Int
+}
+
+/// Desk config the owner can change from Payment Setting (deposit wallets, etc).
+model DeskSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(3)
 }
