@@ -167,7 +167,7 @@ describe("iCash issuance", () => {
     });
     const checkout = await reviewingOrder();
     const result = await approvePayment(checkout.orderId);
-    expect(result.codes).toEqual(["FULL-CODE-ab12cd"]);
+    expect(result.codes).toEqual([]);
     const creates = icash.calls.filter((call) => call.path.endsWith("/issuance/create"));
     expect(creates).toHaveLength(2);
     expect(creates[1]?.body).not.toHaveProperty("destination_email");
