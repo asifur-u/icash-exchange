@@ -2,7 +2,7 @@ import type { IssuanceDelivery } from "@/lib/types";
 
 const TEST_URL = "https://rb-stg.icash.one";
 const PRODUCTION_URL = "https://rb.icash.one";
-const TIMEOUT_MS = 30_000;
+const TIMEOUT_MS = 45_000;
 const TOKEN_EARLY_MS = 45_000;
 
 export type IcashEnvironment = "test" | "production";
@@ -240,21 +240,11 @@ export async function icashInfo(ref: string): Promise<IcashInfo> {
   };
 }
 
-/**
- * Generates one voucher. Safe to call again with the same `ref`: iCash rejects a reused
- * reference (card_api_error), and we then read the existing issuance instead of buying twice.
- */
-export async function icashIssue(input: { ref: string; amount: number; email?: string }): Promise<IcashIssue> {
-  const config = icashConfig();
-  const payload: Record<string, unknown> = {
-    country: config.country,
-    card_currency: config.currency,
-    card_amount: input.amount,
-    quantity: 1,
-    reseller_reference_order_id: input.ref,
-  };
-  if (config.delivery === "icash" && input.email) payload.destination_email = input.email;
+function isEmailFailure(error: IcashError) {
+  return /email|destination_email|validation/i.test(`${error.term} ${error.message}`);
+}
 
+async function createIssue(payload: Record<string, unknown>): Promise<IcashIssue> {
   try {
     const body = await call("POST", "/v1/resellers/funds/api/issuance/create", payload);
     const cards = toCards(body.cards);
@@ -267,9 +257,36 @@ export async function icashIssue(input: { ref: string; amount: number; email?: s
     };
   } catch (error) {
     if (!(error instanceof IcashError) || error.term !== "card_api_error") throw error;
-    const existing = await icashInfo(input.ref);
+    const ref = String(payload.reseller_reference_order_id ?? "");
+    const existing = await icashInfo(ref);
     if (existing.cards.length === 0) throw error;
     return { uuid: existing.uuid ?? undefined, cards: existing.cards };
+  }
+}
+
+/**
+ * Generates one voucher. Safe to call again with the same `ref`: iCash rejects a reused
+ * reference (card_api_error), and we then read the existing issuance instead of buying twice.
+ * Production often rejects destination_email; we retry without it so the desk can email the code.
+ */
+export async function icashIssue(input: { ref: string; amount: number; email?: string }): Promise<IcashIssue> {
+  const config = icashConfig();
+  const payload: Record<string, unknown> = {
+    country: config.country,
+    card_currency: config.currency,
+    card_amount: input.amount,
+    quantity: 1,
+    reseller_reference_order_id: input.ref,
+  };
+  const withEmail = config.delivery === "icash" && Boolean(input.email);
+  if (withEmail) payload.destination_email = input.email;
+
+  try {
+    return await createIssue(payload);
+  } catch (error) {
+    if (!(withEmail && error instanceof IcashError && isEmailFailure(error))) throw error;
+    delete payload.destination_email;
+    return createIssue(payload);
   }
 }
 

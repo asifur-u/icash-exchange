@@ -156,6 +156,23 @@ describe("iCash issuance", () => {
     expect(JSON.stringify(snapshot)).not.toContain("codeCiphers");
   });
 
+  it("retries without destination_email when iCash rejects the buyer inbox", async () => {
+    const icash = fakeIcash();
+    icash.createQueue.push((body) => {
+      expect(body.destination_email).toBe("buyer@example.com");
+      return {
+        status: 400,
+        json: { status: "failure", internal_term: "email_validation_error", message: "Email Validation Error" },
+      };
+    });
+    const checkout = await reviewingOrder();
+    const result = await approvePayment(checkout.orderId);
+    expect(result.codes).toEqual(["FULL-CODE-ab12cd"]);
+    const creates = icash.calls.filter((call) => call.path.endsWith("/issuance/create"));
+    expect(creates).toHaveLength(2);
+    expect(creates[1]?.body).not.toHaveProperty("destination_email");
+  });
+
   it("never buys twice when iCash issued but the answer was lost", async () => {
     const icash = fakeIcash();
     icash.createQueue.push((body) => {

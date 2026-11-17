@@ -411,7 +411,7 @@ export async function issueVoucherForOrder(orderId: string, actor = "admin"): Pr
     await addAudit(tx, "icash", "icash.issued", orderId);
   });
 
-  const deskSends = config.delivery === "desk" && full;
+  const deskSends = full;
   later(async () => {
     if (deskSends) {
       await dispatchCodes({
