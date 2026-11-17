@@ -2,7 +2,7 @@ import type { IssuanceDelivery } from "@/lib/types";
 
 const TEST_URL = "https://rb-stg.icash.one";
 const PRODUCTION_URL = "https://rb.icash.one";
-const TIMEOUT_MS = 15_000;
+const TIMEOUT_MS = 30_000;
 const TOKEN_EARLY_MS = 45_000;
 
 export type IcashEnvironment = "test" | "production";
@@ -50,6 +50,7 @@ const FRIENDLY: Record<string, string> = {
   api_static_token_expired: "The iCash static token was revoked or expired.",
   missing_parameter: "iCash says a required field is missing.",
   invalid_request: "iCash could not read the request.",
+  email_validation_error: "iCash could not email this buyer. The desk sends the voucher instead.",
   timeout: "iCash did not answer in time.",
   network: "Could not reach iCash.",
   not_configured: "iCash is not connected. Add the reseller keys to the server environment.",
@@ -157,7 +158,8 @@ async function send(url: string, init: RequestInit): Promise<{ status: number; b
 
 function fail(status: number, body: Raw | null): never {
   const term = typeof body?.internal_term === "string" && body.internal_term ? body.internal_term : `http_${status}`;
-  throw new IcashError(term, icashMessage(term), status);
+  const apiMessage = typeof body?.message === "string" ? body.message.trim() : "";
+  throw new IcashError(term, FRIENDLY[term] ?? (apiMessage || icashMessage(term)), status);
 }
 
 async function accessToken(force = false): Promise<string> {

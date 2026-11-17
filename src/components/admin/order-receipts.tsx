@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import { useT } from "@/i18n/provider";
 import { formatBdt } from "@/lib/format";
+import { readResponseJson } from "@/lib/read-response";
 import { confirmReceived, notifyError } from "@/lib/swal";
 import { tokenPackByPrice } from "@/lib/token-packs";
 import type { AdminSnapshot } from "@/lib/types";
@@ -60,14 +61,14 @@ async function post(url: string, body?: unknown) {
     headers: { "content-type": "application/json" },
     body: body ? JSON.stringify(body) : "{}",
   });
-  const data = (await response.json()) as {
+  const data = await readResponseJson<{
     error?: { message?: string };
     message?: string;
     codes?: string[];
     via?: string;
     email?: string;
     masked?: string[];
-  };
+  }>(response);
   if (!response.ok) throw new Error(data.error?.message ?? "The desk refused that action");
   return data;
 }

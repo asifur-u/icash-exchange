@@ -13,6 +13,7 @@ import {
   humanAction,
 } from "@/lib/admin-ops";
 import { formatBdt, formatWhen } from "@/lib/format";
+import { readResponseJson } from "@/lib/read-response";
 import { notifyError, notifySuccess } from "@/lib/swal";
 import type { DeskAdmin } from "@/lib/admins";
 import type { AdminSnapshot } from "@/lib/types";
@@ -31,7 +32,7 @@ async function post(url: string, body?: unknown, method = "POST") {
     headers: { "content-type": "application/json" },
     body: method === "GET" || method === "DELETE" ? undefined : body ? JSON.stringify(body) : "{}",
   });
-  const data = (await response.json()) as {
+  const data = await readResponseJson<{
     error?: { message?: string };
     message?: string;
     added?: number;
@@ -39,7 +40,7 @@ async function post(url: string, body?: unknown, method = "POST") {
     masked?: string[];
     via?: string;
     email?: string;
-  };
+  }>(response);
   if (!response.ok) throw new Error(data.error?.message ?? "The desk refused that action");
   return data;
 }
