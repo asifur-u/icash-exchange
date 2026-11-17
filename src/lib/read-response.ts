@@ -5,7 +5,9 @@ export async function readResponseJson<T>(response: Response): Promise<T> {
     return JSON.parse(text) as T;
   } catch {
     throw new Error(
-      "The desk timed out talking to iCash. Wait a few seconds, then retry from History — do not approve twice.",
+      response.status === 504 || response.status === 502
+        ? "iCash took too long. Wait, then retry once from History — do not approve twice."
+        : "The desk sent an error page instead of JSON. Refresh and retry once.",
     );
   }
 }

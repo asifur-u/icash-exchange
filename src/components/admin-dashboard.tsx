@@ -350,18 +350,18 @@ export function AdminDashboard({
   const creditHistory = useMemo(
     () =>
       snapshot.orders
-        .filter((order) => order.issuance)
-        .map((order) => ({
-          id: order.id,
-          number: order.number,
-          email: order.email,
-          title: order.title,
-          when: order.issuance!.issuedAt ?? order.issuance!.startedAt,
-          amount: order.issuance!.cost ?? order.issuance!.amount ?? order.voucher,
-          currency: order.issuance!.currency,
-          method: order.paymentMethod,
-          status: order.issuance!.status,
-        }))
+        .filter((order) => order.issuance?.status === "ISSUED")
+        .map((order) => {
+          const issue = order.issuance!;
+          return {
+            id: order.id,
+            number: order.number,
+            when: issue.issuedAt ?? issue.startedAt,
+            amount: issue.amount ?? order.voucher,
+            currency: issue.currency ?? "BDT",
+            uuid: issue.uuid,
+          };
+        })
         .sort((a, b) => +new Date(b.when) - +new Date(a.when)),
     [snapshot.orders],
   );
@@ -681,8 +681,12 @@ export function AdminDashboard({
 
       {section === "balance" ? (
         <section className="mt-1 space-y-4 md:mt-4 md:space-y-5">
-          <IcashCreditCard connected={desk.icash.connected} />
-          <Panel title={t("admin.creditHistory")} eyebrow={t("admin.creditUsed")}>
+          <IcashCreditCard
+            connected={desk.icash.connected}
+            environment={desk.icash.environment}
+            host={desk.icash.host}
+          />
+          <Panel title={t("admin.creditHistory")} eyebrow={t("admin.creditAdded")}>
             {creditHistory.length === 0 ? (
               <p className="text-sm text-white/45">{t("admin.creditEmpty")}</p>
             ) : (
@@ -701,21 +705,17 @@ export function AdminDashboard({
                       <tr key={row.id}>
                         <td className="py-3 text-white/55">{formatWhen(row.when)}</td>
                         <td className="py-3">
-                          <p className="font-mono text-[12px] text-white/80">{row.number}</p>
-                          <p className="text-[11px] text-white/40">{row.title}</p>
+                          <p className="font-mono text-[12px] text-white/80">{row.uuid || row.number}</p>
+                          <p className="text-[11px] text-white/40">{row.number}</p>
                         </td>
-                        <td className="py-3 uppercase text-white/70">{row.method ?? "iCash"}</td>
+                        <td className="py-3 text-white/70">iCash</td>
                         <td className="py-3 text-right">
                           <p className="font-bold tabular-nums text-white">
-                            {row.currency && row.currency !== "BDT" ? `${row.amount} ${row.currency}` : formatBdt(Math.round(row.amount))}
+                            {row.currency && row.currency !== "BDT"
+                              ? `${row.amount} ${row.currency}`
+                              : formatBdt(Math.round(row.amount))}
                           </p>
-                          <p className="text-[11px] text-white/40">
-                            {row.status === "ISSUED"
-                              ? t("admin.creditUsed")
-                              : row.status === "FAILED"
-                                ? t("admin.creditFailed")
-                                : t("admin.creditIssuing")}
-                          </p>
+                          <p className="text-[11px] text-white/40">{t("admin.creditAdded")}</p>
                         </td>
                       </tr>
                     ))}
@@ -1017,7 +1017,15 @@ export function AdminDashboard({
   );
 }
 
-function IcashCreditCard({ connected }: { connected: boolean }) {
+function IcashCreditCard({
+  connected,
+  environment,
+  host,
+}: {
+  connected: boolean;
+  environment: "test" | "production";
+  host: string;
+}) {
   const t = useT();
   const [balance, setBalance] = useState<
     | { state: "idle" }
@@ -1061,6 +1069,9 @@ function IcashCreditCard({ connected }: { connected: boolean }) {
   return (
     <section className="relative admin-card p-5 sm:p-7">
       <p className="relative text-[11px] font-semibold uppercase tracking-[0.16em] text-white/40">{t("admin.creditNow")}</p>
+      <p className="relative mt-1 text-[11px] text-white/35">
+        {host} · {environment}
+      </p>
       <div className="relative mt-3 min-h-[3.5rem]">
         {balance.state === "ok" ? (
           <p className="text-[clamp(2.2rem,6vw,3.4rem)] font-extrabold leading-none tracking-tight tabular-nums">
