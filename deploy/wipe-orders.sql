@@ -3,7 +3,7 @@
 BEGIN;
 
 TRUNCATE "Issuance", "Order", "Sell", "VoucherCode", "WebhookEvent",
-         "Product", "AuditLog", "User", "Counter"
+         "Product", "AuditLog", "User", "Counter", "DeskSetting"
   RESTART IDENTITY CASCADE;
 
 INSERT INTO "Counter" ("id", "value") VALUES ('desk', 1042);

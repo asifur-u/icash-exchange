@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useT } from "@/i18n/provider";
 import { downloadText, exportOrdersCsv } from "@/lib/admin-ops";
+import { readResponseJson } from "@/lib/read-response";
 import { notifySuccess } from "@/lib/swal";
 import type { DeskAdmin } from "@/lib/admins";
 import type { AdminSnapshot } from "@/lib/types";
@@ -44,7 +45,9 @@ async function post(url: string, body?: unknown, method = "POST") {
     headers: { "content-type": "application/json" },
     body: method === "DELETE" ? undefined : JSON.stringify(body ?? {}),
   });
-  const data = (await response.json()) as { error?: { message?: string }; account?: { number: string; name: string } };
+  const data = await readResponseJson<{ error?: { message?: string }; account?: { number: string; name: string } }>(
+    response,
+  );
   if (!response.ok) throw new Error(data.error?.message ?? "The desk refused that action");
   return data;
 }
